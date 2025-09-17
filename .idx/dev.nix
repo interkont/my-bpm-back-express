@@ -14,15 +14,27 @@
     extensions = [
       "google.gemini-cli-vscode-ide-companion"
     ];
+
+    # This block tells IDX to manage a web preview.
+    previews = {
+      enable = true;
+      previews = {
+        web = {
+          # This command just starts the app. IDX automatically provides the $PORT
+          # environment variable, and your app correctly uses it.
+          command = ["npm" "run" "start:dev" "--" "--port" "$PORT"];
+          manager = "web";
+        };
+      };
+    };
+
     workspace = {
-      # Runs when a workspace is first created with this `dev.nix` file
+      # Runs when a workspace is first created
       onCreate = {
         npm-install = "npm ci --no-audit --prefer-offline --no-progress --timing";
       };
-      # Runs when a workspace is (re)started
-      onStart= {
-        run-server = "npm run dev";
-      };
+      # The server is managed by 'previews', so onStart can be empty.
+      onStart = {};
     };
   };
 }

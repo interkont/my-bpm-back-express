@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  output        = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+/// Defines the roles of users in the system (e.g., Management, Finance).
+model Role {
+  id                  Int              @id @default(autoincrement())
+  name                String           @unique @db.VarChar(100)
+  description         String           @db.VarChar(100)
+  users               User[]
+  processElements     ProcessElement[]
+  taskInstances       TaskInstance[]   @relation("assignedRole")
+  caseAssignments     CaseAssignment[]
+
+  @@map("roles")
+}
+
+/// Stores the system's user information.
+model User {
+  id                      Int                 @id @default(autoincrement())
+  fullName                String              @map("full_name") @db.VarChar(255)
+  email                   String              @unique @db.VarChar(255)
+  passwordHash            String              @map("password_hash") @db.Text
+  roleId                  Int?                @map("role_id")
+  status                  String              @default("ACTIVE") @db.VarChar(50)
+  createdAt               DateTime            @default(now()) @map("created_at") @db.Timestamptz()
+  role                    Role?               @relation(fields: [roleId], references: [id])
+  processInstances        ProcessInstance[]
+  startedTasks            TaskInstance[]      @relation("completedByUser")
+  assignedTasks           TaskInstance[]      @relation("assignedUser")
+  uploadedDocuments       DocumentInstance[]
+  caseAssignments         CaseAssignment[]
+
+  @@map("users")
+}
+
+/// The master catalog of each business process and its versions.
+model ProcessDefinition {
+  id                   Int                @id @default(autoincrement())
+  businessProcessKey   String             @map("business_process_key") @db.VarChar(100)
+  name                 String             @db.VarChar(255)
+  description          String?            @db.Text
+  version              Int
+  category             String?            @db.VarChar(100)
+  status               String             @default("DRAFT") @db.VarChar(50)
+  bpmnProcessId        String             @map("bpmn_process_id") @db.VarChar(255)
+  createdAt            DateTime           @default(now()) @map("created_at") @db.Timestamptz()
+  bpmnXml              String?            @map("bpmn_xml") @db.Text
+  processElements      ProcessElement[]
+  processSequences     ProcessSequence[]
+  processInstances     ProcessInstance[]
+
+  @@unique([businessProcessKey, version])
+  @@map("process_definitions")
+}
+
+/// Each "box", "diamond", or "circle" (node) of a process diagram.
+model ProcessElement {
+  id                 Int               @id @default(autoincrement())
+  processDefId       Int               @map("process_def_id")
+  bpmnElementId      String            @map("bpmn_element_id") @db.VarChar(255)
+  name               String?           @db.VarChar(255)
+  description        String?           @db.Text
+  type               String            @db.VarChar(100)
+  assignedRoleId     Int?              @map("assigned_role_id")
+  webhookTarget      String?           @map("webhook_target") @db.Text
+  slaDefinition      Json?             @map("sla_definition") @db.JsonB
+  processDefinition  ProcessDefinition @relation(fields: [processDefId], references: [id], onDelete: Cascade)
+  assignedRole       Role?             @relation(fields: [assignedRoleId], references: [id])
+  elementFormLinks   ElementFormLink[]
+  taskInstances      TaskInstance[]
+
+  @@map("process_elements")
+}
+
+/// The "arrows" that connect the elements, defining the flow.
+model ProcessSequence {
+  id                     Int               @id @default(autoincrement())
+  processDefId           Int               @map("process_def_id")
+  sourceElementBpmnId    String            @map("source_element_bpmn_id") @db.VarChar(255)
+  targetElementBpmnId    String            @map("target_element_bpmn_id") @db.VarChar(255)
+  conditionExpression    String?           @map("condition_expression") @db.Text
+  processDefinition      ProcessDefinition @relation(fields: [processDefId], references: [id], onDelete: Cascade)
+
+  @@map("process_sequences")
+}
+
+/// The central, reusable "library" of all possible form fields.
+model FieldDefinition {
+  id                 Int                @id @default(autoincrement())
+  name               String             @unique @db.VarChar(100)
+  label              String             @db.VarChar(255)
+  fieldType          String             @map("field_type") @db.VarChar(50)
+  validations        Json?              @db.JsonB
+  elementFormLinks   ElementFormLink[]
+  documentInstances  DocumentInstance[]
+
+  @@map("field_definitions")
+}
+
+/// Assembles forms by linking tasks with fields and defining their behavior.
+model ElementFormLink {
+  id                   Int              @id @default(autoincrement())
+  elementId            Int              @map("element_id")
+  fieldDefId           Int              @map("field_def_id")
+  displayOrder         Int              @map("display_order")
+  isRequired           Boolean?         @default(false) @map("is_required")
+  isReadonly           Boolean?         @default(false) @map("is_readonly")
+  contextualValidations Json?           @map("contextual_validations") @db.JsonB
+  processElement       ProcessElement   @relation(fields: [elementId], references: [id], onDelete: Cascade)
+  fieldDefinition      FieldDefinition  @relation(fields: [fieldDefId], references: [id])
+
+  @@map("element_form_links")
+}
+
+/// Records each execution or "case" of a process.
+model ProcessInstance {
+  id                 Int                @id @default(autoincrement())
+  processDefId       Int                @map("process_def_id")
+  status             String             @db.VarChar(50)
+  businessData       Json?              @map("business_data") @db.JsonB
+  startedByUserId    Int                @map("started_by_user_id")
+  startTime          DateTime           @default(now()) @map("start_time") @db.Timestamptz()
+  endTime            DateTime?          @map("end_time") @db.Timestamptz()
+  processDefinition  ProcessDefinition  @relation(fields: [processDefId], references: [id])
+  startedByUser      User               @relation(fields: [startedByUserId], references: [id])
+  taskInstances      TaskInstance[]
+  documentInstances  DocumentInstance[]
+  caseAssignments    CaseAssignment[]
+
+  @@index([status])
+  @@map("process_instances")
+}
+
+/// Records each task generated within a process instance. Feeds the user's inbox.
+model TaskInstance {
+  id                   Int             @id @default(autoincrement())
+  processInstanceId    Int             @map("process_instance_id")
+  elementDefId         Int             @map("element_def_id")
+  status               String          @db.VarChar(50)
+  assignedToRoleId     Int?            @map("assigned_to_role_id")
+  assignedToUserId     Int?            @map("assigned_to_user_id")
+  dueDate              DateTime?       @map("due_date") @db.Timestamptz()
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  completedByUserId    Int?            @map("completed_by_user_id")
+  completionTime       DateTime?       @map("completion_time") @db.Timestamptz()
+  completionPayload    Json?           @map("completion_payload") @db.JsonB
+  processInstance      ProcessInstance @relation(fields: [processInstanceId], references: [id], onDelete: Cascade)
+  processElement       ProcessElement  @relation(fields: [elementDefId], references: [id])
+  assignedRole         Role?           @relation("assignedRole", fields: [assignedToRoleId], references: [id])
+  assignedUser         User?           @relation("assignedUser", fields: [assignedToUserId], references: [id])
+  completedByUser      User?           @relation("completedByUser", fields: [completedByUserId], references: [id])
+  documentInstances    DocumentInstance[]
+
+  @@index([status])
+  @@index([assignedToRoleId])
+  @@index([assignedToUserId])
+  @@map("task_instances")
+}
+
+/// Reference to files in S3 and their metadata.
+model DocumentInstance {
+  id                  Int             @id @default(autoincrement())
+  processInstanceId   Int             @map("process_instance_id")
+  taskInstanceId      Int?            @map("task_instance_id")
+  fieldDefId          Int             @map("field_def_id")
+  storageKey          String          @unique @map("storage_key") @db.Text
+  fileName            String          @map("file_name") @db.VarChar(255)
+  version             Int             @default(1)
+  status              String          @default("ACTIVE") @db.VarChar(50)
+  uploadedByUserId    Int             @map("uploaded_by_user_id")
+  createdAt           DateTime        @default(now()) @map("created_at") @db.Timestamptz()
+  processInstance     ProcessInstance @relation(fields: [processInstanceId], references: [id], onDelete: Cascade)
+  taskInstance        TaskInstance?   @relation(fields: [taskInstanceId], references: [id])
+  fieldDefinition     FieldDefinition @relation(fields: [fieldDefId], references: [id])
+  uploadedByUser      User            @relation(fields: [uploadedByUserId], references: [id])
+
+  @@index([processInstanceId])
+  @@map("document_instances")
+}
+
+/// Assigns a specific user to a role for a single process instance.
+model CaseAssignment {
+  id                Int             @id @default(autoincrement())
+  processInstanceId Int             @map("process_instance_id")
+  roleId            Int             @map("role_id")
+  assignedUserId    Int             @map("assigned_user_id")
+  processInstance   ProcessInstance @relation(fields: [processInstanceId], references: [id], onDelete: Cascade)
+  role              Role            @relation(fields: [roleId], references: [id])
+  assignedUser      User            @relation(fields: [assignedUserId], references: [id])
+
+  @@unique([processInstanceId, roleId])
+  @@map("case_assignments")
+}
