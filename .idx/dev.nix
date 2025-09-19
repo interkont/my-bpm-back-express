@@ -22,7 +22,7 @@
         web = {
           # This command just starts the app. IDX automatically provides the $PORT
           # environment variable, and your app correctly uses it.
-          command = ["npm" "run" "start:dev" "--" "--port" "$PORT"];
+          command = ["npm" "run" "start:dev" "--" "--port" "$PORT" "--host" "0.0.0.0" "--disable-host-check"];
           manager = "web";
         };
       };

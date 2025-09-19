@@ -13,7 +13,7 @@ const login = async (email, password) => {
     throw new Error('Invalid credentials');
   }
 
-  const token = jwt.sign({ sub: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+  const token = jwt.sign({ sub: user.id, roleId: user.roleId }, process.env.JWT_SECRET, { expiresIn: '1h' });
   // No devolver el hash de la contraseña
   const { passwordHash, ...userWithoutPassword } = user;
   return { user: userWithoutPassword, token };
