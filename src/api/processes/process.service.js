@@ -1,4 +1,4 @@
-const prisma = require('../../utils/prisma'); // Corregido
+const prisma = require('../../utils/prisma');
 
 /**
  * Crea una nueva definición de proceso.
@@ -63,10 +63,61 @@ const deleteProcessDefinition = async (id) => {
   return prisma.processDefinition.delete({ where: { id: parseInt(id, 10) } });
 };
 
+/**
+ * Obtiene la definición del formulario para el evento de inicio de un proceso.
+ * @param {number} processDefId - El ID de la definición del proceso.
+ * @returns {Promise<object>} La definición del formulario de inicio.
+ */
+const getStartForm = async (processDefId) => {
+  const startEventElement = await prisma.processElement.findFirst({
+    where: {
+      processDefId: parseInt(processDefId, 10),
+      type: 'START_EVENT', // Buscamos el elemento de inicio
+    },
+    include: {
+      elementFormLinks: {
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          fieldDefinition: true,
+        },
+      },
+    },
+  });
+
+  if (!startEventElement) {
+    throw new Error('Start form definition not found for this process.');
+  }
+
+  const formFields = startEventElement.elementFormLinks.map(link => {
+    return {
+      name: link.fieldDefinition.name,
+      label: link.fieldDefinition.label,
+      fieldType: link.fieldDefinition.fieldType,
+      value: null, // El formulario de inicio nunca tiene valores pre-poblados
+      validations: {
+        ...link.fieldDefinition.validations,
+        isRequired: link.isRequired,
+        isReadonly: link.isReadonly,
+        ...link.contextualValidations,
+      },
+    };
+  });
+
+  const formDefinition = {
+    taskName: startEventElement.name || 'Iniciar Proceso',
+    fields: formFields,
+    actions: ['start'],
+  };
+
+  return formDefinition;
+};
+
+
 module.exports = {
   createProcessDefinition,
   getAllProcessDefinitions,
   getProcessDefinitionById,
   updateProcessDefinition,
   deleteProcessDefinition,
+  getStartForm, // Exportar la nueva función
 };

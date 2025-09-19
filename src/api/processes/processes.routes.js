@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const processController = require('./process.controller'); // Corregido
-const protect = require('../middlewares/auth.middleware'); // Corregido
+const processController = require('./process.controller');
+const protect = require('../middlewares/auth.middleware');
 
 // Proteger todas las rutas de este módulo
 router.use(protect);
@@ -10,6 +10,9 @@ router
   .route('/')
   .post(processController.createProcessDefinition)
   .get(processController.getAllProcessDefinitions);
+
+// Nueva ruta para obtener el formulario de inicio
+router.get('/:id/start-form', processController.getStartForm);
 
 router
   .route('/:id')

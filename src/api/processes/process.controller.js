@@ -1,5 +1,5 @@
-const processService = require('./process.service'); // Corregido
-const catchAsync = require('../../utils/catchAsync'); // Corregido
+const processService = require('./process.service');
+const catchAsync = require('../../utils/catchAsync');
 
 const createProcessDefinition = catchAsync(async (req, res) => {
   const processDefinition = await processService.createProcessDefinition(req.body);
@@ -32,10 +32,17 @@ const deleteProcessDefinition = catchAsync(async (req, res) => {
   res.status(204).send();
 });
 
+const getStartForm = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const formDefinition = await processService.getStartForm(id);
+  res.status(200).json(formDefinition);
+});
+
 module.exports = {
   createProcessDefinition,
   getAllProcessDefinitions,
   getProcessDefinitionById,
   updateProcessDefinition,
   deleteProcessDefinition,
+  getStartForm,
 };
