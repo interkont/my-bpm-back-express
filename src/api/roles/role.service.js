@@ -1,4 +1,4 @@
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma'); // Corregido
 
 const createRole = (data) => {
   return prisma.role.create({

@@ -1,4 +1,4 @@
-const roleService = require('../services/role.service');
+const roleService = require('./role.service'); // Corregido: La ruta ahora es local
 
 const createRole = async (req, res, next) => {
   try {

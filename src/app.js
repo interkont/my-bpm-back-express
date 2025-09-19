@@ -5,32 +5,27 @@ const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const passport = require('./config/passport');
-const errorMiddleware = require('./middlewares/error.middleware');
-const routes = require('./routes');
+const errorMiddleware = require('./api/middlewares/error.middleware');
+const routes = require('./api/routes'); // Corregido: Apunta al nuevo enrutador
 
 const app = express();
-
-// Middlewares
+// ... (resto del archivo sin cambios)
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
 
-// Servir archivos estáticos desde la carpeta 'public'
 app.use(express.static(path.join(__dirname, '../public')));
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100,
 });
 app.use(limiter);
 
-// Passport Middleware
-app.use(passport.initialize()); // <-- Reactivado
+app.use(passport.initialize());
 
-// Rutas de la API bajo el prefijo /api
 app.use('/api', routes);
 
-// Error Handling Middleware
 app.use(errorMiddleware);
 
 const getPortFromArgs = () => {

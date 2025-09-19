@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const processController = require('../controllers/process.controller');
-const protect = require('../middlewares/auth.middleware');
+const processController = require('./process.controller'); // Corregido
+const protect = require('../middlewares/auth.middleware'); // Corregido
 
 // Proteger todas las rutas de este módulo
 router.use(protect);

@@ -1,5 +1,5 @@
-const authService = require('./auth.service');
-const catchAsync = require('../utils/catchAsync');
+const authService = require('./auth.service'); // Corregido
+const catchAsync = require('../../utils/catchAsync'); // Corregido
 
 const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;

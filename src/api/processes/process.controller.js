@@ -1,5 +1,5 @@
-const processService = require('../services/process.service');
-const catchAsync = require('../../utils/catchAsync');
+const processService = require('./process.service'); // Corregido
+const catchAsync = require('../../utils/catchAsync'); // Corregido
 
 const createProcessDefinition = catchAsync(async (req, res) => {
   const processDefinition = await processService.createProcessDefinition(req.body);

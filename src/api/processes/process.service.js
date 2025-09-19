@@ -1,4 +1,4 @@
-const prisma = require('../../utils/prisma');
+const prisma = require('../../utils/prisma'); // Corregido
 
 /**
  * Crea una nueva definición de proceso.

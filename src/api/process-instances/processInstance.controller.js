@@ -1,5 +1,5 @@
-const processInstanceService = require('../services/processInstance.service');
-const catchAsync = require('../../utils/catchAsync');
+const processInstanceService = require('./processInstance.service'); // Corregido
+const catchAsync = require('../../utils/catchAsync'); // Corregido
 
 const createProcessInstance = catchAsync(async (req, res) => {
   // Añadimos el ID del usuario autenticado como el iniciador del proceso

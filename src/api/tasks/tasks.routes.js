@@ -1,12 +1,12 @@
 
 const express = require('express');
-const taskController = require('../controllers/task.controller');
-const protect = require('../middlewares/auth.middleware'); // Corregido
+const taskController = require('./task.controller'); // Corregido: La ruta ahora es local
+const protect = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
 // Todas las rutas de tareas a partir de aquí requieren autenticación
-router.use(protect); // Corregido
+router.use(protect);
 
 /**
  * @swagger

@@ -1,4 +1,4 @@
-const prisma = require('../../utils/prisma');
+const prisma = require('../../utils/prisma'); // Corregido
 
 /**
  * Crea una nueva instancia de proceso.
@@ -30,7 +30,7 @@ const getAllProcessInstances = async () => {
     orderBy: { startTime: 'desc' },
     include: {
       processDefinition: {
-        select: processDefinitionSelect // CORREGIDO: Usar el selector enriquecido
+        select: processDefinitionSelect
       },
       startedByUser: {
         select: { id: true, fullName: true, email: true }
@@ -49,7 +49,7 @@ const getProcessInstanceById = async (id) => {
     where: { id: parseInt(id, 10) },
     include: {
       processDefinition: {
-        select: processDefinitionSelect // CORREGIDO: Usar el selector para excluir bpmnXml
+        select: processDefinitionSelect
       },
       startedByUser: {
         select: { id: true, fullName: true, email: true }

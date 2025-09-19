@@ -1,4 +1,4 @@
-const userService = require('../services/user.service');
+const userService = require('./user.service'); // Corregido
 const bcrypt = require('bcryptjs');
 
 const createUser = async (req, res, next) => {

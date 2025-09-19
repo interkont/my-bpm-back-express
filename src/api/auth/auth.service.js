@@ -1,4 +1,4 @@
-const prisma = require('../utils/prisma');
+const prisma = require('../../utils/prisma'); // Corregido
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -14,7 +14,6 @@ const login = async (email, password) => {
   }
 
   const token = jwt.sign({ sub: user.id, roleId: user.roleId }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  // No devolver el hash de la contraseña
   const { passwordHash, ...userWithoutPassword } = user;
   return { user: userWithoutPassword, token };
 };

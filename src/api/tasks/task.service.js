@@ -1,5 +1,5 @@
 
-const prisma = require('../../utils/prisma');
+const prisma = require('../../utils/prisma'); // Corregido
 
 /**
  * Obtiene la bandeja de entrada de un usuario.
@@ -25,7 +25,7 @@ const getMyTasks = async (userId, roleId) => {
           startedByUser: true,
         },
       },
-      processElement: true, // CORREGIDO: El nombre correcto de la relación
+      processElement: true,
     },
     orderBy: {
       createdAt: 'desc',
@@ -35,7 +35,7 @@ const getMyTasks = async (userId, roleId) => {
   // Mapeamos el resultado al formato de respuesta deseado para el API
   const formattedTasks = taskInstances.map(task => ({
     taskId: task.id,
-    taskName: task.processElement.name, // CORREGIDO: Usar la relación correcta
+    taskName: task.processElement.name,
     processInstanceId: task.processInstanceId,
     processName: task.processInstance.processDefinition.name,
     processStartedBy: task.processInstance.startedByUser.name,

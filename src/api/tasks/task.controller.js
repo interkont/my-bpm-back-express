@@ -1,5 +1,5 @@
-const taskService = require('../services/task.service');
-const catchAsync = require('../../utils/catchAsync');
+const taskService = require('./task.service'); // Corregido
+const catchAsync = require('../../utils/catchAsync'); // Corregido
 
 /**
  * Controlador para obtener la bandeja de entrada del usuario autenticado.

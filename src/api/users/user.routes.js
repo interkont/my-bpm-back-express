@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/user.controller');
-const authMiddleware = require('../api/middlewares/auth.middleware');
+const userController = require('./user.controller'); // Corregido
+const authMiddleware = require('../middlewares/auth.middleware'); // Corregido
 
 router.post('/', userController.createUser);
 router.get('/', authMiddleware, userController.getAllUsers);

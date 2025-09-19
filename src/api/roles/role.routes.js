@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const roleController = require('../controllers/role.controller');
-const protect = require('../api/middlewares/auth.middleware');
+const roleController = require('./role.controller');
+const protect = require('../middlewares/auth.middleware');
 
 // Aplicar middleware de autenticación a todas las rutas de roles
 router.use(protect);
