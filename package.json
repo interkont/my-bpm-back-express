@@ -36,10 +36,10 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "prisma": "latest",
     "@types/node": "^20.12.12",
     "jest": "^29.7.0",
     "nodemon": "^3.1.2",
+    "prisma": "latest",
     "supertest": "^7.0.0",
     "typescript": "^5.4.5"
   }

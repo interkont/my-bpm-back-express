@@ -1,18 +1,20 @@
-const prisma = require('../../utils/prisma'); // Corregido
+const prisma = require('../../utils/prisma');
 
 /**
- * Crea una nueva instancia de proceso.
+ * Crea un registro de instancia de proceso directamente en la base de datos (función administrativa).
  * @param {object} data - Los datos para la nueva instancia.
  * @returns {Promise<object>} La instancia de proceso creada.
  */
-const createProcessInstance = async (data) => {
+const createProcessInstanceRecord = async (data) => {
   return prisma.processInstance.create({ data });
 };
 
+// ... (El resto de las funciones: getAllProcessInstances, getProcessInstanceById, etc. permanecen sin cambios)
 // Define los campos a seleccionar de ProcessDefinition para evitar cargar el XML.
 const processDefinitionSelect = {
   id: true,
   businessProcessKey: true,
+
   name: true,
   description: true,
   version: true,
@@ -82,7 +84,7 @@ const deleteProcessInstance = async (id) => {
 };
 
 module.exports = {
-  createProcessInstance,
+  createProcessInstanceRecord, // Exportar con el nuevo nombre
   getAllProcessInstances,
   getProcessInstanceById,
   updateProcessInstance,

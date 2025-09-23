@@ -5,12 +5,12 @@ const protect = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-// Todas las rutas de tareas a partir de aquí requieren autenticación
 router.use(protect);
 
 router.get('/my-tasks', taskController.getMyTasks);
-
-// Nueva ruta para obtener el formulario de una tarea específica
 router.get('/:id/form', taskController.getTaskForm);
+
+// Nuevo endpoint para completar una tarea
+router.post('/:id/complete', taskController.completeTask);
 
 module.exports = router;

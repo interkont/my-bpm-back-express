@@ -1,16 +1,37 @@
-const processInstanceService = require('./processInstance.service'); // Corregido
-const catchAsync = require('../../utils/catchAsync'); // Corregido
+const processInstanceService = require('./processInstance.service');
+const processEngineService = require('../engine/processEngine.service');
+const catchAsync = require('../../utils/catchAsync');
 
+/**
+ * Inicia una instancia de proceso utilizando el motor de procesos.
+ */
 const createProcessInstance = catchAsync(async (req, res) => {
-  // Añadimos el ID del usuario autenticado como el iniciador del proceso
+  const { businessProcessKey, businessData } = req.body;
+  const startedByUserId = req.user.id;
+  
+  const instance = await processEngineService.startProcess(businessProcessKey, startedByUserId, businessData);
+  
+  res.status(201).json({
+    processInstanceId: instance.id,
+    status: instance.status,
+    message: "Process instance started successfully."
+  });
+});
+
+/**
+ * Crea un registro de instancia de proceso directamente (función administrativa).
+ */
+const createProcessInstanceRecord = catchAsync(async (req, res) => {
   const data = {
     ...req.body,
     startedByUserId: req.user.id,
   };
-  const instance = await processInstanceService.createProcessInstance(data);
+  const instance = await processInstanceService.createProcessInstanceRecord(data);
   res.status(201).json(instance);
 });
 
+
+// --- El resto de funciones CRUD permanecen igual ---
 const getAllProcessInstances = catchAsync(async (req, res) => {
   const instances = await processInstanceService.getAllProcessInstances();
   res.status(200).json(instances);
@@ -39,6 +60,7 @@ const deleteProcessInstance = catchAsync(async (req, res) => {
 
 module.exports = {
   createProcessInstance,
+  createProcessInstanceRecord, // Exportar la nueva función
   getAllProcessInstances,
   getProcessInstanceById,
   updateProcessInstance,
