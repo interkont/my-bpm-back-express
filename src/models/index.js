@@ -11,45 +11,52 @@ const TaskInstance = require('./task-instance.model');
 const DocumentInstance = require('./document-instance.model');
 const CaseAssignment = require('./case-assignment.model');
 
+// --- Relaciones con onDelete: CASCADE ---
+
+// Cuando se elimina una ProcessDefinition, se eliminan sus elementos y secuencias.
+ProcessDefinition.hasMany(ProcessElement, { foreignKey: 'processDefId', as: 'processElements' });
+ProcessElement.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition', onDelete: 'CASCADE' });
+
+ProcessDefinition.hasMany(ProcessSequence, { foreignKey: 'processDefId', as: 'processSequences' });
+ProcessSequence.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition', onDelete: 'CASCADE' });
+
+// Cuando se elimina un ProcessElement, se eliminan sus ElementFormLinks.
+ProcessElement.hasMany(ElementFormLink, { foreignKey: 'elementId', as: 'elementFormLinks' });
+ElementFormLink.belongsTo(ProcessElement, { foreignKey: 'elementId', as: 'processElement', onDelete: 'CASCADE' });
+
+// Cuando se elimina una ProcessInstance, se eliminan sus tareas, documentos y asignaciones.
+ProcessInstance.hasMany(TaskInstance, { foreignKey: 'processInstanceId', as: 'taskInstances' });
+TaskInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+
+ProcessInstance.hasMany(DocumentInstance, { foreignKey: 'processInstanceId', as: 'documentInstances' });
+DocumentInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+
+ProcessInstance.hasMany(CaseAssignment, { foreignKey: 'processInstanceId', as: 'caseAssignments' });
+CaseAssignment.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+
+
+// --- Otras Relaciones ---
+
 // User <-> Role
 Role.hasMany(User, { foreignKey: 'roleId', as: 'users' });
 User.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
 
-// ProcessDefinition -> ProcessElement, ProcessSequence, ProcessInstance
-ProcessDefinition.hasMany(ProcessElement, { foreignKey: 'processDefId', as: 'processElements' });
-ProcessElement.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition' });
-
-ProcessDefinition.hasMany(ProcessSequence, { foreignKey: 'processDefId', as: 'processSequences' });
-ProcessSequence.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition' });
-
+// ProcessDefinition <-> ProcessInstance (Ya definido arriba, sin cascada aquí)
 ProcessDefinition.hasMany(ProcessInstance, { foreignKey: 'processDefId', as: 'processInstances' });
 ProcessInstance.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition' });
 
-// ProcessElement -> ElementFormLink, TaskInstance
-ProcessElement.hasMany(ElementFormLink, { foreignKey: 'elementId', as: 'elementFormLinks' });
-ElementFormLink.belongsTo(ProcessElement, { foreignKey: 'elementId', as: 'processElement' });
-
+// ProcessElement <-> TaskInstance
 ProcessElement.hasMany(TaskInstance, { foreignKey: 'elementDefId', as: 'taskInstances' });
 TaskInstance.belongsTo(ProcessElement, { foreignKey: 'elementDefId', as: 'processElement' });
 
-// FieldDefinition -> ElementFormLink, DocumentInstance
+// FieldDefinition <-> ElementFormLink & DocumentInstance
 FieldDefinition.hasMany(ElementFormLink, { foreignKey: 'fieldDefId', as: 'elementFormLinks' });
 ElementFormLink.belongsTo(FieldDefinition, { foreignKey: 'fieldDefId', as: 'fieldDefinition' });
 
 FieldDefinition.hasMany(DocumentInstance, { foreignKey: 'fieldDefId', as: 'documentInstances' });
 DocumentInstance.belongsTo(FieldDefinition, { foreignKey: 'fieldDefId', as: 'fieldDefinition' });
 
-// ProcessInstance -> TaskInstance, DocumentInstance, CaseAssignment
-ProcessInstance.hasMany(TaskInstance, { foreignKey: 'processInstanceId', as: 'taskInstances' });
-TaskInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance' });
-
-ProcessInstance.hasMany(DocumentInstance, { foreignKey: 'processInstanceId', as: 'documentInstances' });
-DocumentInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance' });
-
-ProcessInstance.hasMany(CaseAssignment, { foreignKey: 'processInstanceId', as: 'caseAssignments' });
-CaseAssignment.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance' });
-
-// User relations
+// Relaciones de User
 User.hasMany(ProcessInstance, { foreignKey: 'startedByUserId', as: 'startedProcessInstances' });
 ProcessInstance.belongsTo(User, { foreignKey: 'startedByUserId', as: 'startedByUser' });
 
@@ -65,19 +72,20 @@ DocumentInstance.belongsTo(User, { foreignKey: 'uploadedByUserId', as: 'uploaded
 User.hasMany(CaseAssignment, { foreignKey: 'assignedUserId', as: 'caseAssignments' });
 CaseAssignment.belongsTo(User, { foreignKey: 'assignedUserId', as: 'assignedUser' });
 
-// Role relations
+// Relaciones de Role
 Role.hasMany(ProcessElement, { foreignKey: 'assignedRoleId', as: 'processElements' });
 ProcessElement.belongsTo(Role, { foreignKey: 'assignedRoleId', as: 'assignedRole' });
 
 Role.hasMany(TaskInstance, { foreignKey: 'assignedToRoleId', as: 'taskInstances' });
 TaskInstance.belongsTo(Role, { foreignKey: 'assignedToRoleId', as: 'assignedRole' });
 
-Role.hasMany(CaseAssignment, { foreignKey: 'roleId', as: 'caseAssignments' });
+Role.hasMany(CaseAssignment, { foreignKey: 'roleId', as: 'caseAssignments' }); // Corregido: hasmany -> hasMany
 CaseAssignment.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
 
 // TaskInstance -> DocumentInstance
 TaskInstance.hasMany(DocumentInstance, { foreignKey: 'taskInstanceId', as: 'documentInstances' });
 DocumentInstance.belongsTo(TaskInstance, { foreignKey: 'taskInstanceId', as: 'taskInstance' });
+
 
 const db = {
   sequelize,

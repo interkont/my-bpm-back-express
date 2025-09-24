@@ -48,10 +48,10 @@ const getMyTasks = async (userId, roleId) => {
 
   const formattedTasks = taskInstances.map((task) => ({
     taskId: task.id,
-    taskName: task.processElement.name,
+    taskName: task.processElement?.name ?? 'Unnamed Task',
     processInstanceId: task.processInstanceId,
-    processName: task.processInstance.processDefinition.name,
-    processStartedBy: task.processInstance.startedByUser.fullName, // Corregido para usar el nombre del campo correcto
+    processName: task.processInstance?.processDefinition?.name ?? 'Unknown Process',
+    processStartedBy: task.processInstance?.startedByUser?.fullName ?? 'Unknown User',
     createdAt: task.createdAt,
     dueDate: task.dueDate,
   }));
@@ -104,7 +104,7 @@ const getTaskForm = async (taskId) => {
     throw new Error('Task not found');
   }
 
-  const businessData = taskInstance.processInstance.businessData || {};
+  const businessData = taskInstance.processInstance?.businessData || {};
 
   const formFields = taskInstance.processElement.elementFormLinks.map((link) => {
     return {
@@ -113,10 +113,10 @@ const getTaskForm = async (taskId) => {
       fieldType: link.fieldDefinition.fieldType,
       value: businessData[link.fieldDefinition.name] || null, // Pre-poblar valor si existe
       validations: {
-        ...link.fieldDefinition.validations, // Validaciones globales
+        ...(link.fieldDefinition.validations || {}), // Asegurarse que validations no sea null
         isRequired: link.isRequired,
         isReadonly: link.isReadonly,
-        ...link.contextualValidations, // Validaciones específicas de esta tarea
+        ...(link.contextualValidations || {}), // Asegurarse que contextualValidations no sea null
       },
     };
   });

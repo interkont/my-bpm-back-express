@@ -4,7 +4,7 @@ const logger = require('../utils/logger');
 
 const sequelize = new Sequelize(config.db.databaseUrl, {
   dialect: 'postgres',
-  logging: (msg) => logger.debug(msg),
+  logging: false,
 });
 
 module.exports = sequelize;
