@@ -1,9 +1,9 @@
-const prisma = require('../../utils/prisma'); // Corregido
+const { User } = require('../../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const login = async (email, password) => {
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await User.findOne({ where: { email } });
   if (!user) {
     throw new Error('Invalid credentials');
   }
@@ -14,7 +14,7 @@ const login = async (email, password) => {
   }
 
   const token = jwt.sign({ sub: user.id, roleId: user.roleId }, process.env.JWT_SECRET, { expiresIn: '1h' });
-  const { passwordHash, ...userWithoutPassword } = user;
+  const { passwordHash, ...userWithoutPassword } = user.get({ plain: true }); // Usamos .get({ plain: true }) para obtener un objeto plano de la instancia de Sequelize
   return { user: userWithoutPassword, token };
 };
 

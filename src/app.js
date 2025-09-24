@@ -1,12 +1,14 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
-const helmet = require('helmet');
+const helmet =require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const passport = require('./config/passport');
 const errorMiddleware = require('./api/middlewares/error.middleware');
-const routes = require('./api/routes'); // Corregido: Apunta al nuevo enrutador
+const routes = require('./api/routes');
+const sequelize = require('./config/database');
+
 
 const app = express();
 // ... (resto del archivo sin cambios)
@@ -38,8 +40,19 @@ const getPortFromArgs = () => {
 
 const PORT = process.env.PORT || getPortFromArgs() || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Database connection has been established successfully.');
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Unable to connect to the database:', error);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 module.exports = app;

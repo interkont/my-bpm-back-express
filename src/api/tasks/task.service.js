@@ -1,5 +1,13 @@
-
-const prisma = require('../../utils/prisma');
+const {
+  TaskInstance,
+  ProcessInstance,
+  ProcessDefinition,
+  User,
+  ProcessElement,
+  ElementFormLink,
+  FieldDefinition,
+} = require('../../models');
+const { Op } = require('sequelize');
 
 /**
  * Obtiene la bandeja de entrada de un usuario.
@@ -10,34 +18,40 @@ const prisma = require('../../utils/prisma');
  * @returns {Promise<Array>} - Una promesa que resuelve a un array de tareas formateadas.
  */
 const getMyTasks = async (userId, roleId) => {
-  const taskInstances = await prisma.taskInstance.findMany({
+  const taskInstances = await TaskInstance.findAll({
     where: {
       status: 'PENDING',
-      OR: [
-        { assignedToUserId: userId },
-        { assignedToRoleId: roleId },
-      ],
+      [Op.or]: [{ assignedToUserId: userId }, { assignedToRoleId: roleId }],
     },
-    include: {
-      processInstance: {
-        include: {
-          processDefinition: true,
-          startedByUser: true,
-        },
+    include: [
+      {
+        model: ProcessInstance,
+        as: 'processInstance',
+        include: [
+          {
+            model: ProcessDefinition,
+            as: 'processDefinition',
+          },
+          {
+            model: User,
+            as: 'startedByUser',
+          },
+        ],
       },
-      processElement: true,
-    },
-    orderBy: {
-      createdAt: 'desc',
-    },
+      {
+        model: ProcessElement,
+        as: 'processElement',
+      },
+    ],
+    order: [['createdAt', 'desc']],
   });
 
-  const formattedTasks = taskInstances.map(task => ({
+  const formattedTasks = taskInstances.map((task) => ({
     taskId: task.id,
     taskName: task.processElement.name,
     processInstanceId: task.processInstanceId,
     processName: task.processInstance.processDefinition.name,
-    processStartedBy: task.processInstance.startedByUser.name,
+    processStartedBy: task.processInstance.startedByUser.fullName, // Corregido para usar el nombre del campo correcto
     createdAt: task.createdAt,
     dueDate: task.dueDate,
   }));
@@ -52,21 +66,37 @@ const getMyTasks = async (userId, roleId) => {
  * @returns {Promise<object>} - Una promesa que resuelve a la definición del formulario.
  */
 const getTaskForm = async (taskId) => {
-  const taskInstance = await prisma.taskInstance.findUnique({
-    where: { id: parseInt(taskId, 10) },
-    include: {
-      processElement: {
-        include: {
-          elementFormLinks: {
-            orderBy: { displayOrder: 'asc' }, // Ordenar campos por displayOrder
-            include: {
-              fieldDefinition: true,
-            },
+  const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
+    include: [
+      {
+        model: ProcessElement,
+        as: 'processElement',
+        include: [
+          {
+            model: ElementFormLink,
+            as: 'elementFormLinks',
+            include: [
+              {
+                model: FieldDefinition,
+                as: 'fieldDefinition',
+              },
+            ],
           },
-        },
+        ],
       },
-      processInstance: true,
-    },
+      {
+        model: ProcessInstance,
+        as: 'processInstance',
+      },
+    ],
+    order: [
+      [
+        { model: ProcessElement, as: 'processElement' },
+        { model: ElementFormLink, as: 'elementFormLinks' },
+        'displayOrder',
+        'ASC',
+      ],
+    ],
   });
 
   if (!taskInstance) {
@@ -76,7 +106,7 @@ const getTaskForm = async (taskId) => {
 
   const businessData = taskInstance.processInstance.businessData || {};
 
-  const formFields = taskInstance.processElement.elementFormLinks.map(link => {
+  const formFields = taskInstance.processElement.elementFormLinks.map((link) => {
     return {
       name: link.fieldDefinition.name,
       label: link.fieldDefinition.label,

@@ -1,4 +1,9 @@
-const prisma = require('../../utils/prisma');
+const {
+  ProcessDefinition,
+  ProcessElement,
+  ElementFormLink,
+  FieldDefinition,
+} = require('../../models');
 
 /**
  * Crea una nueva definición de proceso.
@@ -6,7 +11,7 @@ const prisma = require('../../utils/prisma');
  * @returns {Promise<object>} La definición de proceso creada.
  */
 const createProcessDefinition = async (data) => {
-  return prisma.processDefinition.create({ data });
+  return ProcessDefinition.create(data);
 };
 
 /**
@@ -14,21 +19,11 @@ const createProcessDefinition = async (data) => {
  * @returns {Promise<Array>} Un array con todas las definiciones.
  */
 const getAllProcessDefinitions = async () => {
-  return prisma.processDefinition.findMany({
-    select: {
-      id: true,
-      businessProcessKey: true,
-      name: true,
-      description: true,
-      version: true,
-      category: true,
-      status: true,
-      bpmnProcessId: true,
-      createdAt: true,
+  return ProcessDefinition.findAll({
+    attributes: {
+      exclude: ['bpmnXml'],
     },
-    orderBy: {
-      createdAt: 'desc',
-    }
+    order: [['createdAt', 'desc']],
   });
 };
 
@@ -38,7 +33,7 @@ const getAllProcessDefinitions = async () => {
  * @returns {Promise<object|null>} La definición encontrada o null.
  */
 const getProcessDefinitionById = async (id) => {
-  return prisma.processDefinition.findUnique({ where: { id: parseInt(id, 10) } });
+  return ProcessDefinition.findByPk(parseInt(id, 10));
 };
 
 /**
@@ -48,9 +43,8 @@ const getProcessDefinitionById = async (id) => {
  * @returns {Promise<object>} La definición actualizada.
  */
 const updateProcessDefinition = async (id, data) => {
-  return prisma.processDefinition.update({
+  return ProcessDefinition.update(data, {
     where: { id: parseInt(id, 10) },
-    data,
   });
 };
 
@@ -60,7 +54,7 @@ const updateProcessDefinition = async (id, data) => {
  * @returns {Promise<object>} La definición eliminada.
  */
 const deleteProcessDefinition = async (id) => {
-  return prisma.processDefinition.delete({ where: { id: parseInt(id, 10) } });
+  return ProcessDefinition.destroy({ where: { id: parseInt(id, 10) } });
 };
 
 /**
@@ -69,26 +63,31 @@ const deleteProcessDefinition = async (id) => {
  * @returns {Promise<object>} La definición del formulario de inicio.
  */
 const getStartForm = async (processDefId) => {
-  const startEventElement = await prisma.processElement.findFirst({
+  const startEventElement = await ProcessElement.findOne({
     where: {
       processDefId: parseInt(processDefId, 10),
       type: 'START_EVENT', // Buscamos el elemento de inicio
     },
-    include: {
-      elementFormLinks: {
-        orderBy: { displayOrder: 'asc' },
-        include: {
-          fieldDefinition: true,
-        },
+    include: [
+      {
+        model: ElementFormLink,
+        as: 'elementFormLinks',
+        include: [
+          {
+            model: FieldDefinition,
+            as: 'fieldDefinition',
+          },
+        ],
       },
-    },
+    ],
+    order: [[{ model: ElementFormLink, as: 'elementFormLinks' }, 'displayOrder', 'ASC']],
   });
 
   if (!startEventElement) {
     throw new Error('Start form definition not found for this process.');
   }
 
-  const formFields = startEventElement.elementFormLinks.map(link => {
+  const formFields = startEventElement.elementFormLinks.map((link) => {
     return {
       name: link.fieldDefinition.name,
       label: link.fieldDefinition.label,
@@ -111,7 +110,6 @@ const getStartForm = async (processDefId) => {
 
   return formDefinition;
 };
-
 
 module.exports = {
   createProcessDefinition,

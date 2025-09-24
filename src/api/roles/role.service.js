@@ -1,30 +1,25 @@
-const prisma = require('../../utils/prisma'); // Corregido
+const { Role } = require('../../models'); // Corregido
 
 const createRole = (data) => {
-  return prisma.role.create({
-    data,
-  });
+  return Role.create(data);
 };
 
 const getAllRoles = () => {
-  return prisma.role.findMany();
+  return Role.findAll();
 };
 
 const getRoleById = (id) => {
-  return prisma.role.findUnique({
-    where: { id },
-  });
+  return Role.findByPk(id);
 };
 
 const updateRole = (id, data) => {
-  return prisma.role.update({
+  return Role.update(data, {
     where: { id },
-    data,
   });
 };
 
 const deleteRole = (id) => {
-  return prisma.role.delete({
+  return Role.destroy({
     where: { id },
   });
 };

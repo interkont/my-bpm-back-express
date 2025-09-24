@@ -1,4 +1,10 @@
-const prisma = require('../../utils/prisma');
+const {
+  ProcessInstance,
+  ProcessDefinition,
+  User,
+  TaskInstance,
+  ProcessElement,
+} = require('../../models');
 
 /**
  * Crea un registro de instancia de proceso directamente en la base de datos (función administrativa).
@@ -6,38 +12,41 @@ const prisma = require('../../utils/prisma');
  * @returns {Promise<object>} La instancia de proceso creada.
  */
 const createProcessInstanceRecord = async (data) => {
-  return prisma.processInstance.create({ data });
+  return ProcessInstance.create(data);
 };
 
 // ... (El resto de las funciones: getAllProcessInstances, getProcessInstanceById, etc. permanecen sin cambios)
 // Define los campos a seleccionar de ProcessDefinition para evitar cargar el XML.
-const processDefinitionSelect = {
-  id: true,
-  businessProcessKey: true,
-
-  name: true,
-  description: true,
-  version: true,
-  category: true,
-  status: true,
-  bpmnProcessId: true,
-};
+const processDefinitionAttributes = [
+  'id',
+  'businessProcessKey',
+  'name',
+  'description',
+  'version',
+  'category',
+  'status',
+  'bpmnProcessId',
+];
 
 /**
  * Obtiene todas las instancias de proceso.
  * @returns {Promise<Array>} Un array con todas las instancias.
  */
 const getAllProcessInstances = async () => {
-  return prisma.processInstance.findMany({
-    orderBy: { startTime: 'desc' },
-    include: {
-      processDefinition: {
-        select: processDefinitionSelect
+  return ProcessInstance.findAll({
+    order: [['startTime', 'desc']],
+    include: [
+      {
+        model: ProcessDefinition,
+        as: 'processDefinition',
+        attributes: processDefinitionAttributes,
       },
-      startedByUser: {
-        select: { id: true, fullName: true, email: true }
+      {
+        model: User,
+        as: 'startedByUser',
+        attributes: ['id', 'fullName', 'email'],
       },
-    }
+    ],
   });
 };
 
@@ -47,29 +56,33 @@ const getAllProcessInstances = async () => {
  * @returns {Promise<object|null>} La instancia encontrada o null.
  */
 const getProcessInstanceById = async (id) => {
-  return prisma.processInstance.findUnique({
-    where: { id: parseInt(id, 10) },
-    include: {
-      processDefinition: {
-        select: processDefinitionSelect
+  return ProcessInstance.findByPk(parseInt(id, 10), {
+    include: [
+      {
+        model: ProcessDefinition,
+        as: 'processDefinition',
+        attributes: processDefinitionAttributes,
       },
-      startedByUser: {
-        select: { id: true, fullName: true, email: true }
+      {
+        model: User,
+        as: 'startedByUser',
+        attributes: ['id', 'fullName', 'email'],
       },
       // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
-      taskInstances: {
-        orderBy: { createdAt: 'asc' },
-        include: {
-          processElement: {
-            select: {
-              name: true,
-              bpmnElementId: true,
-            }
-          }
-        }
-      }
+      {
+        model: TaskInstance,
+        as: 'taskInstances',
+        order: [['createdAt', 'ASC']],
+        include: [
+          {
+            model: ProcessElement,
+            as: 'processElement',
+            attributes: ['name', 'bpmnElementId'],
+          },
+        ],
+      },
       //
-    }
+    ],
   });
 };
 
@@ -80,9 +93,8 @@ const getProcessInstanceById = async (id) => {
  * @returns {Promise<object>} La instancia actualizada.
  */
 const updateProcessInstance = async (id, data) => {
-  return prisma.processInstance.update({
+  return ProcessInstance.update(data, {
     where: { id: parseInt(id, 10) },
-    data,
   });
 };
 
@@ -92,7 +104,7 @@ const updateProcessInstance = async (id, data) => {
  * @returns {Promise<object>} La instancia eliminada.
  */
 const deleteProcessInstance = async (id) => {
-  return prisma.processInstance.delete({ where: { id: parseInt(id, 10) } });
+  return ProcessInstance.destroy({ where: { id: parseInt(id, 10) } });
 };
 
 module.exports = {

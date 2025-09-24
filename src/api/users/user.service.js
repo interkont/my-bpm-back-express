@@ -1,30 +1,29 @@
-const prisma = require('../../utils/prisma'); // Corregido
+const { User, Role } = require('../../models'); // Importamos desde el nuevo index de modelos
 const bcrypt = require('bcryptjs');
 
 const createUser = async (data) => {
   const { password, ...userData } = data;
-  const passwordHash = await bcrypt.hash(password, 10); // 10 salt rounds
-  return prisma.user.create({
-    data: {
-      ...userData,
-      passwordHash,
-    },
+  const passwordHash = await bcrypt.hash(password, 10);
+  return User.create({
+    ...userData,
+    passwordHash,
   });
 };
 
 const getAllUsers = () => {
-  return prisma.user.findMany({
+  return User.findAll({
     include: {
-      role: true,
+      model: Role,
+      as: 'role', // Usamos el alias que definimos en las asociaciones
     },
   });
 };
 
 const getUserById = (id) => {
-  return prisma.user.findUnique({
-    where: { id },
+  return User.findByPk(id, {
     include: {
-      role: true, // Incluir la relación con el rol
+      model: Role,
+      as: 'role',
     },
   });
 };
@@ -34,14 +33,13 @@ const updateUser = async (id, data) => {
   if (password) {
     updateData.passwordHash = await bcrypt.hash(password, 10);
   }
-  return prisma.user.update({
+  return User.update(updateData, {
     where: { id },
-    data: updateData,
   });
 };
 
 const deleteUser = (id) => {
-  return prisma.user.delete({
+  return User.destroy({
     where: { id },
   });
 };
