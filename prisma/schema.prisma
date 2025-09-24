@@ -16,7 +16,7 @@ datasource db {
   relationMode = "prisma"
 }
 
-/// Defines the roles of users in the system (e.g., Management, Finance).
+// ... (Role, User, ProcessDefinition, etc. sin cambios)
 model Role {
   id                  Int              @id @default(autoincrement())
   name                String           @unique @db.VarChar(100)
@@ -28,8 +28,6 @@ model Role {
 
   @@map("roles")
 }
-
-/// Stores the system's user information.
 model User {
   id                      Int                 @id @default(autoincrement())
   fullName                String              @map("full_name") @db.VarChar(255)
@@ -47,8 +45,6 @@ model User {
 
   @@map("users")
 }
-
-/// The master catalog of each business process and its versions.
 model ProcessDefinition {
   id                   Int                @id @default(autoincrement())
   businessProcessKey   String             @map("business_process_key") @db.VarChar(100)
@@ -67,8 +63,6 @@ model ProcessDefinition {
   @@unique([businessProcessKey, version])
   @@map("process_definitions")
 }
-
-/// Each "box", "diamond", or "circle" (node) of a process diagram.
 model ProcessElement {
   id                 Int               @id @default(autoincrement())
   processDefId       Int               @map("process_def_id")
@@ -86,8 +80,6 @@ model ProcessElement {
 
   @@map("process_elements")
 }
-
-/// The "arrows" that connect the elements, defining the flow.
 model ProcessSequence {
   id                     Int               @id @default(autoincrement())
   processDefId           Int               @map("process_def_id")
@@ -98,8 +90,6 @@ model ProcessSequence {
 
   @@map("process_sequences")
 }
-
-/// The central, reusable "library" of all possible form fields.
 model FieldDefinition {
   id                 Int                @id @default(autoincrement())
   name               String             @unique @db.VarChar(100)
@@ -111,8 +101,6 @@ model FieldDefinition {
 
   @@map("field_definitions")
 }
-
-/// Assembles forms by linking tasks with fields and defining their behavior.
 model ElementFormLink {
   id                   Int              @id @default(autoincrement())
   elementId            Int              @map("element_id")
@@ -127,10 +115,12 @@ model ElementFormLink {
   @@map("element_form_links")
 }
 
+
 /// Records each execution or "case" of a process.
 model ProcessInstance {
   id                 Int                @id @default(autoincrement())
   processDefId       Int                @map("process_def_id")
+  description        String?            @db.Text // <-- NUEVO CAMPO
   status             String             @db.VarChar(50)
   businessData       Json?              @map("business_data") @db.JsonB
   startedByUserId    Int                @map("started_by_user_id")
@@ -152,6 +142,7 @@ model TaskInstance {
   processInstanceId    Int             @map("process_instance_id")
   elementDefId         Int             @map("element_def_id")
   status               String          @db.VarChar(50)
+  comments             String?         @db.Text // <-- NUEVO CAMPO
   assignedToRoleId     Int?            @map("assigned_to_role_id")
   assignedToUserId     Int?            @map("assigned_to_user_id")
   dueDate              DateTime?       @map("due_date") @db.Timestamptz()
@@ -172,7 +163,7 @@ model TaskInstance {
   @@map("task_instances")
 }
 
-/// Reference to files in S3 and their metadata.
+// ... (DocumentInstance y CaseAssignment sin cambios)
 model DocumentInstance {
   id                  Int             @id @default(autoincrement())
   processInstanceId   Int             @map("process_instance_id")
@@ -192,8 +183,6 @@ model DocumentInstance {
   @@index([processInstanceId])
   @@map("document_instances")
 }
-
-/// Assigns a specific user to a role for a single process instance.
 model CaseAssignment {
   id                Int             @id @default(autoincrement())
   processInstanceId Int             @map("process_instance_id")

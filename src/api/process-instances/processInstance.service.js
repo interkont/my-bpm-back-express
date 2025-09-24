@@ -56,7 +56,19 @@ const getProcessInstanceById = async (id) => {
       startedByUser: {
         select: { id: true, fullName: true, email: true }
       },
-      taskInstances: true,
+      // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
+      taskInstances: {
+        orderBy: { createdAt: 'asc' },
+        include: {
+          processElement: {
+            select: {
+              name: true,
+              bpmnElementId: true,
+            }
+          }
+        }
+      }
+      //
     }
   });
 };
