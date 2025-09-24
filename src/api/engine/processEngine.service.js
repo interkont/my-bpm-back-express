@@ -1,7 +1,7 @@
 const prisma = require('../../utils/prisma');
 const { evaluateExpression } = require('../../utils/expressionEngine');
 
-// --- createTaskInstance (con log) ---
+// --- createTaskInstance, processElement (parcial), startProcess (SIN CAMBIOS) ---
 const createTaskInstance = async (elementDefinition, processInstance, tx) => {
     console.log(`[Engine] > Creating USER_TASK for element: ${elementDefinition.name} (${elementDefinition.bpmnElementId})`);
     return tx.taskInstance.create({
@@ -13,19 +13,17 @@ const createTaskInstance = async (elementDefinition, processInstance, tx) => {
       },
     });
 };
-
-// --- processElement (con logs) ---
-const processElement = async (elementToProcess, processInstance, tx) => {
+const processElement = async (elementToProcess, processInstance, tx, taskContext = {}) => {
     console.log(`[Engine] Processing element: ${elementToProcess.name} (${elementToProcess.bpmnElementId}) | Type: ${elementToProcess.type}`);
     switch (elementToProcess.type) {
       case 'START_EVENT':
       case 'PARALLEL_GATEWAY': {
         const outgoingSequences = await tx.processSequence.findMany({ where: { processDefId: elementToProcess.processDefId, sourceElementBpmnId: elementToProcess.bpmnElementId } });
         console.log(`[Engine] | Found ${outgoingSequences.length} outgoing sequence(s). Following all.`);
-        for (const sequence of outgoingSequences) {
+        await Promise.all(outgoingSequences.map(async (sequence) => {
           const nextElement = await tx.processElement.findFirst({ where: { processDefId: elementToProcess.processDefId, bpmnElementId: sequence.targetElementBpmnId } });
-          await processElement(nextElement, processInstance, tx);
-        }
+          await processElement(nextElement, processInstance, tx, taskContext);
+        }));
         break;
       }
       case 'USER_TASK': {
@@ -34,8 +32,18 @@ const processElement = async (elementToProcess, processInstance, tx) => {
       }
       case 'EXCLUSIVE_GATEWAY': {
         const outgoingSequences = await tx.processSequence.findMany({ where: { processDefId: elementToProcess.processDefId, sourceElementBpmnId: elementToProcess.bpmnElementId } });
+        
+        // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
+        // Desestructuramos para separar businessData del resto de los datos de la instancia.
         const { businessData, ...instanceData } = processInstance;
-        const fullContext = { ...instanceData, ...(businessData || {}) };
+        
+        const fullContext = {
+            ...(businessData || {}), // Aplanamos businessData para retrocompatibilidad
+            instance: instanceData, // El objeto 'instance' ya no contiene businessData
+            task: taskContext
+        };
+        // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
+
         let chosenSequence = null;
         for (const seq of outgoingSequences) {
           if (seq.conditionExpression && evaluateExpression(seq.conditionExpression, fullContext)) {
@@ -47,7 +55,7 @@ const processElement = async (elementToProcess, processInstance, tx) => {
         if (chosenSequence) {
           console.log(`[Engine] | Chosen route: -> ${chosenSequence.targetElementBpmnId}`);
           const nextElement = await tx.processElement.findFirst({ where: { processDefId: elementToProcess.processDefId, bpmnElementId: chosenSequence.targetElementBpmnId } });
-          await processElement(nextElement, processInstance, tx);
+          await processElement(nextElement, processInstance, tx, taskContext);
         } else {
           throw new Error(`No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${elementToProcess.bpmnElementId}.`);
         }
@@ -65,8 +73,6 @@ const processElement = async (elementToProcess, processInstance, tx) => {
         throw new Error(`Unsupported element type: ${elementToProcess.type}`);
     }
 };
-
-// --- startProcess (con logs) ---
 const startProcess = async (businessProcessKey, startedByUserId, businessData) => {
     console.log(`[Engine] Starting process with key: ${businessProcessKey}`);
     return prisma.$transaction(async (tx) => {
@@ -76,12 +82,10 @@ const startProcess = async (businessProcessKey, startedByUserId, businessData) =
       console.log(`[Engine] | Created process instance ID: ${processInstance.id}`);
       const startEvent = await tx.processElement.findFirst({ where: { processDefId: processDefinition.id, type: 'START_EVENT' } });
       if (!startEvent) throw new Error('Process is invalid: No START_EVENT found.');
-      await processElement(startEvent, processInstance, tx);
+      await processElement(startEvent, processInstance, tx, {});
       return processInstance;
     });
 };
-
-// --- completeTask (con logs) ---
 const completeTask = async (taskId, completionData, userId, userRoleId) => {
   console.log(`[Engine] Completing task ID: ${taskId}`);
   return prisma.$transaction(async (tx) => {
@@ -93,6 +97,13 @@ const completeTask = async (taskId, completionData, userId, userRoleId) => {
     await tx.taskInstance.update({ where: { id: taskId }, data: { status: 'COMPLETED', completedByUserId: userId, completionTime: new Date(), completionPayload: completionData } });
     const updatedBusinessData = { ...(task.processInstance.businessData || {}), ...(completionData.formData || {}) };
     const updatedProcessInstance = await tx.processInstance.update({ where: { id: task.processInstanceId }, data: { businessData: updatedBusinessData } });
+
+    const taskContext = {
+        bpmnElementId: task.processElement.bpmnElementId,
+        action: completionData.action,
+        formData: completionData.formData || {},
+        completedBy: { id: userId, roleId: userRoleId }
+    };
 
     const outgoingSequence = await tx.processSequence.findFirst({
       where: { processDefId: task.processElement.processDefId, sourceElementBpmnId: task.processElement.bpmnElementId },
@@ -119,10 +130,10 @@ const completeTask = async (taskId, completionData, userId, userRoleId) => {
       console.log(`[Engine] | ${completedTasksCount}/${incomingSequences.length} parallel tasks completed.`);
       if (completedTasksCount === incomingSequences.length) {
         console.log(`[Engine] | All parallel tasks complete. Continuing from gateway.`);
-        await processElement(joinGateway, updatedProcessInstance, tx);
+        await processElement(joinGateway, updatedProcessInstance, tx, taskContext);
       }
     } else {
-      await processElement(nextElement, updatedProcessInstance, tx);
+      await processElement(nextElement, updatedProcessInstance, tx, taskContext);
     }
 
     return { message: 'Task completed successfully.' };
