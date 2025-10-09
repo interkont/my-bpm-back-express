@@ -13,11 +13,16 @@ const { Op } = require('sequelize');
  * Obtiene la bandeja de entrada de un usuario.
  * (Función existente)
  */
-const getMyTasks = async (userId, roleId) => {
+const getMyTasks = async (userId, roleIds) => { // <-- CAMBIO QUIRÚRGICO 1
   const taskInstances = await TaskInstance.findAll({
     where: {
       status: 'PENDING',
-      [Op.or]: [{ assignedToUserId: userId }, { assignedToRoleId: roleId }],
+      // --- CAMBIO QUIRÚRGICO 2 ---
+      [Op.or]: [
+        { assignedToUserId: userId }, 
+        { assignedToRoleId: { [Op.in]: roleIds } }
+      ],
+      // --- FIN CAMBIO QUIRÚRGICO 2 ---
     },
     include: [
       {
@@ -46,10 +51,8 @@ const getMyTasks = async (userId, roleId) => {
     taskId: task.id,
     taskName: task.processElement?.name ?? 'Unnamed Task',
     processInstanceId: task.processInstanceId,
-    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
-    processDescription: task.processInstance?.description, // <-- CAMBIO 1: Añadir descripción de la instancia
-    processVersion: task.processInstance?.processDefinition?.version, // <-- CAMBIO 2: Añadir versión de la definición
-    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
+    processDescription: task.processInstance?.description,
+    processVersion: task.processInstance?.processDefinition?.version,
     processName: task.processInstance?.processDefinition?.name ?? 'Unknown Process',
     processStartedBy: task.processInstance?.startedByUser?.fullName ?? 'Unknown User',
     createdAt: task.createdAt,
@@ -59,7 +62,7 @@ const getMyTasks = async (userId, roleId) => {
   return formattedTasks;
 };
 
-// ... (El resto del archivo permanece intacto)
+// --- EL RESTO DEL ARCHIVO PERMANECE INTACTO ---
 const getTaskForm = async (taskId) => {
     const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
       include: [

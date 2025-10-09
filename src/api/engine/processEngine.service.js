@@ -176,14 +176,14 @@ const startProcess = async (
 };
 
 // --- completeTask (MODIFICADO para Sequelize) ---
-const completeTask = async (taskId, completionData, userId, userRoleId) => {
+const completeTask = async (taskId, completionData, userId, roleIds) => {
   console.log(`[Engine] Completing task ID: ${taskId}`);
   return sequelize.transaction(async (t) => {
     const task = await TaskInstance.findOne({
       where: {
         id: taskId,
         status: 'PENDING',
-        [Op.or]: [{ assignedToUserId: userId }, { assignedToRoleId: userRoleId }],
+        [Op.or]: [{ assignedToUserId: userId }, { assignedToRoleId: { [Op.in]: roleIds } }],
       },
       include: [
         { model: ProcessElement, as: 'processElement' },
@@ -222,7 +222,7 @@ const completeTask = async (taskId, completionData, userId, userRoleId) => {
       action: completionData.action,
       formData: completionData.formData || {},
       comments: completionData.comments,
-      completedBy: { id: userId, roleId: userRoleId },
+      completedBy: { id: userId, roleIds: roleIds },
     };
 
     const outgoingSequence = await ProcessSequence.findOne({

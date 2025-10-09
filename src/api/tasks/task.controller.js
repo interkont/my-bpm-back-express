@@ -1,5 +1,5 @@
 const taskService = require('./task.service');
-const processEngineService = require('../engine/processEngine.service'); // Importar el motor
+const processEngineService = require('../engine/processEngine.service');
 const catchAsync = require('../../utils/catchAsync');
 
 /**
@@ -7,13 +7,15 @@ const catchAsync = require('../../utils/catchAsync');
  * (Función existente)
  */
 const getMyTasks = catchAsync(async (req, res) => {
-  const { id: userId, roleId } = req.user;
+  // --- CAMBIO QUIRÚRGICO ---
+  const { id: userId, roleIds } = req.user; // Ahora extraemos 'roleIds' (plural)
 
-  if (!userId || !roleId) {
+  if (!userId || !roleIds) { // Validamos 'roleIds'
     return res.status(401).json({ error: 'User authentication data is missing.' });
   }
 
-  const tasks = await taskService.getMyTasks(userId, roleId);
+  const tasks = await taskService.getMyTasks(userId, roleIds); // Pasamos el array de IDs
+  // --- FIN CAMBIO QUIRÚRGICO ---
   res.status(200).json(tasks);
 });
 
@@ -32,10 +34,12 @@ const getTaskForm = catchAsync(async (req, res) => {
  */
 const completeTask = catchAsync(async (req, res) => {
   const { id: taskId } = req.params;
-  const completionData = req.body; // { action: 'approve', formData: { ... } }
-  const { id: userId, roleId } = req.user;
+  const completionData = req.body;
+  // --- CAMBIO QUIRÚRGICO ---
+  const { id: userId, roleIds } = req.user; // También usamos 'roleIds' aquí
 
-  const result = await processEngineService.completeTask(parseInt(taskId), completionData, userId, roleId);
+  const result = await processEngineService.completeTask(parseInt(taskId), completionData, userId, roleIds);
+  // --- FIN CAMBIO QUIRÚRGICO ---
   
   res.status(200).json(result);
 });
@@ -44,5 +48,5 @@ const completeTask = catchAsync(async (req, res) => {
 module.exports = {
   getMyTasks,
   getTaskForm,
-  completeTask, // Exportar la nueva función
+  completeTask,
 };

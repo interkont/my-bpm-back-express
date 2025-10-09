@@ -4,14 +4,13 @@ const path = require('path');
 const helmet =require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
-const passport = require('./config/passport');
+const passport = require('./config/passport'); // <-- Revertido a la importación original
 const errorMiddleware = require('./api/middlewares/error.middleware');
 const routes = require('./api/routes');
 const sequelize = require('./config/database');
 
-
 const app = express();
-// ... (resto del archivo sin cambios)
+
 app.use(express.json());
 app.use(helmet());
 app.use(cors());
@@ -24,7 +23,7 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.use(passport.initialize());
+app.use(passport.initialize()); // <-- Esto ahora funcionará de nuevo
 
 app.use('/api', routes);
 

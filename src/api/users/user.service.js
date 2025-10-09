@@ -1,4 +1,4 @@
-const { User, Role } = require('../../models'); // Importamos desde el nuevo index de modelos
+const { User, Role } = require('../../models');
 const bcrypt = require('bcryptjs');
 
 const createUser = async (data) => {
@@ -12,18 +12,24 @@ const createUser = async (data) => {
 
 const getAllUsers = () => {
   return User.findAll({
+    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
+    attributes: { exclude: ['passwordHash'] },
+    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
     include: {
       model: Role,
-      as: 'role', // Usamos el alias que definimos en las asociaciones
+      as: 'roles',
     },
   });
 };
 
 const getUserById = (id) => {
   return User.findByPk(id, {
+    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
+    attributes: { exclude: ['passwordHash'] },
+    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
     include: {
       model: Role,
-      as: 'role',
+      as: 'roles',
     },
   });
 };

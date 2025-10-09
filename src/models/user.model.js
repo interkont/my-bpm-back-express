@@ -24,14 +24,18 @@ const User = sequelize.define(
       allowNull: false,
       field: 'password_hash',
     },
-    roleId: {
-      type: DataTypes.INTEGER,
-      field: 'role_id',
-    },
+    // roleId se elimina de aquí.
     status: {
       type: DataTypes.STRING(50),
       allowNull: false,
       defaultValue: 'ACTIVE',
+    },
+    // Se añade el campo systemRole que habíamos definido.
+    systemRole: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      defaultValue: 'USER',
+      field: 'system_role',
     },
     createdAt: {
       type: DataTypes.DATE,
