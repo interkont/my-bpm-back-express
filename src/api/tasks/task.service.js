@@ -11,11 +11,7 @@ const { Op } = require('sequelize');
 
 /**
  * Obtiene la bandeja de entrada de un usuario.
- * Consulta las tareas pendientes asignadas directamente al usuario o a su rol.
- *
- * @param {number} userId - El ID del usuario autenticado.
- * @param {number} roleId - El ID del rol del usuario autenticado.
- * @returns {Promise<Array>} - Una promesa que resuelve a un array de tareas formateadas.
+ * (Función existente)
  */
 const getMyTasks = async (userId, roleId) => {
   const taskInstances = await TaskInstance.findAll({
@@ -50,6 +46,10 @@ const getMyTasks = async (userId, roleId) => {
     taskId: task.id,
     taskName: task.processElement?.name ?? 'Unnamed Task',
     processInstanceId: task.processInstanceId,
+    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
+    processDescription: task.processInstance?.description, // <-- CAMBIO 1: Añadir descripción de la instancia
+    processVersion: task.processInstance?.processDefinition?.version, // <-- CAMBIO 2: Añadir versión de la definición
+    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
     processName: task.processInstance?.processDefinition?.name ?? 'Unknown Process',
     processStartedBy: task.processInstance?.startedByUser?.fullName ?? 'Unknown User',
     createdAt: task.createdAt,
@@ -59,78 +59,72 @@ const getMyTasks = async (userId, roleId) => {
   return formattedTasks;
 };
 
-/**
- * Obtiene la definición del formulario para una tarea específica.
- *
- * @param {number} taskId - El ID de la instancia de la tarea.
- * @returns {Promise<object>} - Una promesa que resuelve a la definición del formulario.
- */
+// ... (El resto del archivo permanece intacto)
 const getTaskForm = async (taskId) => {
-  const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
-    include: [
-      {
-        model: ProcessElement,
-        as: 'processElement',
-        include: [
-          {
-            model: ElementFormLink,
-            as: 'elementFormLinks',
-            include: [
-              {
-                model: FieldDefinition,
-                as: 'fieldDefinition',
-              },
-            ],
-          },
-        ],
-      },
-      {
-        model: ProcessInstance,
-        as: 'processInstance',
-      },
-    ],
-    order: [
-      [
-        { model: ProcessElement, as: 'processElement' },
-        { model: ElementFormLink, as: 'elementFormLinks' },
-        'displayOrder',
-        'ASC',
+    const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
+      include: [
+        {
+          model: ProcessElement,
+          as: 'processElement',
+          include: [
+            {
+              model: ElementFormLink,
+              as: 'elementFormLinks',
+              include: [
+                {
+                  model: FieldDefinition,
+                  as: 'fieldDefinition',
+                },
+              ],
+            },
+          ],
+        },
+        {
+          model: ProcessInstance,
+          as: 'processInstance',
+        },
       ],
-    ],
-  });
-
-  if (!taskInstance) {
-    // En un caso real, podríamos lanzar un error personalizado
-    throw new Error('Task not found');
-  }
-
-  const businessData = taskInstance.processInstance?.businessData || {};
-
-  const formFields = taskInstance.processElement.elementFormLinks.map((link) => {
-    return {
-      name: link.fieldDefinition.name,
-      label: link.fieldDefinition.label,
-      fieldType: link.fieldDefinition.fieldType,
-      value: businessData[link.fieldDefinition.name] || null, // Pre-poblar valor si existe
-      validations: {
-        ...(link.fieldDefinition.validations || {}), // Asegurarse que validations no sea null
-        isRequired: link.isRequired,
-        isReadonly: link.isReadonly,
-        ...(link.contextualValidations || {}), // Asegurarse que contextualValidations no sea null
-      },
+      order: [
+        [
+          { model: ProcessElement, as: 'processElement' },
+          { model: ElementFormLink, as: 'elementFormLinks' },
+          'displayOrder',
+          'ASC',
+        ],
+      ],
+    });
+  
+    if (!taskInstance) {
+      throw new Error('Task not found');
+    }
+  
+    const businessData = taskInstance.processInstance?.businessData || {};
+  
+    const formFields = taskInstance.processElement.elementFormLinks.map((link) => {
+      return {
+        name: link.fieldDefinition.name,
+        label: link.fieldDefinition.label,
+        fieldType: link.fieldDefinition.fieldType,
+        value: businessData[link.fieldDefinition.name] || null,
+        validations: {
+          ...(link.fieldDefinition.validations || {}),
+          isRequired: link.isRequired,
+          isReadonly: link.isReadonly,
+          ...(link.contextualValidations || {}),
+        },
+      };
+    });
+  
+    const formDefinition = {
+      taskName: taskInstance.processElement.name,
+      fields: formFields,
+      actions: taskInstance.processElement.actions || ['complete'],
     };
-  });
-
-  const formDefinition = {
-    taskName: taskInstance.processElement.name,
-    fields: formFields,
-    actions: taskInstance.processElement.actions || ['complete'], // Acciones posibles (botones)
+  
+    return formDefinition;
   };
-
-  return formDefinition;
-};
-
-module.exports = {
-  getMyTasks,
-  getTaskForm, // Exportar la nueva función
-};
+  
+  module.exports = {
+    getMyTasks,
+    getTaskForm,
+  };
