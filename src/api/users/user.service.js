@@ -1,20 +1,29 @@
 const { User, Role } = require('../../models');
 const bcrypt = require('bcryptjs');
 
-const createUser = async (data) => {
-  const { password, ...userData } = data;
-  const passwordHash = await bcrypt.hash(password, 10);
-  return User.create({
-    ...userData,
-    passwordHash,
+const createUser = async (userData) => {
+  const { roleIds, ...userPayload } = userData;
+  const user = await User.create(userPayload);
+
+  if (roleIds && roleIds.length > 0) {
+    await user.setRoles(roleIds);
+  }
+
+  // Recargamos el usuario para devolverlo con los roles asociados
+  return User.findByPk(user.id, {
+    include: {
+      model: Role,
+      as: 'roles',
+      attributes: { exclude: ['createdAt', 'updatedAt'] },
+      through: { attributes: [] } // No incluir datos de la tabla intermedia
+    },
+    attributes: { exclude: ['passwordHash'] }
   });
 };
 
 const getAllUsers = () => {
   return User.findAll({
-    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
     attributes: { exclude: ['passwordHash'] },
-    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
     include: {
       model: Role,
       as: 'roles',
@@ -24,9 +33,7 @@ const getAllUsers = () => {
 
 const getUserById = (id) => {
   return User.findByPk(id, {
-    // --- INICIO DE LA CORRECCIÓN QUIRÚRGICA ---
     attributes: { exclude: ['passwordHash'] },
-    // --- FIN DE LA CORRECCIÓN QUIRÚRGICA ---
     include: {
       model: Role,
       as: 'roles',
@@ -35,14 +42,37 @@ const getUserById = (id) => {
 };
 
 const updateUser = async (id, data) => {
-  const { password, ...updateData } = data;
+  const { roleIds, password, ...updateData } = data;
+  const user = await User.findByPk(id);
+
+  if (!user) {
+    throw new Error('User not found');
+  }
+
   if (password) {
     updateData.passwordHash = await bcrypt.hash(password, 10);
   }
-  return User.update(updateData, {
-    where: { id },
+
+  // Actualizar datos del usuario
+  await user.update(updateData);
+
+  // Actualizar roles si se proporcionan
+  if (roleIds) {
+    await user.setRoles(roleIds);
+  }
+
+  // Recargamos el usuario para devolverlo con los roles actualizados
+  return User.findByPk(id, {
+    include: {
+      model: Role,
+      as: 'roles',
+      attributes: { exclude: ['createdAt', 'updatedAt'] },
+      through: { attributes: [] }
+    },
+    attributes: { exclude: ['passwordHash'] }
   });
 };
+
 
 const deleteUser = (id) => {
   return User.destroy({

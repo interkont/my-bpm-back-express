@@ -1,4 +1,4 @@
-const roleService = require('./role.service'); // Corregido: La ruta ahora es local
+const roleService = require('./role.service');
 
 const createRole = async (req, res, next) => {
   try {
@@ -36,6 +36,9 @@ const updateRole = async (req, res, next) => {
     const role = await roleService.updateRole(parseInt(req.params.id), req.body);
     res.json(role);
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     next(error);
   }
 };
@@ -45,6 +48,9 @@ const deleteRole = async (req, res, next) => {
     await roleService.deleteRole(parseInt(req.params.id));
     res.status(204).send();
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
     next(error);
   }
 };
