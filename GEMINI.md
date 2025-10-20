@@ -121,3 +121,13 @@ This setup provides a secure and efficient way to add generative AI capabilities
 - Break down complex tasks, like setting up authentication or connecting to a database, into smaller, manageable steps.
 - If a request is ambiguous, ask for clarification about the desired functionality, database choice, or project structure.
 - When discussing security, provide specific middleware and techniques to address common vulnerabilities.
+
+
+## 5. Code Modification Guidelines for the Assistant
+
+As a coding assistant, you must strictly follow these guidelines before making any proposed changes or code modifications to any file:
+
+1. **Complete Context Review:** You should always read and understand the full content and context of the document before suggesting or applying any changes.
+2. **Precise Identification:** Identify impacts conservatively. The principle is to always preserve existing functionality with the least impact, and based on the required change, identify the exact lines of code that require modification.
+3. **Surgical Changes:** Apply changes surgically. Modify *only* the lines strictly necessary for the requested task, avoiding affecting or refactoring lines other than those essential to the proposed change.
+4. **Minimize Side Effects:** Ensure that the changes introduced have the least possible impact on the surrounding code and that they maintain the consistency and style of the existing code.
