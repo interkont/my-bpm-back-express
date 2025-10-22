@@ -1,6 +1,12 @@
 const processService = require('./process.service');
 const catchAsync = require('../../utils/catchAsync');
 
+const getSaveAnalysis = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const analysis = await processService.getSaveAnalysis(id);
+  res.status(200).json(analysis);
+});
+
 const saveProcessDefinition = catchAsync(async (req, res) => {
   const { id } = req.params; // Podría no existir para la creación
   const processDefinition = await processService.saveProcessDefinition(id, req.body);
@@ -45,6 +51,7 @@ const getStartForm = catchAsync(async (req, res) => {
 });
 
 module.exports = {
+  getSaveAnalysis,
   saveProcessDefinition,
   updateProcessDefinitionMetadata,
   getAllProcessDefinitions,

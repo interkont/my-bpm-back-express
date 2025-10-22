@@ -68,6 +68,29 @@ async function syncSequences(processDefId, incomingSequences, transaction) {
   }
 }
 
+const getSaveAnalysis = async (id) => {
+  const definition = await ProcessDefinition.findByPk(parseInt(id, 10), {
+    attributes: ['id', 'status']
+  });
+  if (!definition) {
+    throw new Error('Process definition not found.');
+  }
+
+  const instancesCount = await ProcessInstance.count({ where: { processDefId: id } });
+
+  const response = {
+    state: definition.status,
+    instancesCount,
+    action: 'UPDATE_IN_PLACE'
+  };
+
+  if (definition.status === 'ACTIVE' || instancesCount > 0) {
+    response.action = 'CREATE_NEW_VERSION';
+  }
+
+  return response;
+};
+
 const saveProcessDefinition = async (id, data) => {
   const { elements = [], sequences = [], ...definitionData } = data;
   
@@ -75,42 +98,78 @@ const saveProcessDefinition = async (id, data) => {
     let definitionToUpdate = id ? await ProcessDefinition.findByPk(id, { transaction: t }) : null;
     let mustCreateNewVersion = false;
 
-    // --- LÓGICA CORREGIDA ---
-    if (definitionToUpdate) { // Si estamos actualizando un proceso existente...
-      const runningInstancesCount = await ProcessInstance.count({
-        where: { processDefId: id, status: { [Op.in]: ['RUNNING', 'PENDING'] } },
+    if (definitionToUpdate) {
+      const instanceCount = await ProcessInstance.count({
+        where: { processDefId: id },
         transaction: t
       });
 
-      // Si está ACTIVO o tiene instancias corriendo, cualquier PUT debe generar una nueva versión.
-      if (definitionToUpdate.status === 'ACTIVE' || runningInstancesCount > 0) {
+      if (definitionToUpdate.status === 'ACTIVE' || instanceCount > 0) {
         mustCreateNewVersion = true;
       }
     }
 
     if (mustCreateNewVersion) {
-      await definitionToUpdate.update({ status: 'DEPRECATED' }, { transaction: t });
-
       const newDefinition = await ProcessDefinition.create({
         ...definitionData,
         businessProcessKey: definitionToUpdate.businessProcessKey,
         version: definitionToUpdate.version + 1,
-        status: 'ACTIVE',
+        status: 'DRAFT',
         bpmnXml: JSON.stringify(data.diagramJson)
       }, { transaction: t });
       
       const newProcessDefId = newDefinition.id;
 
-      const elementsToCreate = elements.map(el => ({ ...el, processDefId: newProcessDefId }));
-      const sequencesToCreate = sequences.map(seq => ({ ...seq, processDefId: newProcessDefId }));
+      const newElements = await ProcessElement.bulkCreate(
+        elements.map(el => ({ ...el, processDefId: newProcessDefId })),
+        { transaction: t, returning: true }
+      );
+      await ProcessSequence.bulkCreate(
+        sequences.map(seq => ({ ...seq, processDefId: newProcessDefId })),
+        { transaction: t }
+      );
 
-      await ProcessElement.bulkCreate(elementsToCreate, { transaction: t });
-      await ProcessSequence.bulkCreate(sequencesToCreate, { transaction: t });
+      const oldElementsWithForms = await ProcessElement.findAll({
+        where: { processDefId: definitionToUpdate.id },
+        include: [{ model: ElementFormLink, as: 'elementFormLinks' }],
+        transaction: t
+      });
+
+      const formLinksMap = new Map();
+      oldElementsWithForms.forEach(oldEl => {
+        if (oldEl.elementFormLinks && oldEl.elementFormLinks.length > 0) {
+          formLinksMap.set(
+            oldEl.bpmnElementId,
+            oldEl.elementFormLinks.map(link => ({
+              fieldDefId: link.fieldDefId,
+              displayOrder: link.displayOrder,
+              isRequired: link.isRequired,
+              isReadonly: link.isReadonly,
+              contextualValidations: link.contextualValidations
+            }))
+          );
+        }
+      });
+      
+      const newFormLinksToCreate = [];
+      const newElementsMap = new Map(newElements.map(el => [el.bpmnElementId, el.id]));
+
+      for (const [bpmnId, links] of formLinksMap.entries()) {
+        const newElementId = newElementsMap.get(bpmnId);
+        if (newElementId) {
+          links.forEach(linkData => {
+            newFormLinksToCreate.push({ ...linkData, elementId: newElementId });
+          });
+        }
+      }
+
+      if (newFormLinksToCreate.length > 0) {
+        await ElementFormLink.bulkCreate(newFormLinksToCreate, { transaction: t });
+      }
       
       return newDefinition;
 
     } else {
-      // Esta rama ahora solo se ejecuta para crear un nuevo proceso o para actualizar un DRAFT.
       let processDefinition;
       const finalDefinitionData = { 
           ...definitionData, 
@@ -147,12 +206,26 @@ const updateProcessDefinitionMetadata = async (id, data) => {
   const processDefId = parseInt(id, 10);
   
   return sequelize.transaction(async (t) => {
-    if (data.status === 'ACTIVE') {
-      const definition = await ProcessDefinition.findByPk(processDefId, { transaction: t });
-      if (!definition) {
-        throw new Error('Process definition not found.');
+    const definitionToActivate = await ProcessDefinition.findByPk(processDefId, { transaction: t });
+    if (!definitionToActivate) {
+      throw new Error('Process definition not found.');
+    }
+
+    if (data.status === 'ACTIVE' && definitionToActivate.status !== 'ACTIVE') {
+      await validateSingleActiveVersion(processDefId, definitionToActivate.businessProcessKey, t);
+      
+      const currentActive = await ProcessDefinition.findOne({
+        where: {
+          businessProcessKey: definitionToActivate.businessProcessKey,
+          status: 'ACTIVE',
+          id: { [Op.not]: processDefId }
+        },
+        transaction: t
+      });
+
+      if (currentActive) {
+        await currentActive.update({ status: 'DEPRECATED' }, { transaction: t });
       }
-      await validateSingleActiveVersion(processDefId, definition.businessProcessKey, t);
     }
     
     const allowedUpdates = {
@@ -294,6 +367,7 @@ const getStartForm = async (processDefId) => {
 };
 
 module.exports = {
+  getSaveAnalysis,
   saveProcessDefinition,
   updateProcessDefinitionMetadata,
   getAllProcessDefinitions,

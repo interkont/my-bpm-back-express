@@ -12,10 +12,12 @@ router
   .post(processController.saveProcessDefinition)
   .get(processController.getAllProcessDefinitions);
 
-// Nueva ruta de administrador para obtener TODOS los procesos
 router.get('/all', isAdmin, processController.getAllProcessDefinitionsAdmin);
 
 router.get('/:id/start-form', processController.getStartForm);
+
+// Nueva ruta para el análisis de guardado
+router.get('/:id/save-ask', processController.getSaveAnalysis);
 
 router
   .route('/:id')
