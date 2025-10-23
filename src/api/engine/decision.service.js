@@ -35,10 +35,22 @@ const _findNextBlockingElements = async (element, processDefId, contextData) => 
       break;
 
     case 'EXCLUSIVE_GATEWAY':
-      // Evaluar condiciones para encontrar un único camino.
+      // --- AJUSTE FINAL PARA CONSISTENCIA ---
+      // 1. Replicar la construcción del contexto del motor principal.
+      const businessData = contextData.instance?.businessData || {};
+      const instanceData = { ...contextData.instance };
+      delete instanceData.businessData; // Limpiar para no tener datos duplicados.
+
+      const evaluationContext = {
+        ...businessData, // Aplanar businessData en el nivel superior.
+        instance: instanceData,
+        task: contextData.task || {},
+      };
+
+      // 2. Evaluar condiciones para encontrar un único camino.
       let chosenSequence = null;
       for (const seq of outgoingSequences) {
-        if (seq.conditionExpression && evaluateExpression(seq.conditionExpression, contextData)) {
+        if (seq.conditionExpression && evaluateExpression(seq.conditionExpression, evaluationContext)) {
           chosenSequence = seq;
           break;
         }
