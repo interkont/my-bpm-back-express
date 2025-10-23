@@ -3,8 +3,8 @@ const catchAsync = require('../../utils/catchAsync');
 
 const login = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
-  const { user, token } = await authService.login(email, password);
-  res.json({ user, token });
+  const { user, token, modules } = await authService.login(email, password);
+  res.json({ user, token, modules });
 });
 
 const updateProfile = async (req, res, next) => {

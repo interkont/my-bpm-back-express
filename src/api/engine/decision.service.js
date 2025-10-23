@@ -1,4 +1,4 @@
-const { ProcessDefinition, ProcessElement, ProcessSequence } = require('../../models');
+const { ProcessDefinition, ProcessElement, ProcessSequence, DecisionLog } = require('../../models');
 const { evaluateExpression } = require('../../utils/expressionEngine');
 
 /**
@@ -7,6 +7,7 @@ const { evaluateExpression } = require('../../utils/expressionEngine');
  */
 const _findNextBlockingElements = async (element, processDefId, contextData) => {
   // Caso base: Si el elemento actual es una tarea de usuario, una tarea automática o un evento de fin, lo hemos encontrado.
+  if (!element) return []; // Si no hay elemento, no hay nada que hacer.
   if (element.type === 'USER_TASK' || element.type === 'END_EVENT' || element.type === 'AUTO_TASK') {
     return [element];
   }
@@ -29,7 +30,7 @@ const _findNextBlockingElements = async (element, processDefId, contextData) => 
       // Seguir todos los caminos.
       const targetBpmnIds = outgoingSequences.map(seq => seq.targetElementBpmnId);
       nextElementsToProcess = await ProcessElement.findAll({
-        where: { processDefId, bpmnElementId: targetBpmnIds },
+        where: { processDefId, bpmnElementId: { [require('sequelize').Op.in]: targetBpmnIds } },
       });
       break;
 
@@ -50,15 +51,13 @@ const _findNextBlockingElements = async (element, processDefId, contextData) => 
         const nextElement = await ProcessElement.findOne({
           where: { processDefId, bpmnElementId: chosenSequence.targetElementBpmnId },
         });
-        nextElementsToProcess.push(nextElement);
+        if(nextElement) nextElementsToProcess.push(nextElement);
       } else {
         throw new Error(`No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${element.bpmnElementId}.`);
       }
       break;
     
     default:
-        // Si es otro tipo de elemento que no bloquea (ej. Tarea de Servicio en el futuro), se trataría como un Start Event.
-        // Por ahora, lo limitamos a los tipos que conocemos.
         throw new Error(`Unsupported element type for decision traversal: ${element.type}`);
   }
 
@@ -67,45 +66,101 @@ const _findNextBlockingElements = async (element, processDefId, contextData) => 
     nextElementsToProcess.map(nextEl => _findNextBlockingElements(nextEl, processDefId, contextData))
   );
 
-  // Aplanar el array de resultados. [[task1], [task2, task3]] -> [task1, task2, task3]
+  // Aplanar el array de resultados.
   return results.flat();
 };
 
 /**
  * Servicio principal para decidir la siguiente tarea en un flujo de proceso.
  */
-const decideNextTask = async (businessProcessKey, currentBpmnElementId, contextData) => {
-  // 1. Encontrar la definición de proceso activa.
-  const processDefinition = await ProcessDefinition.findOne({
-    where: { businessProcessKey, status: 'ACTIVE' },
-    order: [['version', 'DESC']],
+const decideNextTask = async (businessProcessKey, currentBpmnElementId, contextData, userId) => {
+  // Crear el registro de log inicial
+  const log = await DecisionLog.create({
+    businessProcessKey,
+    currentBpmnElementId,
+    requestPayload: { businessProcessKey, currentBpmnElementId, contextData },
+    executedByUserId: userId,
   });
-  if (!processDefinition) {
-    throw new Error(`Process with key '${businessProcessKey}' not found or is not active.`);
-  }
 
-  // 2. Encontrar el elemento de partida.
-  const startElement = await ProcessElement.findOne({
-    where: { processDefId: processDefinition.id, bpmnElementId: currentBpmnElementId },
-  });
-  if (!startElement) {
-    throw new Error(`Element with BPMN ID '${currentBpmnElementId}' not found in process '${businessProcessKey}'.`);
-  }
+  try {
+    // 1. Encontrar la definición de proceso activa.
+    const processDefinition = await ProcessDefinition.findOne({
+      where: { businessProcessKey, status: 'ACTIVE' },
+      order: [['version', 'DESC']],
+    });
+    if (!processDefinition) {
+      throw new Error(`Process with key '${businessProcessKey}' not found or is not active.`);
+    }
 
-  // 3. Iniciar la búsqueda recursiva.
-  const blockingElements = await _findNextBlockingElements(startElement, processDefinition.id, contextData);
-  
-  // 4. Formatear la respuesta para el cliente.
-  const nextTasks = blockingElements.map(el => ({
-    bpmnElementId: el.bpmnElementId,
-    name: el.name,
-    type: el.type,
-    assignedRoleId: el.assignedRoleId,
-  }));
-  
-  return { nextTasks };
+    // 2. Encontrar el elemento de partida.
+    const startElement = await ProcessElement.findOne({
+      where: { processDefId: processDefinition.id, bpmnElementId: currentBpmnElementId },
+    });
+    if (!startElement) {
+      throw new Error(`Element with BPMN ID '${currentBpmnElementId}' not found in process '${businessProcessKey}'.`);
+    }
+
+    // --- LÓGICA CORREGIDA ---
+    // 3. Dar el "primer paso" desde el elemento actual para encontrar los siguientes candidatos.
+    const initialOutgoingSequences = await ProcessSequence.findAll({
+      where: { processDefId: processDefinition.id, sourceElementBpmnId: startElement.bpmnElementId },
+    });
+
+    if (initialOutgoingSequences.length === 0) {
+      // Si no hay salida, la respuesta es vacía, pero la llamada fue exitosa.
+      const emptyResponse = { nextTasks: [] };
+      await log.update({ responsePayload: emptyResponse });
+      return emptyResponse;
+    }
+
+    const initialTargetBpmnIds = initialOutgoingSequences.map(seq => seq.targetElementBpmnId);
+    const elementsAfterStart = await ProcessElement.findAll({
+      where: { processDefId: processDefinition.id, bpmnElementId: { [require('sequelize').Op.in]: initialTargetBpmnIds } },
+    });
+
+    // 4. Iniciar la búsqueda recursiva DESDE LOS SIGUIENTES elementos.
+    const results = await Promise.all(
+      elementsAfterStart.map(nextEl => _findNextBlockingElements(nextEl, processDefinition.id, contextData))
+    );
+    const blockingElements = results.flat();
+    
+    // 5. Formatear la respuesta para el cliente.
+    const nextTasks = blockingElements.map(el => ({
+      bpmnElementId: el.bpmnElementId,
+      name: el.name,
+      type: el.type,
+      assignedRoleId: el.assignedRoleId,
+    }));
+    
+    const response = { nextTasks };
+    
+    // Actualizar el log con la respuesta exitosa
+    await log.update({ responsePayload: response });
+    
+    return response;
+
+  } catch (error) {
+    // Actualizar el log con el mensaje de error
+    await log.update({ errorMessage: error.message });
+    // Relanzar el error para que el controlador lo maneje
+    throw error;
+  }
 };
+
+const getDecisionLogs = async (filters) => {
+  // Opcional: Implementar filtros si es necesario en el futuro
+  return DecisionLog.findAll({
+    order: [['createdAt', 'DESC']],
+    include: [{
+      model: require('../../models').User, // Carga tardía para evitar ciclos
+      as: 'executedByUser',
+      attributes: ['id', 'username', 'email']
+    }]
+  });
+};
+
 
 module.exports = {
   decideNextTask,
+  getDecisionLogs,
 };

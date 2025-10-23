@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { User, Role } = require('../../models');
+const { User, Role, SystemRoleModule } = require('../../models');
 
 const login = async (email, password) => {
   const user = await User.findOne({
@@ -16,6 +16,13 @@ const login = async (email, password) => {
     throw new Error('Invalid credentials');
   }
 
+  // Obtener los módulos permitidos para el systemRole del usuario
+  const roleModules = await SystemRoleModule.findAll({
+    where: { systemRole: user.systemRole },
+    attributes: ['moduleName']
+  });
+  const modules = roleModules.map(rm => rm.moduleName);
+
   const roleIds = user.roles.map(role => role.id);
 
   const tokenPayload = {
@@ -28,7 +35,8 @@ const login = async (email, password) => {
 
   const { passwordHash, ...userWithoutPassword } = user.get({ plain: true });
   
-  return { user: userWithoutPassword, token };
+  // Añadir los módulos al objeto de respuesta
+  return { user: userWithoutPassword, token, modules };
 };
 
 const updateProfile = async (userId, data) => {
