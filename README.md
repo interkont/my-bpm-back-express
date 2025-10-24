@@ -60,3 +60,55 @@ To support the process modeler, a new administrative endpoint has been added to 
 ### 6. Guaranteed Cascade Deletion
 
 The `DELETE /api/processes/:id` endpoint now enforces cascade deletion at the application layer within a transaction. This ensures that when a process definition is deleted, all its associated elements and sequences are reliably removed, maintaining database integrity.
+
+---
+
+## Chapter 3: Business Logic as a Service
+
+The backend now exposes the process engine's decision-making capabilities as a standalone, stateless service. This allows external systems to leverage the modeled business logic without needing to create a process instance, effectively turning the platform into a "Business Logic as a Service".
+
+### 1. "Decide Next Task" Endpoint
+
+This is the core of the service. An external application can ask the engine what the next step in a process should be, based on a given context.
+
+- **Endpoint:** `POST /api/engine/decide-next-task`
+- **Functionality:** The service simulates the process flow from a given starting point (`currentBpmnElementId`). It traverses the process graph, recursively solving any intermediate gateways by evaluating their conditions against the provided `contextData`, until it finds the next blocking task(s) (`USER_TASK`, `AUTO_TASK`) or the end of the process (`END_EVENT`).
+
+#### Request Payload Example:
+```json
+{
+  "businessProcessKey": "PURCHASE_REQUEST",
+  "currentBpmnElementId": "StartEvent_Purchase",
+  "contextData": {
+    "task": {},
+    "instance": {
+      "businessData": {
+        "purchaseAmount": 1501
+      }
+    }
+  }
+}
+```
+
+#### Response Payload Example:
+```json
+{
+  "nextTasks": [
+    {
+      "bpmnElementId": "Task_HighValueApproval",
+      "name": "Aprobación de Alto Valor",
+      "type": "USER_TASK",
+      "assignedRoleId": 4
+    }
+  ]
+}
+```
+
+### 2. Auditing with Decision Logs
+
+Every call to the decision service is audited to provide full traceability.
+
+- **Persistence:** Each request and its corresponding response (or error) is stored in the `decision_logs` table. This log includes which user made the request, the full request payload, the response, and timestamps.
+- **Query Endpoint:** A new administrative endpoint is available to query these logs.
+    - **Endpoint:** `GET /api/engine/decision-logs`
+    - **Security:** Requires administrator privileges.
