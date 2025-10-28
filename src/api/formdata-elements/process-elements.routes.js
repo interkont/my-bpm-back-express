@@ -8,7 +8,8 @@ const router = express.Router();
 router
   .route('/:elementId/form-fields')
   .post(protect, isAdmin, elementFormController.addFormField)
-  .get(protect, isAdmin, elementFormController.getFormFields);
+  .get(protect, isAdmin, elementFormController.getFormFields)
+  .put(protect, isAdmin, elementFormController.updateFormFields); // Nueva ruta PUT para actualizaciones en bloque
 
 // Rutas para actualizar o eliminar un link específico (usando su propio ID)
 router

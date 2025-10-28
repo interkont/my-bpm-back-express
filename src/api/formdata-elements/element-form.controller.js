@@ -15,7 +15,6 @@ const getFormFields = catchAsync(async (req, res) => {
 
 const updateFormField = catchAsync(async (req, res) => {
   const { linkId } = req.params;
-  // El elementId se podría usar para validar que el linkId pertenece al elemento correcto si fuera necesario
   const link = await elementFormService.updateFormField(linkId, req.body);
   res.status(200).json(link);
 });
@@ -26,9 +25,16 @@ const removeFormField = catchAsync(async (req, res) => {
   res.status(204).send();
 });
 
+const updateFormFields = catchAsync(async (req, res) => {
+    const { elementId } = req.params;
+    const updatedFields = await elementFormService.updateFormFieldsInBulk(elementId, req.body);
+    res.status(200).json(updatedFields);
+})
+
 module.exports = {
   addFormField,
   getFormFields,
   updateFormField,
   removeFormField,
+  updateFormFields,
 };

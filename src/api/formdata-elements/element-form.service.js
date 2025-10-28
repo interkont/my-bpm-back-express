@@ -1,4 +1,6 @@
-const { ElementFormLink, FieldDefinition } = require('../../models');
+const { sequelize, ElementFormLink, FieldDefinition } = require('../../models');
+const { Op } = require('sequelize');
+
 
 /**
  * Add a field to a process element (create a link)
@@ -63,9 +65,80 @@ const removeFormField = async (linkId) => {
   await link.destroy();
 };
 
+/**
+ * Update all form fields for a process element in bulk.
+ * This will create, update, or delete links as necessary.
+ * Can run within an existing transaction or create its own.
+ * @param {Number} elementId
+ * @param {Array<Object>} linksPayload The full list of form fields for the element.
+ * @param {Object} [options={}] Optional settings.
+ * @param {import('sequelize').Transaction} [options.transaction] An existing Sequelize transaction.
+ * @returns {Promise<ElementFormLink[]>}
+ */
+const updateFormFieldsInBulk = async (elementId, linksPayload, options = {}) => {
+  // Determina si esta función debe gestionar la transacción o si es parte de una más grande.
+  const manageTransaction = !options.transaction;
+  const transaction = options.transaction || (await sequelize.transaction());
+
+  try {
+      const existingLinks = await ElementFormLink.findAll({
+          where: { elementId },
+          transaction,
+      });
+      const existingLinkIds = existingLinks.map(link => link.id);
+      const payloadLinkIds = linksPayload.map(link => link.id).filter(id => id);
+
+      const idsToDelete = existingLinkIds.filter(id => !payloadLinkIds.includes(id));
+      if (idsToDelete.length > 0) {
+          await ElementFormLink.destroy({
+              where: { id: { [Op.in]: idsToDelete } },
+              transaction,
+          });
+      }
+
+      const linksToCreate = [];
+      const linksToUpdate = [];
+      for (const linkData of linksPayload) {
+          const newLinkData = { ...linkData };
+          delete newLinkData.id; // Limpiamos el id para evitar conflictos en la creación/actualización
+
+          if (linkData.id && existingLinkIds.includes(linkData.id)) {
+              linksToUpdate.push({ id: linkData.id, data: newLinkData });
+          } else {
+              linksToCreate.push({ ...newLinkData, elementId });
+          }
+      }
+      
+      for (const link of linksToUpdate) {
+          await ElementFormLink.update(link.data, { where: { id: link.id }, transaction });
+      }
+
+      if (linksToCreate.length > 0) {
+          await ElementFormLink.bulkCreate(linksToCreate, { transaction });
+      }
+
+      // Si esta función inició la transacción, debe cerrarla.
+      if (manageTransaction) {
+          await transaction.commit();
+      }
+
+      return getFormFieldsForElement(elementId);
+
+  } catch (error) {
+      if (manageTransaction) {
+          await transaction.rollback();
+      }
+      console.error('Bulk form field update failed:', error);
+      // Re-lanza el error para que la transacción padre (si existe) pueda hacer rollback.
+      throw new Error('Failed to update form fields in bulk.');
+  }
+};
+
+
 module.exports = {
   addFormFieldToElement,
   getFormFieldsForElement,
   updateFormField,
   removeFormField,
+  updateFormFieldsInBulk,
 };

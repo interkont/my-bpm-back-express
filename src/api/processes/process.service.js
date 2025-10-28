@@ -8,6 +8,7 @@ const {
   FieldDefinition,
 } = require('../../models');
 const { Op } = require('sequelize');
+const elementFormService = require('../formdata-elements/element-form.service');
 
 /**
  * Valida que no exista otra versión activa para un process key.
@@ -41,11 +42,13 @@ async function syncElements(processDefId, incomingElements, transaction) {
 
   for (const incomingEl of incomingElements) {
     const existing = existingElementsMap.get(incomingEl.bpmnElementId);
+    // Excluimos formFields del objeto principal para no intentar guardarlo en la tabla process_elements
+    const { formFields, ...elementData } = incomingEl; 
     if (existing) {
-      existing.set(incomingEl);
+      existing.set(elementData);
       toUpdate.push(existing.save({ transaction }));
     } else {
-      toCreate.push({ ...incomingEl, processDefId });
+      toCreate.push({ ...elementData, processDefId });
     }
   }
 
@@ -119,9 +122,13 @@ const saveProcessDefinition = async (id, data) => {
       }, { transaction: t });
       
       const newProcessDefId = newDefinition.id;
+      const elementsToCreate = elements.map(el => {
+        const { formFields, ...elementData } = el;
+        return { ...elementData, processDefId: newProcessDefId };
+      });
 
       const newElements = await ProcessElement.bulkCreate(
-        elements.map(el => ({ ...el, processDefId: newProcessDefId })),
+        elementsToCreate,
         { transaction: t, returning: true }
       );
       await ProcessSequence.bulkCreate(
@@ -129,42 +136,16 @@ const saveProcessDefinition = async (id, data) => {
         { transaction: t }
       );
 
-      const oldElementsWithForms = await ProcessElement.findAll({
-        where: { processDefId: definitionToUpdate.id },
-        include: [{ model: ElementFormLink, as: 'elementFormLinks' }],
-        transaction: t
-      });
-
-      const formLinksMap = new Map();
-      oldElementsWithForms.forEach(oldEl => {
-        if (oldEl.elementFormLinks && oldEl.elementFormLinks.length > 0) {
-          formLinksMap.set(
-            oldEl.bpmnElementId,
-            oldEl.elementFormLinks.map(link => ({
-              fieldDefId: link.fieldDefId,
-              displayOrder: link.displayOrder,
-              isRequired: link.isRequired,
-              isReadonly: link.isReadonly,
-              contextualValidations: link.contextualValidations
-            }))
-          );
-        }
-      });
-      
-      const newFormLinksToCreate = [];
+      // Sincronizar form fields para la nueva versión
       const newElementsMap = new Map(newElements.map(el => [el.bpmnElementId, el.id]));
-
-      for (const [bpmnId, links] of formLinksMap.entries()) {
-        const newElementId = newElementsMap.get(bpmnId);
-        if (newElementId) {
-          links.forEach(linkData => {
-            newFormLinksToCreate.push({ ...linkData, elementId: newElementId });
-          });
+      for (const incomingEl of elements) {
+        // Si el elemento del payload tiene formFields, lo procesamos
+        if (incomingEl.formFields && Array.isArray(incomingEl.formFields)) {
+          const newElementId = newElementsMap.get(incomingEl.bpmnElementId);
+          if (newElementId) {
+            await elementFormService.updateFormFieldsInBulk(newElementId, incomingEl.formFields, { transaction: t });
+          }
         }
-      }
-
-      if (newFormLinksToCreate.length > 0) {
-        await ElementFormLink.bulkCreate(newFormLinksToCreate, { transaction: t });
       }
       
       return newDefinition;
@@ -196,6 +177,20 @@ const saveProcessDefinition = async (id, data) => {
 
       await syncElements(processDefId, elements, t);
       await syncSequences(processDefId, sequences, t);
+      
+      // Sincronizar form fields para la actualización en el lugar
+      const finalElements = await ProcessElement.findAll({ where: { processDefId }, transaction: t });
+      const elementMap = new Map(finalElements.map(el => [el.bpmnElementId, el.id]));
+
+      for (const incomingEl of elements) {
+         // Si el elemento del payload tiene formFields, lo procesamos
+        if (incomingEl.formFields && Array.isArray(incomingEl.formFields)) {
+          const elementId = elementMap.get(incomingEl.bpmnElementId);
+          if (elementId) {
+            await elementFormService.updateFormFieldsInBulk(elementId, incomingEl.formFields, { transaction: t });
+          }
+        }
+      }
       
       return processDefinition;
     }
@@ -276,17 +271,64 @@ const getAllProcessDefinitionsAdmin = async () => {
 
 const getProcessDefinitionById = async (id) => {
   const processDefinition = await ProcessDefinition.findByPk(parseInt(id, 10), {
-      include: [
-          { model: ProcessElement, as: 'processElements' },
-          { model: ProcessSequence, as: 'processSequences' }
-      ]
+    include: [
+      {
+        model: ProcessSequence,
+        as: 'processSequences',
+      },
+      {
+        model: ProcessElement,
+        as: 'processElements',
+        include: [
+          {
+            model: ElementFormLink,
+            as: 'elementFormLinks',
+            // Importante: incluir la definición del campo para tener toda la info
+            include: [
+              {
+                model: FieldDefinition,
+                as: 'fieldDefinition',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+    // Ordenar para mantener la consistencia
+    order: [
+      [{ model: ProcessElement, as: 'processElements' }, 'id', 'ASC'],
+      [
+        { model: ProcessElement, as: 'processElements' },
+        { model: ElementFormLink, as: 'elementFormLinks' },
+        'displayOrder',
+        'ASC',
+      ],
+    ],
   });
 
   if (!processDefinition) return null;
 
   const result = processDefinition.toJSON();
-  
-  result.elements = result.processElements;
+
+  // Renombrar y aplanar la estructura para que coincida con el payload de guardado
+  result.elements = result.processElements.map((el) => {
+    const formFields = el.elementFormLinks.map((link) => {
+      // Devolvemos una estructura limpia y predecible
+      return {
+        id: link.id,
+        fieldDefId: link.fieldDefId,
+        displayOrder: link.displayOrder,
+        isRequired: link.isRequired,
+        isReadonly: link.isReadonly,
+        contextualValidations: link.contextualValidations,
+        fieldDefinition: link.fieldDefinition, // Incluimos la definición completa del campo
+      };
+    });
+    // Limpiamos la propiedad original para no enviar datos duplicados
+    delete el.elementFormLinks;
+    return { ...el, formFields };
+  });
+
   result.sequences = result.processSequences;
   delete result.processElements;
   delete result.processSequences;
@@ -310,6 +352,14 @@ const deleteProcessDefinition = async (id) => {
     }
     
     await ProcessSequence.destroy({ where: { processDefId }, transaction: t });
+    await ElementFormLink.destroy({ 
+      where: { 
+        elementId: {
+          [Op.in]: (await ProcessElement.findAll({ where: { processDefId }, attributes: ['id'], transaction: t })).map(e => e.id)
+        }
+      },
+      transaction: t
+    });
     await ProcessElement.destroy({ where: { processDefId }, transaction: t });
     await definition.destroy({ transaction: t });
 
