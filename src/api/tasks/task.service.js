@@ -8,21 +8,20 @@ const {
   FieldDefinition,
 } = require('../../models');
 const { Op } = require('sequelize');
+const { enrichFieldValue } = require('../../utils/formUtils'); // Importar función centralizada
 
 /**
  * Obtiene la bandeja de entrada de un usuario.
  * (Función existente)
  */
-const getMyTasks = async (userId, roleIds) => { // <-- CAMBIO QUIRÚRGICO 1
+const getMyTasks = async (userId, roleIds) => { 
   const taskInstances = await TaskInstance.findAll({
     where: {
       status: 'PENDING',
-      // --- CAMBIO QUIRÚRGICO 2 ---
       [Op.or]: [
         { assignedToUserId: userId }, 
         { assignedToRoleId: { [Op.in]: roleIds } }
       ],
-      // --- FIN CAMBIO QUIRÚRGICO 2 ---
     },
     include: [
       {
@@ -62,7 +61,6 @@ const getMyTasks = async (userId, roleIds) => { // <-- CAMBIO QUIRÚRGICO 1
   return formattedTasks;
 };
 
-// --- EL RESTO DEL ARCHIVO PERMANECE INTACTO ---
 const getTaskForm = async (taskId) => {
     const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
       include: [
@@ -104,13 +102,17 @@ const getTaskForm = async (taskId) => {
     const businessData = taskInstance.processInstance?.businessData || {};
   
     const formFields = taskInstance.processElement.elementFormLinks.map((link) => {
+      const fieldDef = link.fieldDefinition;
+      const rawValue = businessData[fieldDef.name] || null;
+      const enriched = enrichFieldValue(fieldDef, rawValue);
+
       return {
-        name: link.fieldDefinition.name,
-        label: link.fieldDefinition.label,
-        fieldType: link.fieldDefinition.fieldType,
-        value: businessData[link.fieldDefinition.name] || null,
+        name: fieldDef.name,
+        label: fieldDef.label,
+        fieldType: fieldDef.fieldType,
+        value: enriched.value,
         validations: {
-          ...(link.fieldDefinition.validations || {}),
+          ...enriched.validations,
           isRequired: link.isRequired,
           isReadonly: link.isReadonly,
           ...(link.contextualValidations || {}),

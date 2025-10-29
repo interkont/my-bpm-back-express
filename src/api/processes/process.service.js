@@ -9,6 +9,7 @@ const {
 } = require('../../models');
 const { Op } = require('sequelize');
 const elementFormService = require('../formdata-elements/element-form.service');
+const { enrichFieldValue } = require('../../utils/formUtils'); // Importar función centralizada
 
 /**
  * Valida que no exista otra versión activa para un process key.
@@ -393,13 +394,17 @@ const getStartForm = async (processDefId) => {
   }
 
   const formFields = startEventElement.elementFormLinks.map((link) => {
+    const fieldDef = link.fieldDefinition;
+    // Para el start form, el valor siempre es nulo
+    const enriched = enrichFieldValue(fieldDef, null); 
+
     return {
-      name: link.fieldDefinition.name,
-      label: link.fieldDefinition.label,
-      fieldType: link.fieldDefinition.fieldType,
-      value: null,
+      name: fieldDef.name,
+      label: fieldDef.label,
+      fieldType: fieldDef.fieldType,
+      value: enriched.value,
       validations: {
-        ...link.fieldDefinition.validations,
+        ...enriched.validations,
         isRequired: link.isRequired,
         isReadonly: link.isReadonly,
         ...link.contextualValidations,
