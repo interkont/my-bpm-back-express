@@ -22,7 +22,7 @@ const enrichFieldValue = (fieldDefinition, rawValue) => {
     );
     if (selectedOption) {
       // Return the full object so the frontend has both the value and the label
-      enriched.value = selectedotion;
+      enriched.value = selectedOption;
     }
   }
 
