@@ -6,6 +6,7 @@ const {
   ProcessElement,
   ElementFormLink,
   FieldDefinition,
+  Role, // Importar Role
 } = require('../../models');
 const { Op } = require('sequelize');
 const { enrichFieldValue } = require('../../utils/formUtils'); // Importar función centralizada
@@ -61,6 +62,9 @@ const getMyTasks = async (userId, roleIds) => {
   return formattedTasks;
 };
 
+/**
+ * Obtiene la definición del formulario de una tarea, incluyendo datos para Case Assignment.
+ */
 const getTaskForm = async (taskId) => {
     const taskInstance = await TaskInstance.findByPk(parseInt(taskId, 10), {
       include: [
@@ -125,6 +129,41 @@ const getTaskForm = async (taskId) => {
       fields: formFields,
       actions: taskInstance.processElement.actions || ['complete'],
     };
+
+    // --- INICIO DE LA LÓGICA PARA CASE ASSIGNMENT ---
+    const caseAssignmentConfig = taskInstance.processElement.caseAssignmentConfig;
+
+    if (caseAssignmentConfig && caseAssignmentConfig.isCaseAssignment === true && caseAssignmentConfig.assignableRoles?.length > 0) {
+      
+      const rolesWithUsers = await Role.findAll({
+        where: {
+          id: {
+            [Op.in]: caseAssignmentConfig.assignableRoles,
+          },
+        },
+        attributes: ['id', 'name'], // Solo traer los datos necesarios del rol
+        include: {
+          model: User,
+          as: 'users',
+          attributes: ['id', 'fullName', 'email'], // Traer solo los datos necesarios del usuario
+          through: { attributes: [] }, // No traer la tabla intermedia UserRole
+        },
+      });
+
+      // Añadir la nueva sección al objeto de respuesta
+      formDefinition.caseAssignmentData = {
+        assignableRoles: rolesWithUsers.map(role => ({
+          roleId: role.id,
+          roleName: role.name,
+          users: role.users.map(user => ({
+            userId: user.id,
+            userName: user.fullName,
+            userEmail: user.email,
+          })),
+        })),
+      };
+    }
+    // --- FIN DE LA LÓGICA PARA CASE ASSIGNMENT ---
   
     return formDefinition;
   };
