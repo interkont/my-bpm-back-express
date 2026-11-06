@@ -532,19 +532,19 @@ cumple en Windows y Linux.
 
 ### Oleada 8.1 (en paralelo, tras US3, US4 y US5)
 
-- [ ] T092 [P] [US6] Crear `specs/001-typescript-migration/debt-catalog.md`:
+- [X] T092 [P] [US6] Crear `specs/001-typescript-migration/debt-catalog.md`:
   - Tabla de resueltos (A-01…A-17, B-01…B-14), cada uno con su prueba o tarea.
   - Tabla C-01…C-13 con riesgo, impacto en el frontend y feature sucesora ([analysis.md §5.3](./analysis.md)). C-01 (reemplazo de `expr-eval`) va marcada como **siguiente feature** con la batería de T025 como criterio de aceptación (FR-042).
   - Matriz EXC-xx / AP-xx / blueprint §11 → estado.
   - Informe de `npm audit` restante (de T095).
-- [ ] T093 [P] [US6] Actualizar `blueprint.md` (FR-041):
+- [X] T093 [P] [US6] Actualizar `blueprint.md` (FR-041):
   - §3 y la estructura de carpetas TS.
   - §6 y §7 con los errores de modelado 422 y la detección de ciclos.
   - §9: códigos de error por endpoint según [contracts/http-api.md](./contracts/http-api.md).
   - §11: marcar lo resuelto.
   - §12: comandos de [contracts/runtime.md](./contracts/runtime.md).
   - Cambiar las referencias `ruta:línea` a los `.ts`, o indicar que corresponden a `95e97c4`.
-- [ ] T094 [P] [US6] Proponer, con `/speckit-constitution`, la enmienda PATCH de `.specify/memory/constitution.md`: retirar EXC-06, 07, 09, 11 y 12; dejar en EXC-02 solo lo pendiente; resolver `TODO(EXC_RETIREMENT_001)`. Se hace en un PR aparte y lo revisa otra persona del equipo backend.
+- [X] T094 [P] [US6] Proponer, con `/speckit-constitution`, la enmienda PATCH de `.specify/memory/constitution.md`: retirar EXC-06, 07, 09, 11 y 12; dejar en EXC-02 solo lo pendiente; resolver `TODO(EXC_RETIREMENT_001)`. Se hace en un PR aparte y lo revisa otra persona del equipo backend.
 
 **Checkpoint**: la deuda queda trazada y priorizada para planificar la salida de la fase piloto.
 
@@ -557,8 +557,8 @@ cumple en Windows y Linux.
   - Sustituir los metadatos de plantilla (`name` → `flowify-bpm-backend`, `description`, `author`; quitar `main`).
   - `npm update` y `npm audit fix` **sin** `--force`; `expr-eval` debe seguir en `2.0.2` exacta.
   - Guardar la salida de `npm audit --omit=dev` para T092.
-- [ ] T096 [P] Actualizar los comandos de arranque y pruebas en `README.md`, sin valores de entorno.
-- [ ] T097 Puerta final (SC-004, SC-010):
+- [X] T096 [P] Actualizar los comandos de arranque y pruebas en `README.md`, sin valores de entorno.
+- [X] T097 Puerta final (SC-004, SC-010):
   - `git ls-files "src/*.js" "src/**/*.js"` vacío.
   - `npm run typecheck` con 0 errores y `npm run lint` con 0 errores y 0 advertencias.
   - `npm run build` y `npm test` completos sin la base compartida.

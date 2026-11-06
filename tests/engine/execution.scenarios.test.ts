@@ -46,7 +46,7 @@ interface Outcome {
 const record = (res: { status: number; body: unknown; text: string }): HttpRecord => ({
   status: res.status,
   body: res.body,
-  text: Object.keys((res.body ?? {})).length > 0 ? undefined : res.text,
+  text: Object.keys(res.body ?? {}).length > 0 ? undefined : res.text,
 });
 
 let server: RunningServer;

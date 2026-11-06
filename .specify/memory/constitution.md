@@ -1,7 +1,17 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Cambio de versión: 1.0.0 → 2.0.0 (MAJOR)
+Cambio de versión: 2.0.0 → 2.0.1 (PATCH) — 2026-11-06
+
+Motivo del bump PATCH: retirada de excepciones resueltas por la feature 001-typescript-migration
+(TODO(EXC_RETIREMENT_001)); no cambia ningún principio ni regla.
+  - Retiradas: EXC-02, EXC-06, EXC-07, EXC-09, EXC-11, EXC-12 (evidencia en
+    specs/001-typescript-migration/debt-catalog.md).
+  - Criterios de salida de fase: se quitan EXC-02 y EXC-09.
+  - Rutas de las excepciones vigentes actualizadas a los archivos .ts.
+  - Plantillas: sin cambios.
+
+---- Historial: 1.0.0 → 2.0.0 (MAJOR) ----
 
 Motivo del bump MAJOR: se redefine de forma incompatible la regla del Stack que prohibía TypeScript y
 el Principio I (extensiones de archivo normadas, capa de dominio nueva). Todo el código existente en
@@ -50,7 +60,7 @@ TODOs diferidos:
     mientras tanto rige el procedimiento de scripts SQL versionados del Principio II.
   - TODO(EXPR_EVAL_REPLACEMENT): reemplazo de expr-eval como feature inmediatamente sucesora de 001
     (spec 001, FR-042), con la misma sintaxis y los mismos resultados.
-  - TODO(EXC_RETIREMENT_001): al integrarse 001, retirar con enmienda PATCH las excepciones que resuelva.
+  - TODO(EXC_RETIREMENT_001): resuelto en 2.0.1.
 
 Documento de referencia funcional: /blueprint.md (raíz del repositorio).
 -->
@@ -87,7 +97,7 @@ Las brechas de seguridad, los datos mock y la falta de pruebas que documenta `bl
 | Validación de entrada con la biblioteca aprobada y lista blanca de campos | Principio IV, CC-06 | SHOULD. Se recomienda en endpoints nuevos, pero no bloquea. |
 | `npm audit` sin críticas/altas nuevas; reemplazo de `expr-eval` | Principio IV, CC-11, EXC-01 | SHOULD. Las dependencias nuevas igual se justifican en el plan. |
 | Pruebas Jest/Supertest | Principio VII, CC-10 | SHOULD. Si no hay pruebas, la verificación manual MUST quedar en `quickstart.md`. |
-| `cors()` abierto, config productiva | EXC-08, EXC-09 | Se mantiene así. |
+| `cors()` abierto | EXC-08 | Se mantiene así. |
 | Datos de demo, seeds o mocks en la base y el código | — | Permitidos, sin marcado especial: en esta fase todo el sistema es demo. |
 
 **Lo que sigue siendo MUST también en esta fase**, porque son baratos de cumplir y caros de corregir después:
@@ -98,8 +108,8 @@ contrato API estable (IX); tipado estricto (X).
 
 **Criterios de salida de fase.** Antes de crear el primer ambiente de QA o producción MUST:
 1. Hacer una enmienda (MINOR) que elimine esta sección y devuelva a MUST todas las reglas de la tabla.
-2. Resolver o aceptar por escrito: EXC-01 (`expr-eval`), EXC-02 (códigos HTTP), EXC-03/04 (integridad),
-   EXC-05 (autorización), EXC-08 (CORS), EXC-09 (arranque productivo), y los hallazgos C/A de
+2. Resolver o aceptar por escrito: EXC-01 (`expr-eval`), EXC-03/04 (integridad), EXC-05 (autorización),
+   EXC-08 (CORS), y los hallazgos C/A de
    `blueprint.md` §11.1.
 3. Revisar los datos de demo de la base que se vaya a usar y los mocks del código, y decidir qué se
    retira o reemplaza.
@@ -547,7 +557,7 @@ Estado actual y obligaciones:
 
 ## Logging y configuración
 
-- Logger único: `src/utils/logger.ts` (winston). El middleware de errores MUST usarlo (ver EXC-06).
+- Logger único: `src/utils/logger.ts` (winston). El middleware de errores MUST usarlo.
   Niveles: `error` (fallos), `warn` (reglas violadas esperables), `info` (eventos de negocio: instancia
   iniciada/completada, tarea completada, versión creada/activada), `debug` (traza del motor).
 - Configuración no secreta: `src/config/default.json` + `<NODE_ENV>.json` + mapeo de variables en
@@ -577,29 +587,24 @@ Desviaciones existentes que se toleran **solo en el código ya escrito**. Cualqu
 el archivo afectado SHOULD resolver la excepción si está dentro de su alcance; toda feature nueva MUST
 NOT replicarlas.
 
-Las excepciones EXC-01, EXC-02, EXC-03, EXC-04, EXC-05, EXC-08 y EXC-09 son además **criterios de salida
+Las excepciones EXC-01, EXC-03, EXC-04, EXC-05 y EXC-08 son además **criterios de salida
 de fase**: pueden quedarse así durante el piloto, pero MUST resolverse o aceptarse por escrito antes de
 crear un ambiente de QA o producción (ver "Fase del proyecto").
 
 | ID | Desviación | Ubicación | Motivo de aceptación | Condición de salida |
 |---|---|---|---|---|
-| EXC-01 | `expr-eval` 2.0.2 con vulnerabilidades sin corrección (GHSA-8gw3-rxh4-v6jx, GHSA-jc85-fpwf-qm7x, GHSA-q9v2-7m5w-4693) | `package.json`, `src/utils/expressionEngine.js:2,20` | Es el único evaluador del motor y está aislado en un archivo. Riesgo renovado por escrito en spec 001 (Clarifications, 2026-11-05): fase piloto con datos de demo. | Feature inmediatamente sucesora de 001 que reemplace la librería con la misma sintaxis y los mismos resultados, usando la batería de expresiones de 001 como aceptación. TODO(EXPR_EVAL_REPLACEMENT). |
-| EXC-02 | Middleware de errores devuelve siempre 500 texto plano | `src/api/middlewares/error.middleware.js:18-21` | El frontend actual depende de esos códigos; cambiarlos requiere coordinación | Feature "errores HTTP correctos" (Principio V) coordinada con el frontend. 001 corrige los códigos de su FR-021. |
-| EXC-03 | Base sin FKs de dominio; cascadas solo declarativas en Sequelize | Base de datos; `src/models/index.js:18-34` | Esquema heredado de Prisma `relationMode="prisma"` con datos huérfanos existentes | Migración que limpie huérfanos y cree FKs. |
-| EXC-04 | Borrados sin tratar dependientes | `process.service.js:59`, `:304-318`; `processInstance.service.js:133-135` | Funcionalidad en uso por el modelador | Feature de integridad (EXC-03). |
-| EXC-05 | Rutas de diseño de procesos y escritura de instancias sin `isAdmin` ni control por registro | `processes.routes.js:8-27`, `processInstances.routes.js:7-21`, `task.service.js:66` | El frontend actual no distingue estos permisos | Feature de autorización coordinada con frontend (módulo `PROC`). |
-| EXC-06 | Dos loggers y `console.*` | `error.middleware.js:3-16`, `processEngine.service.js` (11 usos), `expressionEngine.js` (5 usos), `app.js` (3 usos) | Traza útil durante desarrollo del motor | Unificación en `utils/logger` (001). |
-| EXC-07 | Código y dependencias TypeScript sin uso; metadatos de plantilla en `package.json` | `src/index.ts`, `tsconfig.json`, `package.json` (`name`, `author`, `description`) | Restos de la plantilla Firebase Studio, inocuos | Migración a TypeScript (001). |
-| EXC-08 | `cors()` abierto | `src/app.js:16` | Desarrollo local con frontend en otro puerto | Configurar orígenes por entorno antes de cualquier despliegue. |
-| EXC-09 | `app.js` arranca el servidor al importarse; `production.json` vacío rompe `start:prod`; `start:dev` solo Unix | `src/app.js:55`, `src/config/production.json`, `package.json` | No hay despliegue productivo ni pruebas todavía | Separación app/server y scripts multiplataforma (001). |
-| EXC-10 | Columnas `process_elements.actions` y `case_assignment_config` fuera del modelo | `src/models/process-element.model.js` | Se poblaron fuera de la API; incluirlas cambia la respuesta de formularios | Feature que formalice acciones de tarea (afecta `task.service.js:124`). |
-| EXC-11 | Controllers con `try/catch` manual y respuestas de error ad hoc | `user.controller.js`, `role.controller.js`, `auth.controller.js:10-20` | Funcionan y su contrato lo usa el frontend | `catchAsync` + middleware central (001). |
-| EXC-12 | `JWT_SECRET` leído directamente de `process.env` | `src/config/passport.js:7`, `src/api/auth/auth.service.js:34` | Funciona con dotenv | Config validada (001). |
+| EXC-01 | `expr-eval` 2.0.2 con vulnerabilidades sin corrección (GHSA-8gw3-rxh4-v6jx, GHSA-jc85-fpwf-qm7x, GHSA-q9v2-7m5w-4693) | `package.json`, `src/utils/expressionEngine.ts` | Es el único evaluador del motor y está aislado en un archivo. Riesgo renovado por escrito en spec 001 (Clarifications, 2026-11-05): fase piloto con datos de demo. | Feature inmediatamente sucesora de 001 que reemplace la librería con la misma sintaxis y los mismos resultados, usando la batería de expresiones de 001 como aceptación. TODO(EXPR_EVAL_REPLACEMENT). |
+| EXC-03 | Base sin FKs de dominio; cascadas solo declarativas en Sequelize | Base de datos; `src/models/index.ts` | Esquema heredado de Prisma `relationMode="prisma"` con datos huérfanos existentes | Migración que limpie huérfanos y cree FKs. |
+| EXC-04 | Borrados sin tratar dependientes | `process.service.ts` (sync y borrado de definiciones); `processInstance.service.ts` (borrado de instancias) | Funcionalidad en uso por el modelador | Feature de integridad (EXC-03). |
+| EXC-05 | Rutas de diseño de procesos y escritura de instancias sin `isAdmin` ni control por registro | `processes.routes.ts`, `processInstances.routes.ts`, `task.service.ts` (`getTaskForm`) | El frontend actual no distingue estos permisos | Feature de autorización coordinada con frontend (módulo `PROC`). |
+| EXC-08 | `cors()` abierto | `src/app.ts` | Desarrollo local con frontend en otro puerto | Configurar orígenes por entorno antes de cualquier despliegue. |
+| EXC-10 | Columnas `process_elements.actions` y `case_assignment_config` fuera del modelo | `src/models/process-element.model.ts` | Se poblaron fuera de la API; incluirlas cambia la respuesta de formularios | Feature que formalice acciones de tarea (afecta `task.mappers.ts`, `actions`). |
 | EXC-13 | Documentos legados (`resources/*.sql`, `*.prisma`, README cap. 1, `GEMINI.md`, `.idx/airules.md`) | `resources/`, raíz | Valor histórico | Marcar como legado o eliminar; la referencia vigente es `blueprint.md`. |
 
-Las excepciones cuya condición de salida indica "(001)" MUST retirarse de esta tabla mediante enmienda
-PATCH cuando la feature 001-typescript-migration se integre en la rama principal.
-TODO(EXC_RETIREMENT_001).
+Retiradas en 2.0.1 por la feature 001-typescript-migration (no se reutilizan sus ids): EXC-02 (errores
+HTTP), EXC-06 (loggers), EXC-07 (restos de plantilla TS), EXC-09 (arranque), EXC-11 (try/catch en
+controllers), EXC-12 (`JWT_SECRET` fuera de config). Evidencia en
+`specs/001-typescript-migration/debt-catalog.md`.
 
 ## Prácticas NO recomendadas a continuar (anti-patrones)
 
@@ -699,4 +704,4 @@ TODO(EXC_RETIREMENT_001).
   de salida.
 - **Guía de referencia en tiempo de desarrollo**: `blueprint.md` (dominio, endpoints, reglas, brechas).
 
-**Version**: 2.0.0 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-05
+**Version**: 2.0.1 | **Ratified**: 2026-11-05 | **Last Amended**: 2026-11-06

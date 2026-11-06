@@ -3,7 +3,11 @@
 > Repositorio: `my-bpm-back-express` · Fecha de levantamiento: 2026-11-05 · Último commit analizado: `95e97c4`
 > Alcance: todo lo implementado en `src/`, el esquema real de la base Postgres (introspección de solo lectura),
 > la documentación existente (`README.md`, `GEMINI.md`, `.idx/airules.md`) y `resources/`.
-> Las referencias `ruta:línea` apuntan al código en el commit indicado.
+> **Actualización tras la migración a TypeScript (Spec Kit feature 001, rama `001-typescript-migration`, T093 / FR-041).**
+> Hoy el código fuente de verdad es `src/**/*.ts`. Las referencias `ruta:línea` a archivos `.js` que quedan en
+> este documento (§1, §4, §5, §10, §11 y el resto) corresponden al commit `95e97c4` (pre-migración) y se
+> conservan como evidencia histórica; las del **motor** (§6 y §7) ya apuntan a los `.ts`. Donde un hallazgo
+> original quedó corregido, §11 lo marca con "Resuelto en 001".
 > Las normas de ingeniería derivadas de este documento están en `.specify/memory/constitution.md`.
 
 > **Fase del proyecto: construcción y piloto / demo.** Flowify todavía no tiene ambientes de QA ni de
@@ -39,7 +43,7 @@
 
 **Flowify BPMS** es un sistema de gestión de procesos de negocio (BPM) compuesto por:
 
-- **Este backend** (Node 20 + Express 4 + Sequelize 6 + PostgreSQL): API REST que almacena las
+- **Este backend** (Node 20 + TypeScript + Express 4 + Sequelize 6 + PostgreSQL): API REST que almacena las
   definiciones de proceso modeladas, ejecuta un **motor de procesos propio** basado en un grafo de
   elementos y secuencias, gestiona la bandeja de tareas de los usuarios, y expone la lógica de
   decisión del grafo como servicio ("Business Logic as a Service").
@@ -57,13 +61,13 @@ Capacidades de negocio implementadas hoy:
 | Modelado y guardado de procesos con versionado automático | Implementado | `src/api/processes/process.service.js:94` |
 | Ciclo de vida DRAFT / ACTIVE / INACTIVE / DEPRECATED | Parcial (ver §5) | `process.service.js:205` |
 | Formulario de inicio de un proceso | Implementado (lectura) | `process.service.js:320` |
-| Inicio de instancias y avance automático por el grafo | Implementado | `src/api/engine/processEngine.service.js` |
-| Gateways exclusivos con condiciones (expr-eval) | Implementado | `processEngine.service.js:69` |
-| Gateways paralelos (fork y join) | Implementado con limitaciones | `processEngine.service.js:39`, `:252` |
+| Inicio de instancias y avance automático por el grafo | Implementado | `src/api/engine/execution.service.ts` |
+| Gateways exclusivos con condiciones (expr-eval) | Implementado | `execution.service.ts:95`, `context.ts:180` |
+| Gateways paralelos (fork y join) | Implementado con limitaciones | `execution.service.ts:75`, `:253` |
 | Bandeja "Mis tareas" por usuario o rol | Implementado | `src/api/tasks/task.service.js:16` |
 | Formulario de tarea con datos de la instancia | Implementado | `task.service.js:66` |
-| Completar tarea (acción + datos + comentarios) | Implementado | `processEngine.service.js:179` |
-| Decisión de siguiente tarea sin instancia + auditoría | Implementado | `src/api/engine/decision.service.js:88` |
+| Completar tarea (acción + datos + comentarios) | Implementado | `execution.service.ts:170` |
+| Decisión de siguiente tarea sin instancia + auditoría | Implementado | `src/api/engine/decision.service.ts:101` |
 | Biblioteca de campos (field definitions) vía API | **No implementado** (solo modelo) | `src/models/field-definition.model.js` |
 | Diseño de formularios (element form links) vía API | **No implementado** | — |
 | Documentos adjuntos (S3) | **No implementado** (solo modelo/tabla vacía) | `src/models/document-instance.model.js` |
@@ -107,29 +111,52 @@ Interpretación probable de los códigos de módulo (no hay tabla de descripcion
 
 ## 3. Arquitectura en una página
 
+El backend está escrito en **TypeScript** (modo `strict`, `module: node16`), se compila a CommonJS en `dist/`
+(misma profundidad que `src/`) y en desarrollo se ejecuta con `tsx`. Las dependencias entre capas van de
+arriba abajo: rutas → controller → servicio → modelos; `src/domain` no depende de nada.
+
 ```
-src/app.js                      ← entry real (express, helmet, cors, rate limit, passport, /api, error middleware)
-src/api/routes.js               ← monta /roles /users /auth /tasks /processes /process-instances /engine
+src/server.ts                   ← arranque: valida config, sequelize.authenticate(), app.listen (único lugar que escucha)
+src/app.ts                      ← construye y exporta la app Express (helmet, cors, rate limit, passport, /api, error middleware); sin listen, importable por pruebas
+src/api/routes.ts               ← monta /roles /users /auth /tasks /processes /process-instances /engine
 src/api/<modulo>/
-    <x>.routes.js               ← rutas + middlewares protect / isAdmin
-    <x>.controller.js           ← lee req, llama servicio, responde (catchAsync o try/catch)
-    <x>.service.js              ← lógica de negocio + acceso a datos con modelos Sequelize
-src/api/engine/processEngine.service.js ← motor de ejecución (lo usan process-instances y tasks)
-src/api/engine/decision.service.js      ← motor de decisión sin estado + decision logs
-src/api/middlewares/            ← auth (passport-jwt), admin (systemRole), error (500 genérico)
-src/models/*.model.js           ← un modelo por tabla; asociaciones centralizadas en models/index.js
-src/config/                     ← config (paquete `config`), database (Sequelize), passport
-src/utils/                      ← catchAsync, expressionEngine (expr-eval), logger (winston)
+    <x>.routes.ts               ← rutas + middlewares protect / isAdmin / idParam / validateBody
+    <x>.schemas.ts              ← esquemas zod de entrada (solo rechazan lo que antes ya fallaba)
+    <x>.controller.ts           ← lee req, llama al servicio, responde (catchAsync; sin try/catch)
+    <x>.service.ts              ← lógica de negocio + acceso a datos con modelos Sequelize; lanza AppError
+    <x>.mappers.ts              ← modelo Sequelize → DTO de respuesta (la forma HTTP queda congelada)
+src/api/engine/                 ← motor, dividido en núcleo puro y cáscaras:
+    graph.ts, context.ts,         NÚCLEO PURO (sin models ni sequelize): grafo, contexto de evaluación,
+    semantics.ts, traversal.ts      semántica por tipo de nodo (NODE_SEMANTICS), ruta exclusiva, detección de ciclos
+    execution.service.ts          CÁSCARA de ejecución: transacción + efectos en BD (startProcess, completeTask)
+    decision.service.ts           CÁSCARA de decisión: simulación sin estado + decision logs
+src/domain/                     ← constants.ts (ElementType...), types.ts (BusinessData, AuthUser...), errors.ts (AppError + fábricas)
+src/api/middlewares/            ← auth (passport-jwt), admin (systemRole), validate (validateBody, idParam, parseIntIdParam), error (formateador único)
+src/models/*.model.ts           ← un modelo por tabla; asociaciones centralizadas en models/index.ts
+src/config/                     ← env.ts (dotenv), index.ts (config tipada, inmutable y validada), environment.ts, database.ts, passport.ts, JSON de `config`
+src/utils/                      ← catchAsync, expressionEngine (expr-eval), logger (winston único), pick, formFields
+src/types/                      ← declaraciones (`express.d.ts` para `req.user`, `expr-eval.d.ts`)
 public/index.html               ← página estática "El servidor funciona"
-src/index.ts                    ← CÓDIGO MUERTO (plantilla Hello World)
+tests/                          ← jest: contract (supertest), engine, unit, fixtures, setup (Postgres de pruebas)
 ```
 
-Flujo de una petición: `app.js` → `express.json` → `helmet` → `cors` → `static(public)` → rate limit
-(100 req / 15 min por IP, `app.js:20-24`) → `passport.initialize` → `/api` router → `protect`
-(passport-jwt) → `isAdmin` (opcional) → controller → service → modelos → Postgres → error middleware.
+Flujo de una petición: `app.ts` → `express.json` → `helmet` → `cors` → `static(public)` → rate limit
+(100 req / 15 min por IP) → `passport.initialize` → router `/api` → `protect` (passport-jwt) → `isAdmin`
+(opcional) → `idParam` / `validateBody` (opcionales) → controller → service → modelos → Postgres → `errorMiddleware`.
 
-El servidor solo escucha después de `sequelize.authenticate()` (`app.js:42-55`). No hay
-`sequelize.sync()`: **el esquema no lo crea la app**, existe previamente en la base.
+**Motor: núcleo puro vs. cáscaras.** El núcleo (`graph`, `context`, `semantics`, `traversal`) solo recibe y
+devuelve datos planos: construye el grafo, arma el contexto de evaluación, elige la ruta exclusiva y detecta
+ciclos. Las cáscaras (`execution.service`, `decision.service`) cargan el grafo, aplican la semántica y, solo en
+ejecución, escriben en la base. `NODE_SEMANTICS` usa `satisfies Record<ElementType, NodeSemantics>`: agregar un
+tipo de elemento sin definir su comportamiento impide compilar.
+
+**Errores.** Los servicios lanzan `AppError` (fábricas `notFound`, `conflict`, `modelError`, `validation`...);
+`error.middleware.ts` es el único formateador (§9).
+
+**Arranque.** `server.ts` importa primero `config/env` (dotenv y `NODE_CONFIG_DIR`), luego carga `config/index.ts`,
+que valida las variables obligatorias; si falta alguna el proceso termina con código 1. Después ejecuta
+`sequelize.authenticate()` y solo entonces escucha. No hay `sequelize.sync()`: **el esquema no lo crea la app**,
+existe previamente en la base.
 
 ---
 
@@ -346,7 +373,7 @@ erDiagram
 |---|---|---|
 | `DRAFT` | En diseño, editable en sitio. | Por defecto al crear (`process.service.js:191`) y toda versión nueva automática (`:117`). |
 | `ACTIVE` | Versión ejecutable. **Solo una por `businessProcessKey`.** | Al crear/guardar con `status: 'ACTIVE'` (valida unicidad, `:179-182`) o por `PATCH` (`:214-215`). |
-| `INACTIVE` | Archivado/deshabilitado manualmente. | `PATCH` con `status: 'INACTIVE'` (no hay validación de valores: se acepta cualquier string). Presente en datos. |
+| `INACTIVE` | Archivado/deshabilitado manualmente. | `PATCH` con `status: 'INACTIVE'`. Desde 001 el `status` del PATCH se valida contra `DRAFT\|ACTIVE\|INACTIVE\|DEPRECATED` (400 `VALIDATION_ERROR` si no). Presente en datos. |
 | `DEPRECATED` | Reemplazado por una versión más nueva. | Solo en código inalcanzable (§5.4). No existe en datos. |
 
 ```mermaid
@@ -394,9 +421,10 @@ Algoritmo:
    - Crea todos los elementos y secuencias del body en la nueva versión.
    - **Copia los form links** de la versión anterior a la nueva, emparejando elementos por `bpmnElementId` (`:132-168`).
    - La versión anterior **no se toca** (sigue `ACTIVE` si lo estaba). Esto contradice `README.md:26`, que dice que se marca `DEPRECATED`.
+   - Desde 001 (FR-028) la versión nueva es `MAX(version) de la key + 1`, calculado dentro de la transacción, aunque se edite una versión que no es la última.
 4. **Rama actualización en sitio / creación** (`:172-201`):
-   - Si el body trae `status: 'ACTIVE'`, valida que no exista otra versión ACTIVE para la key (`validateSingleActiveVersion`, `:18-32`); si existe, lanza error (→ 500).
-   - Si existe la definición: `update` con **todo** el body (sin lista blanca). Si no: crea con `version: 1`.
+   - Si el body trae `status: 'ACTIVE'`, valida que no exista otra versión ACTIVE para la key (`validateSingleActiveVersion`, `:18-32`); si existe, responde 409 `ACTIVE_VERSION_CONFLICT` (antes 500).
+   - Si existe la definición: `update` con la lista blanca de escritura (FR-029: se ignoran `id`, `version` y `createdAt` del body; en elementos y secuencias, `id` y `processDefId`). Si no: crea con `version: 1`. Un `PUT /processes/:id` con id inexistente responde 404 (antes creaba una definición).
    - `syncElements` (`:34-61`): diff por `bpmnElementId` — actualiza existentes, crea nuevos, borra los ausentes.
    - `syncSequences` (`:63-69`): borra todas las secuencias y las recrea.
 5. Responde `201` si no había `id`, `200` si lo había (`process.controller.js:13`).
@@ -426,7 +454,7 @@ Algoritmo:
 | Solo una versión ACTIVE por key (validación de aplicación, no de BD). | `process.service.js:18-32`, `:179-182`, `:214-215` |
 | Las instancias en curso siguen ligadas a su versión (`process_def_id`). | `processEngine.service.js:154-163` |
 | Para iniciar instancias o decidir, se usa la ACTIVE de mayor versión. | `processEngine.service.js:145-149`, `decision.service.js:99-102` |
-| Riesgo: N+1 se calcula desde la versión editada, no desde la máxima. Editar v2 cuando existe v3 intenta crear otra v3 → violación de unicidad (500). | `process.service.js:116` |
+| ~~Riesgo: N+1 se calculaba desde la versión editada.~~ **Resuelto en 001** (FR-028): la versión nueva es `max + 1`. | `process.service.ts:210-219` |
 
 ### 5.6 Lectura
 
@@ -439,82 +467,113 @@ Algoritmo:
 
 ## 6. Ciclo de vida de instancias y tareas (motor)
 
-Implementado en `src/api/engine/processEngine.service.js`. Es un **intérprete recursivo de grafo** que
-corre dentro de **una transacción por operación** (iniciar proceso o completar tarea): si cualquier paso
-falla, nada se persiste.
+Implementado en `src/api/engine/execution.service.ts` (cáscara) sobre el núcleo puro `graph.ts`, `context.ts`,
+`semantics.ts` y `traversal.ts`. Es un **intérprete recursivo de grafo** que corre dentro de **una transacción
+por operación** (iniciar proceso o completar tarea): si cualquier paso falla (incluidos los errores de modelado
+422), se hace rollback y nada se persiste.
+
+Principios del motor tras 001:
+
+- **El grafo se carga una sola vez por operación**: `loadGraph` (`execution.service.ts:39`) lee elementos y
+  secuencias de la definición dentro de la transacción y `buildGraph` (`graph.ts:53`) arma `ProcessGraph`
+  (`elements`, `outgoing`, `incoming`). Las aristas se ordenan por `id` de secuencia ASC. No hay consultas por nodo (sin N+1).
+- **El fork es secuencial**: `FOLLOW_ALL` recorre las salidas con `for ... await` en orden de arista
+  (`execution.service.ts:79`), no con `Promise.all`, porque comparten una sola transacción. El resultado
+  observable es el mismo que antes (orden de inserción).
+- **Detección de ciclos por camino** (`traversal.ts:99`): cada rama lleva el conjunto de ancestros de su
+  recursión; revisitar un nodo del camino lanza 422 `PROCESS_MODEL_ERROR` ("cycle without blocking elements at
+  `<id>`"). Los diamantes (dos ramas que convergen en el mismo nodo) **no** son ciclos y se procesan dos veces, como antes.
+  Los elementos bloqueantes (`USER_TASK`, `END_EVENT`) detienen la recursión, por eso un bucle que pasa por una tarea es válido.
+- **Modelos defectuosos → 422 `PROCESS_MODEL_ERROR`** (antes 500 o `TypeError`), con rollback:
+
+| Defecto | Cuándo se detecta | Dónde |
+|---|---|---|
+| Secuencia hacia un elemento inexistente | Solo cuando se recorre esa arista (el mensaje nombra origen y destino) | `traversal.ts:109` |
+| Ciclo formado solo por gateways | Al revisitar un nodo del camino | `traversal.ts:99` |
+| `USER_TASK` sin secuencia saliente | Al completarla | `execution.service.ts:236` |
+| Siguiente elemento inexistente tras una tarea | Al completarla | `execution.service.ts:243` |
+| Tarea cuyo elemento ya no existe (tarea huérfana) | Al completarla | `execution.service.ts:194` |
+| Gateway exclusivo sin ruta válida (ninguna condición verdadera ni ruta por defecto) | Al evaluarlo | `execution.service.ts:99` |
+| Tipo no soportado en ejecución (`AUTO_TASK`) | Al llegar al nodo | `execution.service.ts:125` |
+| Definición sin `START_EVENT` | Al iniciar | `execution.service.ts:162` |
 
 ### 6.1 Iniciar un proceso (`POST /api/process-instances`)
 
-Body: `{ businessProcessKey, businessData, description }` (`processInstance.controller.js:8-20`).
+Body: `{ businessProcessKey, businessData, description }`.
 
-1. Busca la definición `ACTIVE` de mayor versión para la key (`processEngine.service.js:145-153`); si no hay → error.
-2. Crea la instancia `RUNNING` con `businessData`, `description` y `startedByUserId = req.user.id` (`:154-163`).
-3. Busca el `START_EVENT` de la versión (`:167-172`); si no hay → error "Process is invalid".
-4. Llama `processElement(startEvent, instancia, t, {})` y avanza hasta encontrar elementos bloqueantes.
-5. Responde `201 { processInstanceId, status, message }`. El `status` es el de creación (`RUNNING`) aunque
-   el proceso haya llegado a `END_EVENT` dentro de la misma transacción.
+1. Busca la definición `ACTIVE` de mayor versión para la key (`execution.service.ts:138`); si no hay → 404 `NOT_FOUND`.
+2. Crea la instancia `RUNNING` con `businessData`, `description` y `startedByUserId = req.user.id` (`:145`).
+3. Carga el grafo y localiza el `START_EVENT`; si no hay → 422 `PROCESS_MODEL_ERROR` ("Process is invalid: No START_EVENT found.").
+4. Llama `processElement(graph, startNode, [], instancia, t, {})` y avanza hasta encontrar elementos bloqueantes.
+5. Recarga la instancia dentro de la transacción y responde `201 { processInstanceId, status, message }` con el
+   **estado real** (FR-032): si el proceso llegó a `END_EVENT` en la misma transacción, `status` es `COMPLETED`
+   (antes devolvía siempre `RUNNING`).
 
 No se valida `businessData` contra el formulario de inicio (campos requeridos no se exigen en el backend).
 
 ### 6.2 `processElement`: cómo avanza el motor
 
+El comportamiento sale de `NODE_SEMANTICS[type].execution` (`semantics.ts:141`):
+
 | Tipo | Comportamiento | Línea |
 |---|---|---|
-| `START_EVENT`, `PARALLEL_GATEWAY` | Sigue **todas** las secuencias salientes en paralelo (`Promise.all`) y procesa cada destino. Un `PARALLEL_GATEWAY` alcanzado aquí siempre actúa como *fork*. | `:39-64` |
-| `USER_TASK` | Crea `TaskInstance` `PENDING` con `assignedToRoleId = element.assignedRoleId`. Se detiene esa rama. | `:65-68`, `:13-26` |
-| `EXCLUSIVE_GATEWAY` | Construye contexto `{...businessData, instance, task}`; elige la primera secuencia con condición verdadera; si ninguna, la sin condición; si no existe → error. Procesa el destino. | `:69-117` |
-| `END_EVENT` | Marca la instancia `COMPLETED` con `endTime`. | `:118-130` |
-| Cualquier otro (`AUTO_TASK`, etc.) | Error `Unsupported element type`. **Dos definiciones ACTIVE en datos contienen `AUTO_TASK`** (`test_bpm_alejo`, `proc_simple_purchase_v1`): al llegar a ese nodo la operación falla con 500. | `:131-132` |
+| `START_EVENT`, `PARALLEL_GATEWAY` (`FOLLOW_ALL`) | Sigue **todas** las secuencias salientes, **una tras otra y en orden de arista**, y procesa cada destino (cada rama con su copia del camino). Un `PARALLEL_GATEWAY` alcanzado aquí siempre actúa como *fork*. | `execution.service.ts:75-90` |
+| `USER_TASK` (`CREATE_TASK`) | Crea `TaskInstance` `PENDING` con `assignedToRoleId = element.assignedRoleId`. Se detiene esa rama. | `:91-94`, `:45-60` |
+| `EXCLUSIVE_GATEWAY` (`EXCLUSIVE`) | Construye contexto `{...businessData, instance, task}` (`context.ts:165`); elige la primera secuencia con condición verdadera; si ninguna, la sin condición (`context.ts:180`); si no existe → 422. Procesa el destino. | `:95-114` |
+| `END_EVENT` (`COMPLETE_INSTANCE`) | Marca la instancia `COMPLETED` con `endTime`. | `:115-124` |
+| `AUTO_TASK` (`UNSUPPORTED`) y cualquier otro | 422 `PROCESS_MODEL_ERROR` `Unsupported element type: <type>` (antes 500). **Dos definiciones ACTIVE en datos contienen `AUTO_TASK`** (`test_bpm_alejo`, `proc_simple_purchase_v1`): al llegar a ese nodo la operación falla y se revierte. | `:125-126` |
 
 ### 6.3 Completar una tarea (`POST /api/tasks/:id/complete`)
 
-Body: `{ action, formData, comments }` (`task.controller.js:35-45`).
+Body: `{ action, formData, comments }`. `:id` se valida con semántica `parseInt` (solo rechaza `NaN`; §9).
 
-1. Busca la tarea con `id`, `status = 'PENDING'` y asignada al usuario **o** a uno de sus `roleIds` del JWT (`processEngine.service.js:182-195`). Si no → error (500, ver §11).
-2. Marca la tarea `COMPLETED`, guarda `completedByUserId`, `completionTime`, `completionPayload` (body completo) y `comments` (`:196-205`).
-3. Fusiona `formData` sobre `businessData` de la instancia (merge superficial: las claves del formulario sobrescriben) (`:206-213`).
-4. Construye `taskContext = { bpmnElementId, action, formData, comments, completedBy: {id, roleIds} }` (`:220-226`).
-5. Toma **una sola** secuencia saliente de la tarea (`findOne`, `:228-239`). Si no hay → error de modelado.
-6. Si el destino es `PARALLEL_GATEWAY` → lógica de *join* (6.4). Si no → `processElement(destino, instanciaRecargada, t, taskContext)`.
-7. Responde `200 { message: 'Task completed successfully.' }`.
+1. Busca la tarea con `id`, `status = 'PENDING'` y asignada al usuario **o** a uno de sus `roleIds` del JWT (`execution.service.ts:179-190`). Si no existe, no está `PENDING` o no es del usuario → **404** `NOT_FOUND` (nunca 401).
+2. Si el elemento de la tarea ya no existe → 422 `PROCESS_MODEL_ERROR` (`:194`).
+3. Marca la tarea `COMPLETED`, guarda `completedByUserId`, `completionTime`, `completionPayload` (body completo) y `comments` (`:200-210`).
+4. Fusiona `formData` sobre `businessData` de la instancia (merge superficial: las claves del formulario sobrescriben) (`:211-218`).
+5. Construye `taskContext = { bpmnElementId, action, formData, comments, completedBy: {id, roleIds} }` (`:224-230`).
+6. Carga el grafo (una vez) y toma **la primera** secuencia saliente de la tarea por `id` (`:235`). Si no hay → 422 (error de modelado); si el destino no existe → 422.
+7. Si el destino es `PARALLEL_GATEWAY` → lógica de *join* (6.4). Si no → `processElement(grafo, destino, [tarea], instanciaRecargada, t, taskContext)`; la tarea completada es el ancestro inicial del camino.
+8. Responde `200 { message: 'Task completed successfully.' }`.
 
 ### 6.4 Gateways paralelos (fork / join)
 
-- **Fork**: cualquier `PARALLEL_GATEWAY` procesado por `processElement` sigue todas sus salidas (§6.2).
+- **Fork**: cualquier `PARALLEL_GATEWAY` procesado por `processElement` sigue todas sus salidas (§6.2), de forma secuencial.
 - **Join**: solo se evalúa cuando una tarea completada apunta **directamente** a un `PARALLEL_GATEWAY`
-  (`:252-311`). Cuenta las tareas `COMPLETED` de la instancia cuyos elementos son origen de las secuencias
-  entrantes al gateway; si el conteo es **igual** al número de entradas, continúa procesando el gateway
-  (que entonces actúa como fork hacia sus salidas).
-- Limitaciones:
+  (`execution.service.ts:253-278`). Cuenta las tareas `COMPLETED` de la instancia cuyos elementos son origen de las
+  secuencias entrantes al gateway (`graph.incoming`); si el conteo es **igual** al número de entradas, continúa
+  procesando el gateway (que entonces actúa como fork hacia sus salidas).
+- Limitaciones (sin cambios; es la semántica que FR-007 obliga a conservar):
   - Las entradas del join deben ser `USER_TASK` (si una entrada viene de otro gateway nunca habrá tarea completada que contar).
-  - Con bucles (una tarea completada dos veces) el conteo puede superar las entradas y el join no dispara nunca (`===`, `:301`) o dispara antes de tiempo con completados de una vuelta previa.
+  - Con bucles (una tarea completada dos veces) el conteo puede superar las entradas y el join no dispara nunca (`===`, `:275`) o dispara antes de tiempo con completados de una vuelta previa.
   - No hay modelo de "tokens": al llegar a un `END_EVENT` la instancia se marca `COMPLETED` aunque otras ramas tengan tareas `PENDING`, que quedan vivas.
-  - Las líneas `:267-279` hacen un `count` sin uso y **fuera de la transacción** (código muerto).
+  - La consulta `count` muerta y fuera de la transacción del código original **ya no existe**: el único `count` (`:263`) corre dentro de la transacción.
 
-### 6.5 Evaluación de condiciones (`src/utils/expressionEngine.js`)
+### 6.5 Evaluación de condiciones (`src/utils/expressionEngine.ts`)
 
-- Usa `expr-eval` (`new Parser().evaluate(expression, context)`) y convierte el resultado a booleano (`:20-21`).
-- Expresión vacía → `false` (`:11-13`). Cualquier error (sintaxis o variable inexistente) → se registra con
-  `console.error` y devuelve `false` (`:26-29`): **una condición mal escrita equivale a "no se cumple"**.
+- Usa `expr-eval` (`new Parser().evaluate(expression, context)`, versión fijada `2.0.2`) y convierte el resultado a booleano.
+- Expresión vacía o no string → `false`. Cualquier error (sintaxis o variable inexistente) → se registra con
+  `logger.warn` (solo expresión y motivo) y devuelve `false`: **una condición mal escrita equivale a "no se cumple"**.
 - Contexto: los campos de `businessData` en la raíz (`purchaseAmount > 1000`), `instance.*` (id, status,
-  processDefId, description...) y `task.*` (`task.action == 'APROBAR'`).
+  processDefId, description...) y `task.*` (`task.action == 'APROBAR'`). Las claves `instance` y `task` prevalecen sobre homónimas de `businessData`.
 - Expresiones reales en la base: `purchaseAmount > 1000`, `purchaseAmount > 1500`, `task.action == 'APROBAR'`,
   `task.action == "approve"`, `true`, y `action== 'Aprobar'` (esta última nunca será verdadera salvo que
   exista un campo `action` en `businessData`: en el contexto la acción vive en `task.action`).
 - La comparación de acciones es sensible a mayúsculas (`'APROBAR'` ≠ `'Aprobar'`).
-- Registra con `console.log` la expresión y el **contexto completo** (datos de negocio) en cada evaluación (`:15-17`).
-- **Seguridad**: `npm audit` reporta `expr-eval` (todas las versiones) con vulnerabilidades **críticas**
+- **Logs**: el contexto de evaluación (datos de negocio) **ya no se registra**; solo se escribe la expresión y el resultado a nivel `debug`.
+- **Seguridad**: `npm audit` reportaba `expr-eval` (todas las versiones) con vulnerabilidades **críticas**
   (prototype pollution y ejecución de código: GHSA-8gw3-rxh4-v6jx, GHSA-jc85-fpwf-qm7x, GHSA-q9v2-7m5w-4693).
+  Sigue fijada en `2.0.2` y sin parche: hallazgo abierto (§11.1).
   Las expresiones las escriben quienes modelan procesos (cualquier usuario autenticado puede hoy guardar procesos).
 
 ### 6.6 Asignación de tareas
 
-- **Por rol**: el motor asigna `assignedToRoleId = processElement.assignedRoleId` (`processEngine.service.js:22`).
+- **Por rol**: el motor asigna `assignedToRoleId = element.assignedRoleId` (`execution.service.ts:56`).
   Todos los usuarios con ese rol ven la tarea y cualquiera puede completarla (no hay "reclamar" tarea).
 - **Por usuario**: la bandeja y el completar ya consideran `assignedToUserId` (`task.service.js:21-24`,
-  `processEngine.service.js:186`), pero **nada lo asigna** (0 tareas con usuario en datos). Los case
+  `execution.service.ts:183`), pero **nada lo asigna** (0 tareas con usuario en datos). Los case
   assignments y `case_assignment_config` están previstos para esto pero sin implementar.
-- Los `roleIds` se toman del **JWT** (`passport.js:18`): si un admin cambia los roles de un usuario, el cambio
+- Los `roleIds` se toman del **JWT** (`passport.ts`): si un admin cambia los roles de un usuario, el cambio
   no aplica hasta que vuelva a iniciar sesión (máx. 8 h).
 - Tarea con elemento sin `assignedRoleId` → tarea `PENDING` sin rol ni usuario: nadie la ve en su bandeja.
 
@@ -523,17 +582,16 @@ Body: `{ action, formData, comments }` (`task.controller.js:35-45`).
 - `GET /api/tasks/my-tasks` (`task.service.js:16-63`): tareas `PENDING` del usuario o de sus roles, con nombre de
   tarea, instancia, descripción, nombre y versión del proceso, quién la inició, `createdAt`, `dueDate`.
 - `GET /api/tasks/:id/form` (`task.service.js:66-128`): campos del elemento ordenados por `displayOrder`, con
-  `value` tomado de `businessData[name]` (ojo: `|| null` convierte `0`, `false` y `''` en `null`, `:111`),
+  `value` tomado de `businessData[name]` (desde 001, FR-031, `0`, `false` y `""` se conservan; antes `|| null` los convertía en `null`),
   validaciones combinadas (`validations` del campo + `isRequired` + `isReadonly` + `contextualValidations`)
   y `actions: processElement.actions || ['complete']` — como el modelo no mapea la columna `actions`,
-  **siempre** devuelve `['complete']` (`:124`).
+  **siempre** devuelve `['complete']` (sin cambios, C-07). Un elemento o campo inexistente da 422 (antes `TypeError` 500) y una tarea inexistente 404.
 - **Historial / comentarios**: no hay entidad de historial separada. El historial de un caso es la lista
   `taskInstances` que devuelve `GET /api/process-instances/:id` (con elemento, rol asignado, usuario
-  asignado y quién completó; `processInstance.service.js:63-73`), más `comments` y `completionPayload`
-  de cada tarea. El `order` declarado dentro del include (`:66`) no tiene efecto en Sequelize: el orden de
-  tareas no está garantizado.
+  asignado y quién completó), más `comments` y `completionPayload` de cada tarea. Desde 001 (FR-030)
+  `taskInstances` viene **ordenada por `createdAt` ASC** con un `order` de nivel superior (el `order` dentro del include se ignoraba).
 - `GET /api/process-instances/:id` añade `businessDataFields`: cada clave de `businessData` enriquecida con
-  `label` y `fieldType` de `field_definitions` (fallback: la clave y `UNKNOWN`) (`processInstance.service.js:83-120`).
+  `label` y `fieldType` de `field_definitions` (fallback: la clave y `UNKNOWN`).
 
 ### 6.8 Estados de instancia y tarea
 
@@ -546,7 +604,8 @@ Body: `{ action, formData, comments }` (`task.controller.js:35-45`).
 
 ## 7. Motor de decisiones como servicio
 
-`POST /api/engine/decide-next-task` (`decision.service.js:88-160`). Simula el grafo **sin crear instancia**.
+`POST /api/engine/decide-next-task` (`decision.service.ts:101`). Simula el grafo **sin crear instancia** y es
+una cáscara delgada sobre el mismo núcleo puro que usa la ejecución (grafo, contexto, ruta exclusiva, ciclos).
 
 Request:
 
@@ -562,20 +621,22 @@ Respuesta: `{ "nextTasks": [ { "bpmnElementId", "name", "type", "assignedRoleId"
 
 Algoritmo:
 
-1. Valida presencia de los tres campos (400 si falta alguno; `decision.controller.js:8-10`).
-2. Crea un `DecisionLog` con el request **antes** de procesar (`decision.service.js:90-95`).
-3. Busca la definición ACTIVE de mayor versión; busca el elemento actual por `bpmnElementId`.
-4. Da el "primer paso": toma **todos** los destinos salientes del elemento actual (sin evaluar condiciones aunque el elemento actual sea un gateway exclusivo) (`:117-131`). Sin salidas → `{ nextTasks: [] }`.
-5. Desde cada destino recorre recursivamente (`_findNextBlockingElements`, `:8-83`) hasta elementos bloqueantes: `USER_TASK`, `AUTO_TASK` o `END_EVENT`. `START_EVENT` y `PARALLEL_GATEWAY` siguen todas las salidas; `EXCLUSIVE_GATEWAY` evalúa condiciones con el mismo contexto que el motor (`businessData` aplanado + `instance` + `task`).
-6. Actualiza el log con la respuesta o con `errorMessage` y relanza el error.
+1. Valida presencia de los tres campos con valor verdadero (400 `VALIDATION_ERROR`; el cuerpo conserva la clave `error`: `{ message, error, code, details }`).
+2. Crea un `DecisionLog` con el request **antes** de procesar (`decision.service.ts:108`).
+3. Busca la definición ACTIVE de mayor versión (404 `NOT_FOUND` si no hay), carga elementos y secuencias **una sola vez** y construye el grafo (`:122-135`); busca el elemento actual por `bpmnElementId` (404 si no existe).
+4. Da el "primer paso" (**sin cambios**): toma **todos** los destinos salientes del elemento actual (sin evaluar condiciones aunque el elemento actual sea un gateway exclusivo) (`:145-152`, `targetsOf` `:48`). Sin salidas → `{ nextTasks: [] }`.
+5. Desde cada destino recorre el grafo (`findNextBlockingElements`, `:60`) hasta elementos bloqueantes (`NODE_SEMANTICS[type].decision`): `USER_TASK`, `AUTO_TASK` y `END_EVENT` bloquean; `START_EVENT` y `PARALLEL_GATEWAY` siguen todas las salidas; `EXCLUSIVE_GATEWAY` evalúa condiciones con el mismo contexto que el motor (`businessData` aplanado + `instance` + `task`).
+6. Actualiza el log con la respuesta o con `errorMessage` y relanza el error original (si falla el registro del error, solo se loguea y no tapa el original).
 
-Diferencias con el motor de ejecución: aquí `AUTO_TASK` es un nodo bloqueante válido; el motor lo rechaza.
-No hay detección de ciclos: un bucle formado solo por gateways recursa sin fin.
+Defectos de modelo (secuencia hacia elemento inexistente, gateway exclusivo sin ruta, ciclo formado solo por gateways,
+tipo ajeno a los soportados) responden **422 `PROCESS_MODEL_ERROR`** y la decisión queda auditada con su `errorMessage`.
+Un ciclo que antes agotaba la pila ahora se detecta por camino (`traversal.ts`), igual que en ejecución.
 
-`GET /api/engine/decision-logs` (solo ADMIN, `decision.service.js:162-172`): todos los logs, orden `createdAt
-DESC`, incluyendo el usuario con atributos `['id', 'username', 'email']`. **`username` no existe** en
-`users` (es `full_name`): la consulta generará un error de columna inexistente → 500 (inferido del código,
-no ejecutado; ver §14). Los filtros `req.query` se reciben pero se ignoran.
+Diferencia vigente con el motor de ejecución (FR-007): aquí `AUTO_TASK` es un nodo bloqueante válido; el motor de ejecución lo rechaza con 422.
+
+`GET /api/engine/decision-logs` (solo ADMIN, `decision.service.ts:190`): **funciona desde 001 (FR-026)**. Devuelve
+todos los logs, orden `createdAt DESC`, con `executedByUser { id, fullName, email }` (antes pedía el atributo
+inexistente `username` y daba 500). Los filtros `req.query` se reciben pero se siguen ignorando.
 
 ---
 
@@ -594,16 +655,21 @@ no ejecutado; ver §14). Los filtros `req.query` se reciben pero se ignoran.
    ```
 5. Responde `{ user, token, modules }` con `user` sin `passwordHash` (incluye `roles`).
 
-Problemas: los errores de credenciales no llevan `statusCode` y el middleware global responde **500
-"Something broke!"** en vez de 401 (verificado contra el API). Un body sin `email` también da 500. No se
-verifica `users.status` (un usuario `INACTIVE` puede iniciar sesión). El login está bajo el rate limit global
-(100/15 min por IP), no hay límite específico anti fuerza bruta.
+Errores (desde 001): credenciales inválidas (email inexistente o contraseña incorrecta) → **401** `INVALID_CREDENTIALS`
+(antes 500 "Something broke!"); body sin `email` o `password` (string) → **400** `VALIDATION_ERROR`. El **token no cambia**:
+HS256, 8 h, mismo payload `{ id, roleIds, systemRole }`; los tokens emitidos antes siguen siendo válidos.
+Pendiente (abierto): no se verifica `users.status` (un usuario `INACTIVE` puede iniciar sesión). El login está bajo el
+rate limit global (100/15 min por IP), no hay límite específico anti fuerza bruta.
 
-### 8.2 Validación del token (`src/config/passport.js`)
+**Cambio de contraseña (`PUT /api/auth/profile`)**: la contraseña anterior incorrecta responde ahora **400**
+`INVALID_OLD_PASSWORD` (antes 401). Un 401 en un endpoint autenticado hacía que el frontend cerrara la sesión; con 400
+se muestra el mensaje y la sesión continúa. Falta `oldPassword` sigue siendo 400 `VALIDATION_ERROR`.
+
+### 8.2 Validación del token (`src/config/passport.ts`)
 
 - `ExtractJwt.fromAuthHeaderAsBearerToken()` → header `Authorization: Bearer <token>`.
-- Carga el usuario por `payload.id` (`:14`); si no existe → 401. Token vencido o inválido → 401 `Unauthorized` (passport-jwt).
-- `req.user` = **fila completa del usuario** (incluye `passwordHash`) + `roleIds` y `systemRole` **del token** (`:17-19`).
+- Carga el usuario por `payload.id`; si no existe → 401. Token vencido o inválido → 401 `Unauthorized` (passport-jwt).
+- `req.user` = usuario **sin `passwordHash`** (desde 001, FR-010; tipo `AuthUser` en `src/domain/types.ts`) + `roleIds` y `systemRole` **del token**.
   El `systemRole` del token prevalece sobre el de la base: degradar a un ADMIN no surte efecto hasta que expire su token.
 - No se verifica `status` del usuario.
 
@@ -611,8 +677,8 @@ verifica `users.status` (un usuario `INACTIVE` puede iniciar sesión). El login 
 
 | Mecanismo | Implementación | Uso |
 |---|---|---|
-| `protect` | `passport.authenticate('jwt', {session:false})` (`auth.middleware.js:3`) | Todas las rutas salvo login. |
-| `isAdmin` | `req.user.systemRole === 'ADMIN'` o 403 `{message:'Forbidden: Requires admin privileges.'}` (`admin.middleware.js:4-10`) | `/users/*`, `/roles/*`, `GET /processes/all`, `GET /engine/decision-logs`. |
+| `protect` | `passport.authenticate('jwt', {session:false})` (`auth.middleware.ts`) | Todas las rutas salvo login. El 401 de passport sigue siendo texto `Unauthorized`. |
+| `isAdmin` | `req.user.systemRole === 'ADMIN'` o 403 `{ message: 'Forbidden: Requires admin privileges.', code: 'FORBIDDEN' }` (`admin.middleware.ts`) | `/users/*`, `/roles/*`, `GET /processes/all`, `GET /engine/decision-logs`. |
 | Propiedad de la tarea | Filtro por usuario o roles en `completeTask` | Solo completar tarea. |
 | Módulos | Devueltos en login | **Solo UI**: el backend no los aplica. |
 
@@ -624,84 +690,111 @@ todas las instancias y el formulario/datos de cualquier tarea.
 
 ## 9. Catálogo completo de endpoints
 
-Base: `http://localhost:3000/api`. "JWT" = requiere `Authorization: Bearer`. Errores no controlados → `500`
-texto plano `Something broke!`. Rutas montadas en `src/api/routes.js:11-17`.
+Base: `http://localhost:3000/api`. "JWT" = requiere `Authorization: Bearer`. Rutas montadas en `src/api/routes.ts`.
+Las formas de éxito no cambiaron con 001 (FR-005); lo nuevo son los códigos de error. Contrato completo en
+`specs/001-typescript-migration/contracts/http-api.md` y `errors.md`.
 
-### 9.1 Auth — `src/api/auth/auth.routes.js`
+**Formato de error** (único, generado por `error.middleware.ts`):
 
-| Método | Ruta | Auth | Admin | Entrada | Respuesta | Implementación |
+```json
+{ "message": "Process definition not found.", "code": "NOT_FOUND" }
+{ "message": "Invalid input", "code": "VALIDATION_ERROR", "details": [{ "field": "status", "msg": "…" }] }
+{ "message": "…", "error": "…", "code": "VALIDATION_ERROR" }
+{ "message": "Internal server error" }
+```
+
+`message` siempre existe (es lo que muestra el frontend); `code` es estable y está en todo error de la aplicación;
+`details` solo en `VALIDATION_ERROR`; `error` solo en las dos respuestas que ya lo usaban (`decide-next-task` con
+campos faltantes y `my-tasks` sin `roleIds`). Un 500 inesperado responde `{ message: 'Internal server error' }`
+sin stack ni detalle interno (el detalle va al log). Cuerpo JSON malformado → 400 `MALFORMED_JSON`. Violación de
+unicidad o de FK de Sequelize → 409 `CONFLICT`. Una ruta inexistente sigue dando el 404 HTML por defecto de Express.
+
+**Catálogo de códigos**: `VALIDATION_ERROR` 400 · `MALFORMED_JSON` 400 · `INVALID_OLD_PASSWORD` 400 ·
+`INVALID_CREDENTIALS` 401 · `MISSING_AUTH_DATA` 401 · `FORBIDDEN` 403 · `NOT_FOUND` 404 · `CONFLICT` 409 ·
+`ACTIVE_VERSION_CONFLICT` 409 · `PROCESS_MODEL_ERROR` 422. Ningún error de negocio sobre un usuario autenticado usa 401.
+
+**Validación de `:id`**: hay dos middlewares (`validate.middleware.ts`). `idParam` exige `^\d+$` estricto (`"12abc"` → 400).
+`parseIntIdParam` conserva la semántica de `parseInt` del código original (`"12abc"` pasa como 12) y solo rechaza lo que da `NaN`
+(research R-13). Cada tabla indica cuál usa cada ruta. Un id no numérico responde 400 `VALIDATION_ERROR` (antes 500).
+
+### 9.1 Auth — `src/api/auth/auth.routes.ts`
+
+| Método | Ruta | Auth | Admin | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|---|---|
+| POST | `/auth/login` | No | No | body `{email, password}` (strings presentes) | 200 `{user, token, modules[]}` | 400 `VALIDATION_ERROR` (falta campo) · 401 `INVALID_CREDENTIALS` | `authService.login` (`auth.service.ts:17`) |
+| PUT | `/auth/profile` | JWT | No | body `{fullName?, email?, oldPassword?, newPassword?}` | 200 usuario sin hash | 400 `VALIDATION_ERROR` (falta `oldPassword`) · 400 `INVALID_OLD_PASSWORD` · 404 `NOT_FOUND` | `authService.updateProfile` (`auth.service.ts:53`) |
+
+### 9.2 Users — `src/api/users/user.routes.ts` (todas JWT + ADMIN; `:id` con `idParam`)
+
+| Método | Ruta | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|
+| POST | `/users` | body `{fullName, email, password, systemRole?, status?, roleIds?[]}` | 201 usuario con roles, sin hash ni `UserRole` | 400 (falta `password`) · 409 `CONFLICT` (email duplicado) | `userService.createUser` (el hash se calcula en el servicio) |
+| GET | `/users` | — | 200 lista con roles (incluye datos de `user_roles`) | — | `userService.getAllUsers` |
+| GET | `/users/:id` | param id | 200 · 404 `{message: 'User not found', code}` | 400 (id no numérico) | `userService.getUserById` |
+| PUT | `/users/:id` | body parcial + `password?` + `roleIds?[]` (reemplaza roles) | 200 usuario | 400 (id) · 404 (inexistente; antes 500) · 409 (email duplicado) | `userService.updateUser` |
+| DELETE | `/users/:id` | param id | 204 (también si no existía; se conserva, C-10) | 400 (id) | `userService.deleteUser` |
+
+### 9.3 Roles — `src/api/roles/role.routes.ts` (todas JWT + ADMIN, `router.use(protect, isAdmin)`; `:id` con `idParam`)
+
+| Método | Ruta | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|
+| POST | `/roles` | body `{name, description}` | 201 rol | 409 `CONFLICT` (nombre duplicado) | `roleService.createRole` |
+| GET | `/roles` | — | 200 lista | — | `getAllRoles` |
+| GET | `/roles/:id` | param id | 200 rol con `users[]` (id, fullName, email, status) | 400 (id) · 404 | `getRoleById` |
+| PUT | `/roles/:id` | body `{name?, description?, userIds?[]}` (`[]` quita todos) | 200 rol con usuarios | 400 (id) · 404 · 409 (nombre duplicado) | `updateRole` |
+| DELETE | `/roles/:id` | param id | 204 | 400 (id) · 404 · 409 `CONFLICT` si tiene usuarios (conteo y borrado en una transacción) | `deleteRole` |
+
+### 9.4 Processes — `src/api/processes/processes.routes.ts` (todas JWT)
+
+| Método | Ruta | Admin | `:id` | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|---|---|
+| POST | `/processes` | No | — | body de guardado (§5.2, abierto) | 201 definición (`bpmnXml` string, sin `elements`/`sequences`) | 409 `ACTIVE_VERSION_CONFLICT` (otra ACTIVE) · 409 `CONFLICT` (key+versión duplicada) | `saveProcessDefinition(undefined, body)` |
+| GET | `/processes` | No | — | — | 200 definiciones ACTIVE sin `bpmnXml` | — | `getAllProcessDefinitions` |
+| GET | `/processes/all` | **Sí** | — | — | 200 todas sin `bpmnXml` | 403 `FORBIDDEN` | `getAllProcessDefinitionsAdmin` |
+| GET | `/processes/:id/start-form` | No | `parseIntIdParam` | param id | 200 `{taskName, fields[], actions:['start']}` | 400 · 404 (sin START_EVENT o definición inexistente; antes 500) · 422 `PROCESS_MODEL_ERROR` (link a campo inexistente) | `getStartForm` |
+| GET | `/processes/:id/save-ask` | No | `parseIntIdParam` | param id | 200 `{state, instancesCount, action}` | 400 · 404 (antes 500) | `getSaveAnalysis` |
+| GET | `/processes/:id` | No | `parseIntIdParam` | param id | 200 `{...definición, elements[], sequences[], diagramJson}` (`{}` si es inválido) | 400 · 404 | `getProcessDefinitionById` |
+| PUT | `/processes/:id` | No | `idParam` | body de guardado | 200 definición (misma o nueva versión `max + 1`) | 400 · **404 si no existe (antes 200 con alta indebida)** · 409 (otra ACTIVE / unicidad) | `saveProcessDefinition(id, body)` |
+| PATCH | `/processes/:id` | No | `parseIntIdParam` | body `{name?, description?, category?, status?}`; `status` ∈ `DRAFT\|ACTIVE\|INACTIVE\|DEPRECATED` | 200 fila completa con `bpmnXml` | 400 `VALIDATION_ERROR` (`status` inválido; antes se persistía) · 404 (antes 500) · 409 `ACTIVE_VERSION_CONFLICT` | `updateProcessDefinitionMetadata` |
+| DELETE | `/processes/:id` | No | `parseIntIdParam` | param id | 204 | 400 · 404 (antes 500) | `deleteProcessDefinition` |
+
+Escritura (FR-029): `PUT`/`POST` ignoran del body `id`, `version` y `createdAt` de la definición, y `id`/`processDefId` de elementos y secuencias.
+`formFields`, `actions`, `webhook_target` y `sla_definition` (snake_case) se siguen descartando (C-07).
+
+### 9.5 Process instances — `src/api/process-instances/processInstances.routes.ts` (todas JWT; `:id` con `idParam`)
+
+| Método | Ruta | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|
+| POST | `/process-instances` | body `{businessProcessKey, businessData?, description?}` | 201 `{processInstanceId, status, message}`; `status` = estado real al terminar (FR-032) | 404 (key sin versión ACTIVE; antes 500) · 422 `PROCESS_MODEL_ERROR` (modelo defectuoso, con rollback) | `executionService.startProcess` (`execution.service.ts:130`) |
+| GET | `/process-instances` | — | 200 **todas** las instancias con definición y usuario iniciador | — | `getAllProcessInstances` |
+| POST | `/process-instances/record` | body con lista blanca (se fuerza `startedByUserId`; `id` se ignora) | 201 instancia **sin pasar por el motor** | — | `createProcessInstanceRecord` |
+| GET | `/process-instances/:id` | param id | 200 instancia + `processDefinition` + `startedByUser` + `taskInstances[]` (orden `createdAt` ASC) + `businessDataFields[]` | 400 · 404 | `getProcessInstanceById` |
+| PUT | `/process-instances/:id` | body con lista blanca | 200 `[filasActualizadas]` (se conserva, C-10) | 400 | `updateProcessInstance` |
+| DELETE | `/process-instances/:id` | param id | 204 (tareas quedan huérfanas, C-04) | 400 | `deleteProcessInstance` |
+
+### 9.6 Tasks — `src/api/tasks/tasks.routes.ts` (todas JWT; `:id` con `parseIntIdParam`)
+
+| Método | Ruta | Entrada | Respuesta | Errores | Implementación |
+|---|---|---|---|---|---|
+| GET | `/tasks/my-tasks` | — (usa `req.user.id` y `roleIds`) | 200 `[{taskId, taskName, processInstanceId, processDescription, processVersion, processName, processStartedBy, createdAt, dueDate}]` | 401 `MISSING_AUTH_DATA` `{message, error, code}` si el token no trae `roleIds` | `taskService.getMyTasks` |
+| GET | `/tasks/:id/form` | param id | 200 `{taskName, fields[], actions}` (`value` conserva `0`, `false`, `""`) | 400 · 404 (antes 500) · 422 (elemento o campo inexistente) | `taskService.getTaskForm` |
+| POST | `/tasks/:id/complete` | body `{action, formData, comments}` | 200 `{message}` | 400 · 404 `NOT_FOUND` (no existe, no `PENDING` o no es del usuario; nunca 401) · 422 `PROCESS_MODEL_ERROR` (con rollback) | `executionService.completeTask` (`execution.service.ts:170`) |
+
+### 9.7 Engine — `src/api/engine/decision.routes.ts` (todas JWT)
+
+| Método | Ruta | Admin | Entrada | Respuesta | Errores | Implementación |
 |---|---|---|---|---|---|---|
-| POST | `/auth/login` | No | No | body `{email, password}` | 200 `{user, token, modules[]}` · 500 si credenciales inválidas | `authService.login` (`auth.service.js:5`) |
-| PUT | `/auth/profile` | JWT | No | body `{fullName?, email?, oldPassword?, newPassword?}` | 200 usuario sin hash · 400 falta oldPassword · 401 oldPassword inválida · 404 | `authService.updateProfile` (`auth.service.js:42`) |
-
-### 9.2 Users — `src/api/users/user.routes.js` (todas JWT + ADMIN)
-
-| Método | Ruta | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|
-| POST | `/users` | body `{fullName, email, password, systemRole?, status?, roleIds?[]}` | 201 usuario con roles, sin hash | controller hashea (`user.controller.js:7`), `userService.createUser` (`user.service.js:4`) |
-| GET | `/users` | — | 200 lista con roles (incluye datos de `user_roles`) | `userService.getAllUsers` (`:24`) |
-| GET | `/users/:id` | param id | 200 · 404 `{message}` | `userService.getUserById` (`:34`) |
-| PUT | `/users/:id` | body parcial + `password?` + `roleIds?[]` (reemplaza roles) | 200 usuario · 500 si no existe | `userService.updateUser` (`:44`) |
-| DELETE | `/users/:id` | param id | 204 (también si no existía) | `userService.deleteUser` (`:77`) |
-
-### 9.3 Roles — `src/api/roles/role.routes.js` (todas JWT + ADMIN, `router.use(protect, isAdmin)`)
-
-| Método | Ruta | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|
-| POST | `/roles` | body `{name, description}` | 201 rol | `roleService.createRole` (`role.service.js:3`) |
-| GET | `/roles` | — | 200 lista | `getAllRoles` (`:7`) |
-| GET | `/roles/:id` | param id | 200 rol con `users[]` (id, fullName, email, status) · 404 | `getRoleById` (`:11`) |
-| PUT | `/roles/:id` | body `{name?, description?, userIds?[]}` (`[]` quita todos) | 200 rol con usuarios · 404 | `updateRole` (`:22`) |
-| DELETE | `/roles/:id` | param id | 204 · 404 · 409 si tiene usuarios | `deleteRole` (`:44`) |
-
-### 9.4 Processes — `src/api/processes/processes.routes.js` (todas JWT)
-
-| Método | Ruta | Admin | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|---|
-| POST | `/processes` | No | body de guardado (§5.2) | 201 definición | `saveProcessDefinition(undefined, body)` (`process.service.js:94`) |
-| GET | `/processes` | No | — | 200 definiciones ACTIVE sin `bpmnXml` | `getAllProcessDefinitions` (`:256`) |
-| GET | `/processes/all` | **Sí** | — | 200 todas sin `bpmnXml` | `getAllProcessDefinitionsAdmin` (`:268`) |
-| GET | `/processes/:id/start-form` | No | param id | 200 `{taskName, fields[], actions:['start']}` · 500 si no hay START_EVENT | `getStartForm` (`:320`) |
-| GET | `/processes/:id/save-ask` | No | param id | 200 `{state, instancesCount, action}` · 500 si no existe | `getSaveAnalysis` (`:71`) |
-| GET | `/processes/:id` | No | param id | 200 `{...definición, elements[], sequences[], diagramJson}` · 404 | `getProcessDefinitionById` (`:277`) |
-| PUT | `/processes/:id` | No | body de guardado | 200 definición (misma o nueva versión) | `saveProcessDefinition(id, body)` (`:94`) |
-| PATCH | `/processes/:id` | No | body `{name?, description?, category?, status?}` | 200 definición · 500 si no existe o hay otra ACTIVE | `updateProcessDefinitionMetadata` (`:205`) |
-| DELETE | `/processes/:id` | No | param id | 204 · 500 si no existe | `deleteProcessDefinition` (`:304`) |
-
-### 9.5 Process instances — `src/api/process-instances/processInstances.routes.js` (todas JWT)
-
-| Método | Ruta | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|
-| POST | `/process-instances` | body `{businessProcessKey, businessData?, description?}` | 201 `{processInstanceId, status, message}` | `processEngineService.startProcess` (`processEngine.service.js:137`) |
-| GET | `/process-instances` | — | 200 **todas** las instancias con definición y usuario iniciador | `processInstanceService.getAllProcessInstances` (`processInstance.service.js:26`) |
-| POST | `/process-instances/record` | body libre (se fuerza `startedByUserId`) | 201 instancia cruda **sin pasar por el motor** | `createProcessInstanceRecord` (`:13`) |
-| GET | `/process-instances/:id` | param id | 200 instancia + definición + usuario + `taskInstances[]` + `businessDataFields[]` · 404 | `getProcessInstanceById` (`:49`) |
-| PUT | `/process-instances/:id` | body libre | 200 `[filasActualizadas]` | `updateProcessInstance` (`:128`) |
-| DELETE | `/process-instances/:id` | param id | 204 (tareas quedan huérfanas) | `deleteProcessInstance` (`:133`) |
-
-### 9.6 Tasks — `src/api/tasks/tasks.routes.js` (todas JWT)
-
-| Método | Ruta | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|
-| GET | `/tasks/my-tasks` | — (usa `req.user.id` y `roleIds`) | 200 `[{taskId, taskName, processInstanceId, processDescription, processVersion, processName, processStartedBy, createdAt, dueDate}]` | `taskService.getMyTasks` (`task.service.js:16`) |
-| GET | `/tasks/:id/form` | param id | 200 `{taskName, fields[], actions}` · 500 si no existe | `taskService.getTaskForm` (`:66`) |
-| POST | `/tasks/:id/complete` | body `{action, formData, comments}` | 200 `{message}` · 500 si no existe/no autorizado | `processEngineService.completeTask` (`processEngine.service.js:179`) |
-
-### 9.7 Engine — `src/api/engine/decision.routes.js` (todas JWT)
-
-| Método | Ruta | Admin | Entrada | Respuesta | Implementación |
-|---|---|---|---|---|---|
-| POST | `/engine/decide-next-task` | No | body `{businessProcessKey, currentBpmnElementId, contextData}` | 200 `{nextTasks[]}` · 400 si faltan campos · 500 errores de grafo | `decisionService.decideNextTask` (`decision.service.js:88`) |
-| GET | `/engine/decision-logs` | **Sí** | query (ignorado) | 200 logs (probable 500, ver §7) | `decisionService.getDecisionLogs` (`:162`) |
+| POST | `/engine/decide-next-task` | No | body `{businessProcessKey, currentBpmnElementId, contextData}` (los tres con valor verdadero) | 200 `{nextTasks[]}` | 400 `VALIDATION_ERROR` `{message, error, code, details}` · 404 (key sin ACTIVE o elemento inexistente) · 422 `PROCESS_MODEL_ERROR` (grafo defectuoso o ciclo; la decisión queda auditada) | `decisionService.decideNextTask` (`decision.service.ts:101`) |
+| GET | `/engine/decision-logs` | **Sí** | query (ignorado) | **200** logs `createdAt DESC` con `executedByUser { id, fullName, email }` (FR-026; antes 500) | 403 `FORBIDDEN` | `decisionService.getDecisionLogs` (`:190`) |
 
 ### 9.8 Otros
 
 | Método | Ruta | Descripción |
 |---|---|---|
-| GET | `/` (fuera de `/api`) | `public/index.html` estático ("¡El Servidor Funciona!"), `app.js:18`. |
+| GET | `/` (fuera de `/api`) | `public/index.html` estático ("¡El Servidor Funciona!"), `app.ts`; se sirve antes del rate limit. |
 | — | `/api/fields` | **No existe** (404). El frontend lo llama (módulo LIBFORM). |
 | — | `/api/health` | No existe. No hay endpoint de salud. |
-| — | Swagger | `swagger-jsdoc` y `swagger-ui-express` están instalados pero **no montados**. |
+| — | Swagger | No existe (las dependencias `swagger-jsdoc` y `swagger-ui-express` ya no están en `package.json`). |
 
 ---
 
@@ -712,7 +805,7 @@ texto plano `Something broke!`. Rutas montadas en `src/api/routes.js:11-17`.
 | RN-01 | Login exige email existente y contraseña bcrypt válida. | `src/api/auth/auth.service.js:10-17` |
 | RN-02 | El token dura 8 horas y lleva `id`, `roleIds`, `systemRole`. | `auth.service.js:28-34` |
 | RN-03 | Los módulos de UI dependen del `systemRole` (tabla `system_role_modules`). | `auth.service.js:20-24` |
-| RN-04 | Cambiar la contraseña propia exige `oldPassword` (400) y que sea correcta (401). | `auth.service.js:56-68` |
+| RN-04 | Cambiar la contraseña propia exige `oldPassword` (400 `VALIDATION_ERROR`) y que sea correcta (400 `INVALID_OLD_PASSWORD`; antes 401). | `auth.service.js:56-68` (hoy `auth.service.ts:59-73`) |
 | RN-05 | El perfil propio solo permite cambiar `fullName`, `email` y contraseña. | `auth.service.js:50-54` |
 | RN-06 | Las contraseñas se almacenan con bcrypt (10 rondas). | `auth.service.js:70`, `user.controller.js:7`, `user.service.js:53` |
 | RN-07 | Nunca se devuelve `passwordHash` en respuestas de usuarios/login. | `auth.service.js:36`, `user.service.js:20,26,36,72` |
@@ -728,25 +821,27 @@ texto plano `Something broke!`. Rutas montadas en `src/api/routes.js:11-17`.
 | RN-17 | En DRAFT sin instancias se sincronizan elementos por `bpmnElementId` y se recrean todas las secuencias. | `process.service.js:34-69`, `:197-198` |
 | RN-18 | PATCH de definición solo cambia `name`, `description`, `category`, `status`. | `process.service.js:231-238` |
 | RN-19 | Los usuarios no admin solo listan procesos ACTIVE. | `process.service.js:256-266` |
-| RN-20 | Solo se inician procesos con versión ACTIVE (la de mayor versión). | `processEngine.service.js:145-153` |
-| RN-21 | Toda definición ejecutable requiere un `START_EVENT`. | `processEngine.service.js:167-172` |
-| RN-22 | Iniciar un proceso y completar una tarea son atómicos (una transacción). | `processEngine.service.js:144`, `:181` |
-| RN-23 | Gateway exclusivo: primera condición verdadera; si no, ruta sin condición; si no, error. | `processEngine.service.js:84-116` |
-| RN-24 | Condición con error de evaluación se considera falsa. | `src/utils/expressionEngine.js:26-29` |
-| RN-25 | Al llegar a un `END_EVENT` la instancia queda `COMPLETED` con `endTime`. | `processEngine.service.js:118-130` |
-| RN-26 | Una tarea solo la completa un usuario asignado o con un rol asignado, y solo si está `PENDING`. | `processEngine.service.js:182-195` |
-| RN-27 | Al completar, `formData` se fusiona sobre `businessData`. | `processEngine.service.js:206-213` |
-| RN-28 | Una `USER_TASK` debe tener exactamente una salida (se usa la primera). | `processEngine.service.js:228-239` |
-| RN-29 | Join paralelo: continúa cuando las tareas completadas de las entradas igualan el número de entradas. | `processEngine.service.js:288-311` |
+| RN-20 | Solo se inician procesos con versión ACTIVE (la de mayor versión); si no hay, 404. | `execution.service.ts:138-144` |
+| RN-21 | Toda definición ejecutable requiere un `START_EVENT` (422 si falta). | `execution.service.ts:157-162` |
+| RN-22 | Iniciar un proceso y completar una tarea son atómicos (una transacción; los 422 de modelado revierten). | `execution.service.ts:137`, `:178` |
+| RN-23 | Gateway exclusivo: primera condición verdadera; si no, ruta sin condición; si no, 422. | `execution.service.ts:95-114`, `context.ts:180` |
+| RN-24 | Condición con error de evaluación se considera falsa. | `src/utils/expressionEngine.ts` |
+| RN-25 | Al llegar a un `END_EVENT` la instancia queda `COMPLETED` con `endTime`; la respuesta de inicio refleja ese estado (FR-032). | `execution.service.ts:115-124` |
+| RN-26 | Una tarea solo la completa un usuario asignado o con un rol asignado, y solo si está `PENDING` (si no, 404). | `execution.service.ts:179-191` |
+| RN-27 | Al completar, `formData` se fusiona sobre `businessData`. | `execution.service.ts:211-218` |
+| RN-28 | Una `USER_TASK` debe tener al menos una salida (se usa la primera por `id`); sin salida, 422. | `execution.service.ts:235-240` |
+| RN-29 | Join paralelo: continúa cuando las tareas completadas de las entradas igualan el número de entradas. | `execution.service.ts:253-278` |
 | RN-30 | Bandeja: tareas `PENDING` asignadas al usuario o a cualquiera de sus roles. | `task.service.js:16-26` |
 | RN-31 | Decide-next-task exige `businessProcessKey`, `currentBpmnElementId`, `contextData` (400). | `decision.controller.js:8-10` |
-| RN-32 | Toda llamada a decide-next-task se audita (request + response o error). | `decision.service.js:90-95`, `:124`, `:150`, `:156` |
+| RN-32 | Toda llamada a decide-next-task se audita (request + response o error). | `decision.service.ts:108`, `:150`, `:173`, `:179` |
 | RN-33 | Los logs de decisión solo los consulta un ADMIN. | `decision.routes.js:13` |
-| RN-34 | Rate limit global: 100 peticiones por IP cada 15 min. | `src/app.js:20-24` |
+| RN-34 | Rate limit global: 100 peticiones por IP cada 15 min. | `src/app.ts` |
+| RN-35 | Un ciclo formado solo por elementos no bloqueantes es un error de modelado (422), al ejecutar y al decidir; los diamantes son válidos. | `traversal.ts:99` |
 
-Validaciones **ausentes** relevantes: no se usa `express-validator` en ningún sitio; no se validan campos
-requeridos de formularios (`isRequired`) ni al iniciar ni al completar; no se valida el grafo al guardar
-(start único, salidas de tareas, tipos soportados, condiciones parseables); no se validan valores de `status`.
+Validaciones **ausentes** relevantes: no se validan campos requeridos de formularios (`isRequired`) ni al iniciar ni al
+completar; no se valida el grafo **al guardar** (start único, salidas de tareas, tipos soportados, condiciones parseables:
+los defectos se detectan al ejecutar, como 422). Desde 001 hay validación de entrada con zod (`validateBody`, `idParam`,
+`parseIntIdParam`), pensada para rechazar solo lo que antes ya fallaba; `status` del PATCH de procesos ya se valida.
 
 ---
 
@@ -756,56 +851,60 @@ Prioridad: **C** crítica · **A** alta · **M** media · **B** baja.
 
 ### 11.1 Seguridad
 
+> **Leyenda tras 001**: las filas marcadas "Resuelto en 001" ya no aplican al código `.ts` actual (la columna
+> Ubicación conserva la referencia al commit `95e97c4`). Las filas sin marca siguen abiertas; en particular
+> los hallazgos de categoría C (comportamiento que la migración conservó a propósito, FR-007) no se eliminan.
+>
 > En la fase piloto / demo estos hallazgos se aceptan tal como están. Son pendientes obligatorios antes de
 > crear un ambiente de QA o producción (criterios de salida de fase de la constitution).
 
 | P | Hallazgo | Ubicación |
 |---|---|---|
-| C | `expr-eval` con vulnerabilidades críticas sin versión corregida (prototype pollution / ejecución de código). `npm audit` además reporta críticas/altas en dependencias transitivas (`proxy-addr`, `body-parser`, `path-to-regexp`, `jws`, `lodash`, `qs`...). | `package.json`, `src/utils/expressionEngine.js` |
+| C | `expr-eval` con vulnerabilidades críticas sin versión corregida (prototype pollution / ejecución de código): **abierto**, fijada en `2.0.2`. Las críticas/altas transitivas (`proxy-addr`, `body-parser`, `path-to-regexp`, `jws`, `lodash`, `qs`...) se atendieron con actualizaciones dentro de la versión mayor (T095); `sequelize` 6 conserva una vulnerabilidad alta sin parche en v6 (C-13). | `package.json`, `src/utils/expressionEngine.ts` |
 | A | Cualquier usuario autenticado puede crear, modificar, activar y **borrar** definiciones de proceso, crear instancias crudas y modificar/borrar instancias. | `processes.routes.js:8-27`, `processInstances.routes.js:7-21` |
 | A | Sin control de acceso a nivel de registro: cualquier usuario ve todas las instancias, cualquier instancia por id y el formulario/datos de cualquier tarea. | `processInstance.service.js:26`, `:49`; `task.service.js:66` |
-| A | Mass assignment: `PUT /process-instances/:id` y `POST /record` aceptan el body sin lista blanca; `PUT /processes/:id` en sitio también (`businessProcessKey`, `version`, `id`...). `POST/PUT /users` aceptan `systemRole`/`status` (aceptable solo por ser admin). | `processInstance.service.js:128-132`, `:13-15`; `process.service.js:174-185` |
+| A | Mass assignment: `PUT /process-instances/:id`, `POST /record` y `PUT /processes/:id` aceptaban el body sin lista blanca. **Resuelto en 001** (FR-029: listas blancas; `id`, `version`, `createdAt` y `processDefId` ya no se aplican desde el body). `POST/PUT /users` aceptan `systemRole`/`status` (aceptable solo por ser admin). | `processInstance.service.js:128-132`, `:13-15`; `process.service.js:174-185` |
 | A | `systemRole` y `roleIds` vienen del token: cambios de permisos no aplican hasta 8 h. `status` del usuario no se verifica en login ni en passport. | `passport.js:18-19`, `auth.service.js:5-17` |
-| M | `req.user` contiene `passwordHash`. | `passport.js:17` |
+| M | `req.user` contiene `passwordHash`. **Resuelto en 001** (FR-010: se descarta en `passport.ts`). | `passport.js:17` |
 | M | `cors()` abierto a cualquier origen. | `app.js:16` |
-| M | Sin validación de entrada (`express-validator` instalado y sin uso). | — |
-| M | El motor registra el contexto completo de negocio en consola. | `expressionEngine.js:15-17` |
+| M | Sin validación de entrada (`express-validator` instalado y sin uso). **Resuelto en 001**: validación zod (`validateBody`, `idParam`, `parseIntIdParam`) que solo rechaza lo que antes ya fallaba; `express-validator` ya no es dependencia. | — |
+| M | El motor registra el contexto completo de negocio en consola. **Resuelto en 001** (el contexto y los datos de negocio no se registran; solo la expresión, a nivel `debug`). | `expressionEngine.js:15-17` |
 | B | Sin límite específico de intentos de login. | `app.js:20-24` |
 
 ### 11.2 Errores y códigos HTTP
 
 | P | Hallazgo | Ubicación |
 |---|---|---|
-| A | El middleware de errores responde siempre `500 'Something broke!'` (texto plano) e ignora `err.statusCode`. Login inválido, recurso no encontrado, tarea no autorizada, conflicto de versión ACTIVE, etc. terminan en 500. | `src/api/middlewares/error.middleware.js:18-21` |
-| A | Errores de negocio lanzados con `new Error()` sin `statusCode`. | `auth.service.js:11,16`; `user.service.js:49`; `process.service.js:30,76,211,248,309,342`; `task.service.js:101`; `processEngine.service.js:151,172,195,236,249`; `decision.service.js:104,112` |
-| M | Manejo inconsistente: algunos controladores usan `catchAsync`, otros `try/catch` y traducen `statusCode` a mano; formatos de error mezclados (`{message}`, `{error}`, texto plano). | `user.controller.js`, `role.controller.js:39-41`, `auth.controller.js:10-20`, `task.controller.js:14` |
-| M | `DELETE /users/:id` responde 204 aunque no exista; `PUT /process-instances/:id` devuelve `[n]`. | `user.service.js:77-81`, `processInstance.service.js:128-132` |
+| A | El middleware de errores respondía siempre `500 'Something broke!'` e ignoraba `err.statusCode`. **Resuelto en 001**: formateador único con `AppError`, códigos 400/401/403/404/409/422 y 500 genérico `{ message: 'Internal server error' }` (§9). | `src/api/middlewares/error.middleware.js:18-21` |
+| A | Errores de negocio lanzados con `new Error()` sin `statusCode`. **Resuelto en 001** (fábricas de `AppError`). | `auth.service.js:11,16`; `user.service.js:49`; `process.service.js:30,76,211,248,309,342`; `task.service.js:101`; `processEngine.service.js:151,172,195,236,249`; `decision.service.js:104,112` |
+| M | Manejo inconsistente: algunos controladores usan `catchAsync`, otros `try/catch` y traducen `statusCode` a mano; formatos de error mezclados. **Resuelto en 001**: todos usan `catchAsync` y el formato único `{ message, code, details?, error? }` (la clave `error` solo se conserva donde ya existía). | `user.controller.js`, `role.controller.js:39-41`, `auth.controller.js:10-20`, `task.controller.js:14` |
+| M | `DELETE /users/:id` responde 204 aunque no exista; `PUT /process-instances/:id` devuelve `[n]`. **Abierto** (C-10, conservado a propósito). | `user.service.js:77-81`, `processInstance.service.js:128-132` |
 
 ### 11.3 Integridad de datos
 
 | P | Hallazgo | Ubicación |
 |---|---|---|
-| A | La base no tiene FKs de dominio; las cascadas de `models/index.js` son decorativas. Ya hay tareas huérfanas. | §4.2, `src/models/index.js:18-34` |
-| A | Borrar definición no verifica instancias ni borra form links. Borrar instancia no borra tareas. | `process.service.js:304-318`, `processInstance.service.js:133-135` |
-| A | `decision_logs.executed_by_user_id` es NOT NULL con FK `ON DELETE SET NULL`: borrar un usuario con logs falla. | Base de datos |
-| M | Columnas `process_elements.actions` y `case_assignment_config` existen en BD pero no en el modelo: `getTaskForm` siempre devuelve `['complete']` y el guardado de procesos no persiste `actions`. | `process-element.model.js`, `task.service.js:124` |
-| M | Versionado desde una versión no última intenta reutilizar `version` existente (violación de unicidad). | `process.service.js:116` |
-| M | Si el frontend envía `id` en elementos/secuencias, se propagarían a `bulkCreate`/`set` (sin lista blanca). **Pendiente de confirmar** con el payload real. | `process.service.js:45,48,124,128` |
-| B | `bpmnXml` almacena JSON, no XML. | `process.service.js:118,176` |
+| A | La base no tiene FKs de dominio; las cascadas de `models/index.js` son decorativas. Ya hay tareas huérfanas. **Abierto** (C-04). | §4.2, `src/models/index.js:18-34` |
+| A | Borrar definición no verifica instancias ni borra form links. Borrar instancia no borra tareas. **Abierto** (C-04). | `process.service.js:304-318`, `processInstance.service.js:133-135` |
+| A | `decision_logs.executed_by_user_id` es NOT NULL con FK `ON DELETE SET NULL`: borrar un usuario con logs falla. **Abierto** (esquema de la base, fuera del alcance de 001). | Base de datos |
+| M | Columnas `process_elements.actions` y `case_assignment_config` existen en BD pero no en el modelo: `getTaskForm` siempre devuelve `['complete']` y el guardado de procesos no persiste `actions`. **Abierto** (C-07). | `process-element.model.js`, `task.service.js:124` |
+| M | Versionado desde una versión no última intenta reutilizar `version` existente (violación de unicidad). **Resuelto en 001** (FR-028: `max + 1`). | `process.service.js:116` |
+| M | Si el frontend envía `id` en elementos/secuencias, se propagarían a `bulkCreate`/`set` (sin lista blanca). **Resuelto en 001** (FR-029: se ignoran `id` y `processDefId`). El payload real del modelador sigue **pendiente de confirmar** (§14). | `process.service.js:45,48,124,128` |
+| B | `bpmnXml` almacena JSON, no XML. **Abierto** (nombre heredado de la columna). | `process.service.js:118,176` |
 
 ### 11.4 Motor
 
 | P | Hallazgo | Ubicación |
 |---|---|---|
-| A | `AUTO_TASK` no soportado por el motor, pero existe en procesos ACTIVE y el decision service lo trata como válido. | `processEngine.service.js:131-132`, `decision.service.js:11` |
-| A | Sin modelo de tokens: `END_EVENT` completa la instancia con ramas paralelas pendientes; las tareas restantes quedan `PENDING`. | `processEngine.service.js:118-130` |
-| M | Join paralelo frágil (solo entradas `USER_TASK`, igualdad estricta, bucles). | `processEngine.service.js:252-311` |
-| M | Sin detección de ciclos en recursión (motor y decisión). | `processEngine.service.js:29`, `decision.service.js:8` |
-| M | `nextElement` nulo en fork/exclusive provoca `TypeError` (secuencia a elemento inexistente). | `processEngine.service.js:53-60`, `:103-110` |
-| M | `GET /engine/decision-logs` pide atributo `username` inexistente. | `decision.service.js:169` |
-| M | Decide-next-task no evalúa condiciones en el primer paso si el elemento actual es un gateway exclusivo. | `decision.service.js:117-131` |
-| B | Consulta `count` muerta y fuera de transacción en el join. | `processEngine.service.js:267-279` |
-| B | Valores falsy de `businessData` se muestran como `null` en formularios. | `task.service.js:111` |
+| A | `AUTO_TASK` no soportado por el motor, pero existe en procesos ACTIVE y el decision service lo trata como válido. **Abierto** (FR-007: diferencia conservada); lo único que cambió es que al ejecutar ahora responde 422 con rollback en vez de 500. | `execution.service.ts:125`, `semantics.ts:148` |
+| A | Sin modelo de tokens: `END_EVENT` completa la instancia con ramas paralelas pendientes; las tareas restantes quedan `PENDING`. **Abierto** (conservado). | `execution.service.ts:115-124` |
+| M | Join paralelo frágil (solo entradas `USER_TASK`, igualdad estricta, bucles). **Abierto** (conservado). | `execution.service.ts:253-278` |
+| M | Sin detección de ciclos en recursión (motor y decisión). **Resuelto en 001**: detección por camino, 422 `PROCESS_MODEL_ERROR` (R-10). | `traversal.ts:99` |
+| M | `nextElement` nulo en fork/exclusive provoca `TypeError` (secuencia a elemento inexistente). **Resuelto en 001**: 422 `PROCESS_MODEL_ERROR` que nombra la secuencia. | `traversal.ts:109` |
+| M | `GET /engine/decision-logs` pide atributo `username` inexistente. **Resuelto en 001** (FR-026: `executedByUser { id, fullName, email }`). | `decision.service.ts:190` |
+| M | Decide-next-task no evalúa condiciones en el primer paso si el elemento actual es un gateway exclusivo. **Abierto** (conservado a propósito). | `decision.service.ts:145-152` |
+| B | Consulta `count` muerta y fuera de transacción en el join. **Resuelto en 001** (eliminada). | `processEngine.service.js:267-279` |
+| B | Valores falsy de `businessData` se muestran como `null` en formularios. **Resuelto en 001** (FR-031). | `task.service.js:111` |
 
 ### 11.5 Funcionalidad faltante (con modelo o expectativa de frontend)
 
@@ -821,13 +920,13 @@ Prioridad: **C** crítica · **A** alta · **M** media · **B** baja.
 
 | P | Hallazgo | Ubicación |
 |---|---|---|
-| A | `npm run start:prod` falla: `src/config/production.json` está vacío y `config` no puede parsearlo (verificado). | `src/config/production.json`, `package.json` |
-| M | `npm run start:dev` usa sintaxis Unix (`VAR=x cmd`): falla en Windows. README menciona `npm run dev`, que no existe. | `package.json`, `README.md:9` |
-| M | Cero tests (jest y supertest instalados, sin archivos de prueba). `app.js` llama `startServer()` al importarse, lo que dificulta supertest. | `app.js:55` |
-| M | Dos loggers winston distintos; `utils/logger` no se usa (solo se importa en `database.js:3`); el resto usa `console.*`. | `error.middleware.js:3-16`, `processEngine.service.js` |
-| M | `JWT_SECRET` se lee de `process.env` directamente; el resto vía `config`. `App.port` de `config` no se usa. Sin validación de variables al arrancar. | `passport.js:7`, `auth.service.js:34`, `app.js:40` |
-| B | `src/index.ts`, `tsconfig.json`, `typescript`, `@types/node` sin uso real. Nombre de paquete `node-express-api-ts`, autor "Google LLC". | `src/index.ts`, `package.json` |
-| B | `swagger-jsdoc`/`swagger-ui-express` instalados sin uso. | `package.json` |
+| A | `npm run start:prod` falla: `src/config/production.json` está vacío y `config` no puede parsearlo (verificado). **Resuelto en 001**: `production.json` es `{}` y `start:prod` ejecuta `dist/server.js` (§12). | `src/config/production.json`, `package.json` |
+| M | `npm run start:dev` usa sintaxis Unix (`VAR=x cmd`): falla en Windows. **Resuelto en 001** (`cross-env` + `tsx watch`). `README.md` actualizado en T096 (la mención a `npm run dev` queda solo en la sección «Histórico (legado)»). | `package.json`, `README.md:9` |
+| M | Cero tests (jest y supertest instalados, sin archivos de prueba). `app.js` llama `startServer()` al importarse, lo que dificulta supertest. **Resuelto en 001**: suites en `tests/` (contract, engine, unit) y `app.ts` sin `listen` (arranque en `server.ts`). | `app.js:55` |
+| M | Dos loggers winston distintos; `utils/logger` no se usa (solo se importa en `database.js:3`); el resto usa `console.*`. **Resuelto en 001**: logger único (`utils/logger.ts`) en todo el código. | `error.middleware.js:3-16`, `processEngine.service.js` |
+| M | `JWT_SECRET` se lee de `process.env` directamente; el resto vía `config`. `App.port` de `config` no se usa. Sin validación de variables al arrancar. **Resuelto en 001**: solo `src/config/` lee `process.env`; `config/index.ts` valida `DATABASE_URL` y `JWT_SECRET` al arrancar y se detiene con código 1 si faltan. | `passport.js:7`, `auth.service.js:34`, `app.js:40` |
+| B | `src/index.ts`, `tsconfig.json`, `typescript`, `@types/node` sin uso real. Nombre de paquete `node-express-api-ts`, autor "Google LLC". **Resuelto en 001**: el código es TypeScript real, `src/index.ts` se eliminó y el paquete se llama `flowify-bpm-backend`. | `src/index.ts`, `package.json` |
+| B | `swagger-jsdoc`/`swagger-ui-express` instalados sin uso. **Resuelto en 001** (retirados de `package.json`). | `package.json` |
 | B | `README.md` capítulo 1 es de la plantilla de Cloud Run; `GEMINI.md`/`.idx/airules.md` son genéricos (Firebase Studio). | — |
 | B | Esquema SQL y Prisma legados en `resources/` sin advertencia de obsolescencia. | `resources/` |
 | B | No hay migraciones versionadas: el esquema se cambió directamente en la base. | — |
@@ -836,21 +935,42 @@ Prioridad: **C** crítica · **A** alta · **M** media · **B** baja.
 
 ## 12. Cómo levantar en local
 
-Requisitos: Node 20 (probado con v20.20.2), acceso a la base Postgres configurada.
+Requisitos: Node 20, acceso a la base Postgres configurada y, para las pruebas, Docker. Todos los scripts
+funcionan en Windows y en Unix (usan `cross-env`; no hay `VAR=x cmd`).
 
 1. `npm install`
-2. Crear `.env` en la raíz con las variables (valores proporcionados por el equipo, nunca versionados):
-   `PORT`, `NODE_ENV`, `NODE_CONFIG_DIR` (debe apuntar a `./src/config`), `DATABASE_URL`, `JWT_SECRET`.
-3. Arrancar:
-   - **Windows / multiplataforma**: `node src/app.js` (dotenv carga `.env`, incluido `NODE_CONFIG_DIR`, antes de leer `config`).
-   - Con recarga: `npx nodemon` (usa `nodemon.json`, que ejecuta `node src/app.js`).
-   - Linux/macOS: `npm run start:dev`.
-   - **No usar** `npm run start:prod` hasta corregir `production.json`.
-4. Verificar: `GET http://localhost:3000/` muestra la página estática; `GET /api/processes` sin token responde 401.
-5. Puerto: `PORT` de entorno, o `--port N`, o 3000 (`app.js:40`).
-6. El esquema debe existir previamente (no hay `sync` ni migraciones). No usar `resources/SQL Create flowifybpm test.sql` para crearlo.
+2. Crear `.env` en la raíz (valores proporcionados por el equipo, nunca versionados). Solo se documentan los **nombres**:
 
----
+   | Variable | Obligatoria | Uso |
+   |---|---|---|
+   | `DATABASE_URL` | Sí | Conexión Sequelize a Postgres |
+   | `JWT_SECRET` | Sí | Firma y verificación de tokens |
+   | `PORT` | No | Puerto de escucha (precedencia: `PORT`, luego `--port N`, luego 3000) |
+   | `NODE_ENV` | No (lo fijan los scripts) | Selección de `<env>.json` y nivel de log (`development` por defecto) |
+   | `NODE_CONFIG_DIR` | No | Carpeta de los JSON de `config` (por defecto `src/config`) |
+   | `TEST_DATABASE_URL` | Solo en pruebas | Postgres de pruebas; se rechaza si es igual a `DATABASE_URL` |
+
+   La configuración se **valida al arrancar**: si falta `DATABASE_URL` o `JWT_SECRET` el proceso termina con código 1 y
+   un mensaje `Missing required configuration: <NOMBRE>` (nunca imprime valores).
+3. Scripts (`package.json`):
+
+   | Comando | Efecto |
+   |---|---|
+   | `npm run start:dev` | Desarrollo: `tsx watch src/server.ts` con recarga, `NODE_ENV=development` |
+   | `npm run build` | Compila `src/` a `dist/` (CommonJS, `tsconfig.build.json`) |
+   | `npm run start:prod` | `node dist/server.js` con `NODE_ENV=production` (requiere `build` previo) |
+   | `npm run typecheck` | `tsc --noEmit` sobre `src/` y `tests/` |
+   | `npm run lint` | ESLint (objetivo: 0 errores y 0 advertencias) |
+   | `npm run format` | Prettier |
+   | `npm test` | Jest en serie (suites `contract`, `engine`, `unit`); necesita el Postgres de pruebas |
+   | `npm run db:test:up` / `db:test:down` | Levanta / elimina el Postgres de pruebas (Docker, `docker-compose.test.yml`) |
+   | `npm run test:baseline` | Solo para regrabar la línea base en el commit JS; no se usa en el día a día |
+
+4. Arranque esperado: logs `Database connection has been established successfully.` y `Server is running on port N`.
+   Verificar: `GET http://localhost:3000/` muestra la página estática; `GET /api/processes` sin token responde 401.
+5. El esquema debe existir previamente (no hay `sync` ni migraciones). No usar `resources/SQL Create flowifybpm test.sql` para crearlo.
+6. Logs: consola (`debug`, `info` en producción), `error.log` y `combined.log` (JSON). Nunca se registran contraseñas, tokens,
+   hashes ni `businessData`.
 
 ## 13. Evolución del código (historial git)
 
@@ -866,12 +986,13 @@ Requisitos: Node 20 (probado con v20.20.2), acceso a la base Postgres configurad
 | 2025-10-20 | `9146f58` | Versionado automático, guardado unificado, PATCH, `/processes/all`. |
 | 2025-10-22/23 | `fe8da4c`, `0555a62`, `6a2c224` | Decide-next-task, decision logs, módulos por `systemRole`. |
 | 2025-10-24 | `95e97c4` | README capítulos 2 y 3. |
+| 2026-11 | rama `001-typescript-migration` | **Migración a TypeScript** (Spec Kit feature 001): capas con `src/domain`, motor con núcleo puro y cáscaras, errores HTTP correctos, configuración validada, suites de prueba. |
 
 ---
 
 ## 14. Pendientes de confirmar
 
-- Error 500 de `GET /api/engine/decision-logs` por el atributo `username`: inferido del código; no se ejecutó (requiere token de administrador).
+- ~~Error 500 de `GET /api/engine/decision-logs` por el atributo `username`~~: corregido en 001 (FR-026). Se verificó en el código (`executedByUser { id, fullName, email }`); no se ejecutó contra la base real.
 - Forma exacta del payload que envía el modelador al guardar (si incluye `id` de elementos/secuencias o `actions`).
 - Cómo obtiene el frontend las acciones de una tarea (el backend siempre devuelve `['complete']`, pero las condiciones usan `task.action == 'APROBAR'`).
 - Significado exacto de los códigos de módulo (`DASH`, `TASK`, `INST`, `PROC`, `ORG`, `LOG`, `LIBFORM`).

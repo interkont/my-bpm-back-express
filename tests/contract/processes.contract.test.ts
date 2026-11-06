@@ -33,7 +33,11 @@ const buildPayload = (over: Record<string, unknown> = {}): Record<string, unknow
     { bpmnElementId: 'EndEvent_N', name: 'Fin', type: 'END_EVENT', assignedRoleId: null },
   ];
   const sequences: SequenceInput[] = [
-    { sourceElementBpmnId: 'StartEvent_N', targetElementBpmnId: 'Task_N', conditionExpression: null },
+    {
+      sourceElementBpmnId: 'StartEvent_N',
+      targetElementBpmnId: 'Task_N',
+      conditionExpression: null,
+    },
     { sourceElementBpmnId: 'Task_N', targetElementBpmnId: 'EndEvent_N', conditionExpression: null },
   ];
   return {
@@ -244,8 +248,16 @@ describe('processes contract', () => {
           { bpmnElementId: 'Task_New', name: 'Nueva tarea', type: 'USER_TASK', assignedRoleId: 1 },
         ],
         sequences: [
-          { sourceElementBpmnId: 'StartEvent_V', targetElementBpmnId: 'Task_V', conditionExpression: null },
-          { sourceElementBpmnId: 'Task_V', targetElementBpmnId: 'Task_New', conditionExpression: 'x > 1' },
+          {
+            sourceElementBpmnId: 'StartEvent_V',
+            targetElementBpmnId: 'Task_V',
+            conditionExpression: null,
+          },
+          {
+            sourceElementBpmnId: 'Task_V',
+            targetElementBpmnId: 'Task_New',
+            conditionExpression: 'x > 1',
+          },
         ],
       });
       const res = await api.put('/api/processes/9').send(body);
@@ -279,13 +291,26 @@ describe('processes contract', () => {
           bpmnProcessId: 'Process_EXCLUSIVE',
           status: 'ACTIVE',
           elements: [
-            { bpmnElementId: 'StartEvent_X', name: 'Start', type: 'START_EVENT', assignedRoleId: null },
+            {
+              bpmnElementId: 'StartEvent_X',
+              name: 'Start',
+              type: 'START_EVENT',
+              assignedRoleId: null,
+            },
             { bpmnElementId: 'Task_High', name: 'High', type: 'USER_TASK', assignedRoleId: 1 },
             { bpmnElementId: 'EndEvent_X', name: 'End', type: 'END_EVENT', assignedRoleId: null },
           ],
           sequences: [
-            { sourceElementBpmnId: 'StartEvent_X', targetElementBpmnId: 'Task_High', conditionExpression: null },
-            { sourceElementBpmnId: 'Task_High', targetElementBpmnId: 'EndEvent_X', conditionExpression: null },
+            {
+              sourceElementBpmnId: 'StartEvent_X',
+              targetElementBpmnId: 'Task_High',
+              conditionExpression: null,
+            },
+            {
+              sourceElementBpmnId: 'Task_High',
+              targetElementBpmnId: 'EndEvent_X',
+              conditionExpression: null,
+            },
           ],
         }),
       );
@@ -304,11 +329,20 @@ describe('processes contract', () => {
           businessProcessKey: 'LINEAR',
           bpmnProcessId: 'Process_LINEAR',
           elements: [
-            { bpmnElementId: 'StartEvent_L', name: 'Start', type: 'START_EVENT', assignedRoleId: null },
+            {
+              bpmnElementId: 'StartEvent_L',
+              name: 'Start',
+              type: 'START_EVENT',
+              assignedRoleId: null,
+            },
             { bpmnElementId: 'Task_L', name: 'Linear task', type: 'USER_TASK', assignedRoleId: 1 },
           ],
           sequences: [
-            { sourceElementBpmnId: 'StartEvent_L', targetElementBpmnId: 'Task_L', conditionExpression: null },
+            {
+              sourceElementBpmnId: 'StartEvent_L',
+              targetElementBpmnId: 'Task_L',
+              conditionExpression: null,
+            },
           ],
         }),
       );
@@ -320,7 +354,9 @@ describe('processes contract', () => {
     it('[frozen] PUT /processes/:id sobre VERSIONED v1 INACTIVE sin instancias con v3 existente actualiza en sitio (hoy)', async () => {
       const res = await api
         .put('/api/processes/7')
-        .send(buildPayload({ businessProcessKey: 'VERSIONED', bpmnProcessId: 'Process_VERSIONED' }));
+        .send(
+          buildPayload({ businessProcessKey: 'VERSIONED', bpmnProcessId: 'Process_VERSIONED' }),
+        );
       expectFrozen(res);
       expect(await defs("business_process_key = 'VERSIONED'")).toMatchSnapshot('defs');
     });
@@ -331,11 +367,15 @@ describe('processes contract', () => {
       );
       const res = await api
         .put('/api/processes/7')
-        .send(buildPayload({ businessProcessKey: 'VERSIONED', bpmnProcessId: 'Process_VERSIONED' }));
+        .send(
+          buildPayload({ businessProcessKey: 'VERSIONED', bpmnProcessId: 'Process_VERSIONED' }),
+        );
       // FR-028: hoy (JS) era una violación de unicidad; tras la corrección responde 200 con la versión max + 1.
       expectFrozen(res);
       expect(await defs("business_process_key = 'VERSIONED'")).toMatchSnapshot('defs');
-      expect(await elems('process_def_id > 9 AND process_def_id <> 10')).toMatchSnapshot('elements');
+      expect(await elems('process_def_id > 9 AND process_def_id <> 10')).toMatchSnapshot(
+        'elements',
+      );
     });
   });
 
@@ -369,9 +409,14 @@ describe('processes contract', () => {
     });
 
     it('[frozen] POST /processes con id/version en el cuerpo (asignación masiva hoy)', async () => {
-      const res = await api
-        .post('/api/processes')
-        .send(buildPayload({ id: 555, version: 9, businessProcessKey: 'MASS', bpmnProcessId: 'Process_MASS' }));
+      const res = await api.post('/api/processes').send(
+        buildPayload({
+          id: 555,
+          version: 9,
+          businessProcessKey: 'MASS',
+          bpmnProcessId: 'Process_MASS',
+        }),
+      );
       expectFrozen(res);
       expect(await defs("business_process_key = 'MASS'")).toMatchSnapshot('defs');
     });
@@ -381,9 +426,13 @@ describe('processes contract', () => {
     beforeAll(resetDatabase);
 
     it('[frozen] PATCH /processes/:id actualiza metadatos permitidos e ignora el resto', async () => {
-      const res = await api
-        .patch('/api/processes/9')
-        .send({ name: 'Renombrado', description: 'd2', category: 'C2', version: 99, businessProcessKey: 'HACK' });
+      const res = await api.patch('/api/processes/9').send({
+        name: 'Renombrado',
+        description: 'd2',
+        category: 'C2',
+        version: 99,
+        businessProcessKey: 'HACK',
+      });
       expectFrozen(res);
       expect(await defs('id = 9')).toMatchSnapshot('defs');
     });

@@ -87,7 +87,9 @@ describe('process-instances contract', () => {
 
     it('[frozen] POST /process-instances con clave inexistente (hoy error genérico)', async () => {
       expectFrozenError(
-        await api.post('/api/process-instances').send({ businessProcessKey: 'NOPE', businessData: {} }),
+        await api
+          .post('/api/process-instances')
+          .send({ businessProcessKey: 'NOPE', businessData: {} }),
       );
     });
 
@@ -141,7 +143,9 @@ describe('process-instances contract', () => {
     });
 
     it('[frozen] POST /process-instances/record sin processDefId (hoy error genérico)', async () => {
-      expectFrozenError(await api.post('/api/process-instances/record').send({ status: 'RUNNING' }));
+      expectFrozenError(
+        await api.post('/api/process-instances/record').send({ status: 'RUNNING' }),
+      );
     });
   });
 

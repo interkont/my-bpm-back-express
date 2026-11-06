@@ -29,20 +29,85 @@ const amount = (purchaseAmount: number): unknown => ({
 const action = (a: string): unknown => ({ task: { action: a }, instance: { businessData: {} } });
 
 const CASES: DecisionCase[] = [
-  { name: 'EXCLUSIVE from StartEvent_X (amount 5000)', key: 'EXCLUSIVE', from: 'StartEvent_X', contextData: amount(5000) },
-  { name: 'EXCLUSIVE from StartEvent_X (amount 10)', key: 'EXCLUSIVE', from: 'StartEvent_X', contextData: amount(10) },
-  { name: 'EXCLUSIVE from StartEvent_X (top-level amount is not flattened)', key: 'EXCLUSIVE', from: 'StartEvent_X', contextData: { purchaseAmount: 5000, task: {} } },
-  { name: 'EXCLUSIVE from Gateway_X directly (all outgoing)', key: 'EXCLUSIVE', from: 'Gateway_X', contextData: amount(5000) },
+  {
+    name: 'EXCLUSIVE from StartEvent_X (amount 5000)',
+    key: 'EXCLUSIVE',
+    from: 'StartEvent_X',
+    contextData: amount(5000),
+  },
+  {
+    name: 'EXCLUSIVE from StartEvent_X (amount 10)',
+    key: 'EXCLUSIVE',
+    from: 'StartEvent_X',
+    contextData: amount(10),
+  },
+  {
+    name: 'EXCLUSIVE from StartEvent_X (top-level amount is not flattened)',
+    key: 'EXCLUSIVE',
+    from: 'StartEvent_X',
+    contextData: { purchaseAmount: 5000, task: {} },
+  },
+  {
+    name: 'EXCLUSIVE from Gateway_X directly (all outgoing)',
+    key: 'EXCLUSIVE',
+    from: 'Gateway_X',
+    contextData: amount(5000),
+  },
   { name: 'LINEAR from Task_L (USER_TASK)', key: 'LINEAR', from: 'Task_L', contextData: empty },
-  { name: 'PARALLEL from StartEvent_P (fork)', key: 'PARALLEL', from: 'StartEvent_P', contextData: empty },
-  { name: 'PARALLEL from Task_A (traverses join)', key: 'PARALLEL', from: 'Task_A', contextData: empty },
-  { name: 'APPROVAL from Task_Approval with action APROBAR', key: 'APPROVAL', from: 'Task_Approval', contextData: action('APROBAR') },
-  { name: 'APPROVAL from Task_Approval with action RECHAZAR', key: 'APPROVAL', from: 'Task_Approval', contextData: action('RECHAZAR') },
-  { name: 'AUTO from StartEvent_A (AUTO_TASK blocking)', key: 'AUTO', from: 'StartEvent_A', contextData: empty },
-  { name: 'END_AT_START from StartEvent_E', key: 'END_AT_START', from: 'StartEvent_E', contextData: empty },
-  { name: 'end event has no outgoing (empty nextTasks)', key: 'LINEAR', from: 'EndEvent_L', contextData: empty },
-  { name: 'unknown element (error stored in log)', key: 'LINEAR', from: 'Nope', contextData: empty },
-  { name: 'unknown process key (error stored in log)', key: 'NOPE', from: 'StartEvent_L', contextData: empty },
+  {
+    name: 'PARALLEL from StartEvent_P (fork)',
+    key: 'PARALLEL',
+    from: 'StartEvent_P',
+    contextData: empty,
+  },
+  {
+    name: 'PARALLEL from Task_A (traverses join)',
+    key: 'PARALLEL',
+    from: 'Task_A',
+    contextData: empty,
+  },
+  {
+    name: 'APPROVAL from Task_Approval with action APROBAR',
+    key: 'APPROVAL',
+    from: 'Task_Approval',
+    contextData: action('APROBAR'),
+  },
+  {
+    name: 'APPROVAL from Task_Approval with action RECHAZAR',
+    key: 'APPROVAL',
+    from: 'Task_Approval',
+    contextData: action('RECHAZAR'),
+  },
+  {
+    name: 'AUTO from StartEvent_A (AUTO_TASK blocking)',
+    key: 'AUTO',
+    from: 'StartEvent_A',
+    contextData: empty,
+  },
+  {
+    name: 'END_AT_START from StartEvent_E',
+    key: 'END_AT_START',
+    from: 'StartEvent_E',
+    contextData: empty,
+  },
+  {
+    name: 'end event has no outgoing (empty nextTasks)',
+    key: 'LINEAR',
+    from: 'EndEvent_L',
+    contextData: empty,
+  },
+  {
+    name: 'unknown element (error stored in log)',
+    key: 'LINEAR',
+    from: 'Nope',
+    contextData: empty,
+  },
+  {
+    name: 'unknown process key (error stored in log)',
+    key: 'NOPE',
+    from: 'StartEvent_L',
+    contextData: empty,
+  },
 ];
 
 let server: RunningServer;
@@ -62,13 +127,11 @@ describe('decision engine scenarios', () => {
   it.each(CASES.map((c) => [c.name, c] as const))('%s', async (_name, c) => {
     await resetDatabase();
     const send = () =>
-      authed(server.baseUrl, token)
-        .post('/api/engine/decide-next-task')
-        .send({
-          businessProcessKey: c.key,
-          currentBpmnElementId: c.from,
-          contextData: c.contextData,
-        });
+      authed(server.baseUrl, token).post('/api/engine/decide-next-task').send({
+        businessProcessKey: c.key,
+        currentBpmnElementId: c.from,
+        contextData: c.contextData,
+      });
     const res = await send();
     expectFrozen(res);
     const logs = await query<LogRow>(

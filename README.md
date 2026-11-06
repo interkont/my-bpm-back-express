@@ -1,13 +1,75 @@
-# Node + Express Service Starter
+# Flowify BPM Backend (Node.js + Express + TypeScript)
 
-This is a simple API sample in Node.js with express.js based on [Google Cloud Run Quickstart](https://cloud.google.com/run/docs/quickstarts/build-and-deploy/deploy-nodejs-service).
+API del motor BPM de Flowify. El proyecto está migrado a TypeScript (feature `001-typescript-migration`).
 
-## Getting Started
+> **Referencia vigente:** [`blueprint.md`](./blueprint.md). Los capítulos 2 y 3 de este README (y el
+> contenido histórico original) se conservan como historial; el README cap. 1 se considera legado
+> (EXC-13) y, ante cualquier diferencia, prevalece `blueprint.md`.
 
-Server should run automatically when starting a workspace. To run manually, run:
+## Requisitos
+
+- Node.js 20
+- Docker (solo para levantar el Postgres de pruebas)
+
+## Instalación
+
 ```sh
-npm run dev
+npm ci
 ```
+
+## Configuración
+
+Crea un archivo `.env` en la raíz. **Nunca debe versionarse** (ni sus valores compartirse o imprimirse).
+
+| Variable | Obligatoria | Uso |
+|---|---|---|
+| `DATABASE_URL` | Sí | Conexión a la base de datos (Sequelize) |
+| `JWT_SECRET` | Sí | Firma y verificación de tokens |
+| `PORT` | No | Puerto de escucha |
+| `NODE_ENV` | No | Entorno (lo fijan los scripts de arranque) |
+| `NODE_CONFIG_DIR` | No | Carpeta de los JSON de `config` (por defecto `src/config`) |
+
+Si falta una variable obligatoria, el proceso termina con `Missing required configuration: <NOMBRE>`.
+
+Precedencia del puerto: `PORT` → `--port <n>` → `3000`.
+
+## Comandos
+
+Todos funcionan en Windows y Unix.
+
+| Comando | Efecto |
+|---|---|
+| `npm run start:dev` | Arranca desde `src/` con recarga (`tsx watch`) |
+| `npm run build` | Compila `src/` a `dist/` |
+| `npm run start:prod` | Ejecuta `dist/server.js` (requiere `build` previo) |
+| `npm run typecheck` | Verificación de tipos (`tsc --noEmit`) |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+| `npm run db:test:up` / `npm run db:test:down` | Levanta / elimina el Postgres de pruebas (Docker) |
+| `npm test` | Suites Jest (requiere `db:test:up`) |
+
+## Estructura del proyecto
+
+```text
+src/api/           # módulos por recurso (rutas, controladores, servicios) y middlewares
+src/domain/        # lógica de negocio y motor de procesos
+src/config/        # configuración tipada (único lugar que lee process.env)
+src/models/        # modelos Sequelize
+src/utils/         # utilidades (logger, etc.)
+tests/             # pruebas (contract, engine, unit, fixtures)
+db/migrations/     # migraciones de base de datos
+```
+
+## Documentación
+
+- [`blueprint.md`](./blueprint.md): referencia vigente del sistema.
+- [`specs/001-typescript-migration/`](./specs/001-typescript-migration/): spec, plan, contratos y `quickstart.md` de la migración.
+
+---
+
+## Histórico (legado): Getting Started original
+
+Instrucciones previas a la migración (`npm run dev`, `nodemon`, `node src/app.js`), ya no vigentes; usa la sección «Comandos».
 
 ---
 
