@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import * as processController from './process.controller';
+import { protect } from '../middlewares/auth.middleware';
+import { isAdmin } from '../middlewares/admin.middleware';
+
 const router = express.Router();
-const processController = require('./process.controller');
-const protect = require('../middlewares/auth.middleware');
-const isAdmin = require('../middlewares/admin.middleware');
 
 // Proteger todas las rutas de este módulo
 router.use(protect);
@@ -26,4 +27,4 @@ router
   .patch(processController.updateProcessDefinitionMetadata)
   .delete(processController.deleteProcessDefinition);
 
-module.exports = router;
+export const processRouter = router;

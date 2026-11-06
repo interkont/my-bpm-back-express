@@ -37,10 +37,11 @@ UserRole.init(
       },
       primaryKey: true,
     },
-    // Sequelize ya lo genera por timestamps/createdAt; se declara para el tipado estricto de init.
+    // Lo rellena Sequelize por timestamps/createdAt; se declara para el tipado estricto de init.
+    // Sin allowNull: false, porque la validación de bulkCreate (setRoles) corre antes de que
+    // Sequelize asigne el timestamp y fallaría con notNull.
     created_at: {
       type: DataTypes.DATE,
-      allowNull: false,
     },
   },
   {

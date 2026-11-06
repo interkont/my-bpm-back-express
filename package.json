@@ -5,8 +5,8 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start:dev": "NODE_CONFIG_DIR=./src/config NODE_ENV=development nodemon",
-    "start:prod": "NODE_CONFIG_DIR=./src/config NODE_ENV=production node src/app.js",
+    "start:dev": "cross-env NODE_ENV=development tsx watch src/server.ts",
+    "start:prod": "cross-env NODE_ENV=production node dist/server.js",
     "test": "jest --runInBand",
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",

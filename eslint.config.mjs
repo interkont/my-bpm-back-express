@@ -5,7 +5,7 @@ import prettier from 'eslint-config-prettier';
 // Reglas que codifican la constitution v2.0.0 (research R-06).
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'src/**/*.js', 'public/**', '**/*.mjs', 'jest.config.js'],
+    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'public/**', '**/*.mjs', 'jest.config.js'],
   },
   ...tseslint.configs.strictTypeChecked,
   {
@@ -32,6 +32,10 @@ export default tseslint.config(
       'no-console': 'error',
       eqeqeq: ['error', 'always'],
       'import-x/no-cycle': 'error',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+      ],
     },
   },
   {

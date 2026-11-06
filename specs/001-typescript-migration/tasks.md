@@ -248,22 +248,22 @@ Restricciones citadas literalmente de [data-model.md §3](./data-model.md). Mism
 
 ### Oleada 3.4 (todas en paralelo, tras T032)
 
-- [ ] T033 [P] [US1] Portar `src/config/passport.ts`. La estrategia construye `AuthUser` desde `user.get({ plain: true })` **descartando `passwordHash`** (FR-010) y añade `roleIds` y `systemRole` del payload (prevalecen, como hoy). `secretOrKey` se lee de `config.jwt.secret`. Borrar `src/config/passport.js`.
-- [ ] T034 [P] [US1] Portar `src/api/middlewares/auth.middleware.ts` y `admin.middleware.ts` 1:1 (403 `{ message: 'Forbidden: Requires admin privileges.' }` respondido directamente). Borrar los `.js`.
-- [ ] T035 [P] [US1] Portar `src/api/middlewares/error.middleware.ts` 1:1 (sigue respondiendo 500 `Something broke!` en texto). Usa el logger único de T020 en vez de crear su propio winston. Borrar el `.js`.
-- [ ] T036 [P] [US1] Portar el módulo auth a `src/api/auth/auth.{routes,controller,service}.ts`, conservando el `try/catch` de `updateProfile` y los `statusCode` actuales. El secreto JWT sale de `config.jwt.secret` (EXC-12). Borrar los `.js`.
-- [ ] T037 [P] [US1] Portar el módulo users a `src/api/users/user.{routes,controller,service}.ts` 1:1, incluidos el hash en el controller y su `try/catch` (se corrigen en US2 y US3). Borrar los `.js`.
-- [ ] T038 [P] [US1] Portar el módulo roles a `src/api/roles/role.{routes,controller,service}.ts` 1:1. Borrar los `.js`.
-- [ ] T039 [P] [US1] Portar el módulo processes a `src/api/processes/{processes.routes,process.controller,process.service}.ts` 1:1, incluidos `syncElements` y `syncSequences` y el bloque DEPRECATED inalcanzable (se elimina en US3). Borrar los `.js`.
-- [ ] T040 [P] [US1] Portar el módulo process-instances a `src/api/process-instances/{processInstances.routes,processInstance.controller,processInstance.service}.ts` 1:1. Borrar los `.js`.
-- [ ] T041 [P] [US1] Portar el módulo tasks a `src/api/tasks/{tasks.routes,task.controller,task.service}.ts` 1:1 (incluido el `|| null` que se corrige en US3). Borrar los `.js`.
-- [ ] T042 [P] [US1] Portar el motor a `src/api/engine/{processEngine.service,decision.service,decision.controller,decision.routes}.ts` 1:1, con `Promise.all` y el `count` muerto incluidos (se corrigen en US2 y US4). Los 11 `console.*` pasan a `logger.debug`/`info` **solo con identificadores**: instancia, tarea, `bpmnElementId`, key (R-C). Los `require` perezosos de `decision.service.js:33,130,167` pasan a imports al inicio (AP-09). Borrar los `.js`.
+- [X] T033 [P] [US1] Portar `src/config/passport.ts`. La estrategia construye `AuthUser` desde `user.get({ plain: true })` **descartando `passwordHash`** (FR-010) y añade `roleIds` y `systemRole` del payload (prevalecen, como hoy). `secretOrKey` se lee de `config.jwt.secret`. Borrar `src/config/passport.js`.
+- [X] T034 [P] [US1] Portar `src/api/middlewares/auth.middleware.ts` y `admin.middleware.ts` 1:1 (403 `{ message: 'Forbidden: Requires admin privileges.' }` respondido directamente). Borrar los `.js`.
+- [X] T035 [P] [US1] Portar `src/api/middlewares/error.middleware.ts` 1:1 (sigue respondiendo 500 `Something broke!` en texto). Usa el logger único de T020 en vez de crear su propio winston. Borrar el `.js`.
+- [X] T036 [P] [US1] Portar el módulo auth a `src/api/auth/auth.{routes,controller,service}.ts`, conservando el `try/catch` de `updateProfile` y los `statusCode` actuales. El secreto JWT sale de `config.jwt.secret` (EXC-12). Borrar los `.js`.
+- [X] T037 [P] [US1] Portar el módulo users a `src/api/users/user.{routes,controller,service}.ts` 1:1, incluidos el hash en el controller y su `try/catch` (se corrigen en US2 y US3). Borrar los `.js`.
+- [X] T038 [P] [US1] Portar el módulo roles a `src/api/roles/role.{routes,controller,service}.ts` 1:1. Borrar los `.js`.
+- [X] T039 [P] [US1] Portar el módulo processes a `src/api/processes/{processes.routes,process.controller,process.service}.ts` 1:1, incluidos `syncElements` y `syncSequences` y el bloque DEPRECATED inalcanzable (se elimina en US3). Borrar los `.js`.
+- [X] T040 [P] [US1] Portar el módulo process-instances a `src/api/process-instances/{processInstances.routes,processInstance.controller,processInstance.service}.ts` 1:1. Borrar los `.js`.
+- [X] T041 [P] [US1] Portar el módulo tasks a `src/api/tasks/{tasks.routes,task.controller,task.service}.ts` 1:1 (incluido el `|| null` que se corrige en US3). Borrar los `.js`.
+- [X] T042 [P] [US1] Portar el motor a `src/api/engine/{processEngine.service,decision.service,decision.controller,decision.routes}.ts` 1:1, con `Promise.all` y el `count` muerto incluidos (se corrigen en US2 y US4). Los 11 `console.*` pasan a `logger.debug`/`info` **solo con identificadores**: instancia, tarea, `bpmnElementId`, key (R-C). Los `require` perezosos de `decision.service.js:33,130,167` pasan a imports al inicio (AP-09). Borrar los `.js`.
 
 ### Oleada 3.5 (tras T033–T042)
 
-- [ ] T043 [US1] Crear `src/api/routes.ts` (mismo montaje que `routes.js`); `src/app.ts` (mismo orden de middlewares que `app.js`: `express.json`, `helmet`, `cors`, `static(public)`, `rateLimit` 100/15 min, `passport.initialize`, `/api`, error middleware; **sin** `listen`, exportado); y `src/server.ts` (`import './config/env'` primero, `sequelize.authenticate()`, `listen` con precedencia `PORT` → `--port` → 3000, mensajes `logger.info` "Database connection has been established successfully." y "Server is running on port N", `process.exit(1)` si falla). Borrar `src/app.js` y `src/api/routes.js`.
-- [ ] T044 [US1] Cambiar en `package.json` `start:dev` → `cross-env NODE_ENV=development tsx watch src/server.ts` y `start:prod` → `cross-env NODE_ENV=production node dist/server.js` ([contracts/runtime.md](./contracts/runtime.md)). Quitar el `.js` del `exclude` de `tsconfig.json` y del `ignores` de `eslint.config.mjs`.
-- [ ] T045 [US1] Puerta de US1:
+- [X] T043 [US1] Crear `src/api/routes.ts` (mismo montaje que `routes.js`); `src/app.ts` (mismo orden de middlewares que `app.js`: `express.json`, `helmet`, `cors`, `static(public)`, `rateLimit` 100/15 min, `passport.initialize`, `/api`, error middleware; **sin** `listen`, exportado); y `src/server.ts` (`import './config/env'` primero, `sequelize.authenticate()`, `listen` con precedencia `PORT` → `--port` → 3000, mensajes `logger.info` "Database connection has been established successfully." y "Server is running on port N", `process.exit(1)` si falla). Borrar `src/app.js` y `src/api/routes.js`.
+- [X] T044 [US1] Cambiar en `package.json` `start:dev` → `cross-env NODE_ENV=development tsx watch src/server.ts` y `start:prod` → `cross-env NODE_ENV=production node dist/server.js` ([contracts/runtime.md](./contracts/runtime.md)). Quitar el `.js` del `exclude` de `tsconfig.json` y del `ignores` de `eslint.config.mjs`.
+- [X] T045 [US1] Puerta de US1:
   - `git ls-files "src/*.js" "src/**/*.js"` vacío.
   - `npm run typecheck` y `npm run lint` sin errores.
   - `npm run build`.

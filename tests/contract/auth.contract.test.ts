@@ -1,7 +1,8 @@
 import request from 'supertest';
 import { query, resetDatabase } from '../setup/db';
 import { authed, expectFrozen, expectFrozenError, loginAs, SEED_USERS } from '../setup/http';
-import { startServer, type RunningServer } from '../setup/server-harness';
+import jwt from 'jsonwebtoken';
+import { startServer, TEST_JWT_SECRET, type RunningServer } from '../setup/server-harness';
 
 interface UserRow {
   id: number;
@@ -14,6 +15,15 @@ const userRows = (): Promise<UserRow[]> =>
   query<UserRow>(
     'SELECT id, full_name, email, password_hash IS NOT NULL AS has_hash FROM users ORDER BY id',
   );
+
+// `modules` sale de una consulta sin ORDER BY: su orden depende del estado físico de la tabla y
+// no forma parte del contrato (verificado: el JS original devuelve el mismo orden que el TS con el
+// mismo estado de base). Se ordena antes del snapshot para que la prueba sea determinista.
+const sortModules = (res: request.Response): request.Response => {
+  const body = res.body as { modules?: string[] };
+  body.modules?.sort();
+  return res;
+};
 
 describe('auth (caracterización JS)', () => {
   let server: RunningServer;
@@ -32,12 +42,12 @@ describe('auth (caracterización JS)', () => {
   describe('POST /api/auth/login', () => {
     it('[frozen] login admin OK: user con roles[].UserRole, modules, sin passwordHash', async () => {
       const res = await request(server.baseUrl).post('/api/auth/login').send(SEED_USERS.admin);
-      expectFrozen(res);
+      expectFrozen(sortModules(res));
     });
 
     it('[frozen] login requester OK: modules del systemRole USER', async () => {
       const res = await request(server.baseUrl).post('/api/auth/login').send(SEED_USERS.requester);
-      expectFrozen(res);
+      expectFrozen(sortModules(res));
     });
 
     it('[frozen] password incorrecta responde 500 (hoy)', async () => {
@@ -118,5 +128,26 @@ describe('auth (caracterización JS)', () => {
       const res = await authed(server.baseUrl, requesterToken).put('/api/auth/profile').send({});
       expectFrozen(res);
     });
+  });
+});
+
+describe('auth: compatibilidad de tokens (FR-009)', () => {
+  let server: RunningServer;
+
+  beforeAll(async () => {
+    await resetDatabase();
+    server = await startServer();
+  });
+
+  afterAll(async () => {
+    await server.stop();
+  });
+
+  it('un token firmado como lo hacía la versión JS (HS256, 8 h, { id, roleIds, systemRole }) sigue siendo válido', async () => {
+    const token = jwt.sign({ id: 1, roleIds: [1], systemRole: 'ADMIN' }, TEST_JWT_SECRET, {
+      expiresIn: '8h',
+    });
+    const res = await authed(server.baseUrl, token).get('/api/users');
+    expect(res.status).toBe(200);
   });
 });
