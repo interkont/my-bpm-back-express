@@ -1,13 +1,12 @@
 import type { ParamsDictionary } from 'express-serve-static-core';
 import { catchAsync } from '../../utils/catchAsync';
-import { startProcess } from '../engine/processEngine.service';
+import { startProcess } from '../engine/execution.service';
 import * as processInstanceService from './processInstance.service';
-
-interface CreateProcessInstanceBody {
-  businessProcessKey: Parameters<typeof startProcess>[0];
-  businessData: Parameters<typeof startProcess>[2];
-  description: Parameters<typeof startProcess>[3];
-}
+import type {
+  CreateProcessInstanceRecordInput,
+  StartProcessInstanceInput,
+  UpdateProcessInstanceInput,
+} from './processInstance.schemas';
 
 /**
  * Inicia una instancia de proceso utilizando el motor de procesos.
@@ -15,7 +14,7 @@ interface CreateProcessInstanceBody {
 export const createProcessInstance = catchAsync<
   ParamsDictionary,
   unknown,
-  CreateProcessInstanceBody
+  StartProcessInstanceInput
 >(async (req, res) => {
   const { businessProcessKey, businessData, description } = req.body;
   // Aserción: la ruta está protegida por `protect`, que siempre puebla req.user.
@@ -39,7 +38,7 @@ export const createProcessInstance = catchAsync<
 export const createProcessInstanceRecord = catchAsync<
   ParamsDictionary,
   unknown,
-  processInstanceService.ProcessInstanceCreateInput
+  CreateProcessInstanceRecordInput
 >(async (req, res) => {
   const data = {
     ...req.body,
@@ -68,7 +67,7 @@ export const getProcessInstanceById = catchAsync<{ id: string }>(async (req, res
 export const updateProcessInstance = catchAsync<
   { id: string },
   unknown,
-  processInstanceService.ProcessInstanceUpdateInput
+  UpdateProcessInstanceInput
 >(async (req, res) => {
   const { id } = req.params;
   const instance = await processInstanceService.updateProcessInstance(id, req.body);

@@ -15,7 +15,24 @@ import {
   ElementFormLink,
   FieldDefinition,
 } from '../../models';
-import type { ProcessDefinitionStatus } from '../../domain/constants';
+import { attrs } from '../../utils/pick';
+import { toFormField, type FormFieldDto } from '../../utils/formFields';
+import type {
+  IncomingElement,
+  IncomingSequence,
+  MetadataInput,
+  SaveProcessInput,
+} from './process.schemas';
+import {
+  toDefinitionDetail,
+  toDefinitionListItem,
+  toDefinitionRow,
+  toSaveAnalysis,
+  type ProcessDefinitionDetailDto,
+  type ProcessDefinitionListItemDto,
+  type ProcessDefinitionRowDto,
+  type SaveAnalysisDto,
+} from './process.mappers';
 
 type ProcessDefinitionCreation = InferCreationAttributes<ProcessDefinition>;
 type ProcessElementCreation = InferCreationAttributes<ProcessElement>;
@@ -26,51 +43,9 @@ type FormLinkData = Pick<
   'fieldDefId' | 'displayOrder' | 'isRequired' | 'isReadonly' | 'contextualValidations'
 >;
 
-// Elemento entrante del diagrama; el resto de claves (p. ej. formFields) se reenvía tal cual.
-export interface IncomingElement {
-  bpmnElementId: string;
-  [key: string]: unknown;
-}
-
-// Secuencia entrante del diagrama; sus claves se reenvían tal cual.
-export interface IncomingSequence {
-  [key: string]: unknown;
-}
-
-// Carga libre de guardado (req.body): el resto de claves se reenvía a Sequelize sin filtrar (US3 añade lista blanca).
-export interface SaveProcessPayload {
-  elements?: IncomingElement[];
-  sequences?: IncomingSequence[];
-  diagramJson?: unknown;
-  status?: ProcessDefinitionStatus;
-  businessProcessKey?: string;
-  [key: string]: unknown;
-}
-
-export interface MetadataPayload {
-  name?: string;
-  description?: string | null;
-  category?: string | null;
-  status?: ProcessDefinitionStatus;
-}
-
-export interface SaveAnalysis {
-  state: ProcessDefinitionStatus;
-  instancesCount: number;
-  action: 'UPDATE_IN_PLACE' | 'CREATE_NEW_VERSION';
-}
-
-export interface StartFormField {
-  name: string;
-  label: string;
-  fieldType: string;
-  value: null;
-  validations: Record<string, unknown>;
-}
-
 export interface StartFormDefinition {
   taskName: string;
-  fields: StartFormField[];
+  fields: FormFieldDto[];
   actions: string[];
 }
 
@@ -78,12 +53,12 @@ export interface StartFormDefinition {
  * Valida que no exista otra versión activa para un process key.
  * @param processDefId - El ID de la definición que se está actualizando (o undefined si es nueva).
  * @param businessProcessKey - El ID de negocio del proceso.
- * @param transaction - La transacción de Sequelize.
+ * @param t - La transacción de Sequelize.
  */
 async function validateSingleActiveVersion(
   processDefId: string | number | undefined,
   businessProcessKey: string,
-  transaction: Transaction,
+  t: Transaction,
 ): Promise<void> {
   const whereClause: WhereOptions<InferAttributes<ProcessDefinition>> = {
     businessProcessKey,
@@ -92,7 +67,7 @@ async function validateSingleActiveVersion(
     ...(processDefId ? { id: { [Op.not]: processDefId as number } } : {}),
   };
 
-  const activeVersion = await ProcessDefinition.findOne({ where: whereClause, transaction });
+  const activeVersion = await ProcessDefinition.findOne({ where: whereClause, transaction: t });
 
   if (activeVersion) {
     throw new Error(
@@ -104,21 +79,24 @@ async function validateSingleActiveVersion(
 async function syncElements(
   processDefId: number,
   incomingElements: IncomingElement[],
-  transaction: Transaction,
+  t: Transaction,
 ): Promise<void> {
-  const existingElements = await ProcessElement.findAll({ where: { processDefId }, transaction });
+  const existingElements = await ProcessElement.findAll({
+    where: { processDefId },
+    transaction: t,
+  });
   const existingElementsMap = new Map(existingElements.map((el) => [el.bpmnElementId, el]));
   const incomingElementIds = new Set(incomingElements.map((el) => el.bpmnElementId));
 
   const toCreate: ProcessElementCreation[] = [];
-  const toUpdate: Promise<ProcessElement>[] = [];
+  const toUpdate: ProcessElement[] = [];
 
   for (const incomingEl of incomingElements) {
     const existing = existingElementsMap.get(incomingEl.bpmnElementId);
     if (existing) {
       // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
       existing.set(incomingEl as Partial<InferAttributes<ProcessElement>>);
-      toUpdate.push(existing.save({ transaction }));
+      toUpdate.push(existing);
     } else {
       // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
       toCreate.push({ ...incomingEl, processDefId } as ProcessElementCreation);
@@ -129,31 +107,33 @@ async function syncElements(
     .filter((el) => !incomingElementIds.has(el.bpmnElementId))
     .map((el) => el.id);
 
-  await Promise.all([
-    ProcessElement.bulkCreate(toCreate, { transaction }),
-    ...toUpdate,
-    ProcessElement.destroy({ where: { id: toDeleteIds }, transaction }),
-  ]);
+  // Secuencial y determinista: primero las altas (los ids se asignan como antes), luego las
+  // actualizaciones en el orden de entrada y al final las bajas (A-12).
+  await ProcessElement.bulkCreate(toCreate, { transaction: t });
+  for (const element of toUpdate) {
+    await element.save({ transaction: t });
+  }
+  await ProcessElement.destroy({ where: { id: toDeleteIds }, transaction: t });
 }
 
 async function syncSequences(
   processDefId: number,
   incomingSequences: IncomingSequence[] | undefined,
-  transaction: Transaction,
+  t: Transaction,
 ): Promise<void> {
-  await ProcessSequence.destroy({ where: { processDefId }, transaction });
+  await ProcessSequence.destroy({ where: { processDefId }, transaction: t });
   if (incomingSequences && incomingSequences.length > 0) {
     // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
     const sequencesToCreate = incomingSequences.map(
       (seq) => ({ ...seq, processDefId }) as ProcessSequenceCreation,
     );
-    await ProcessSequence.bulkCreate(sequencesToCreate, { transaction });
+    await ProcessSequence.bulkCreate(sequencesToCreate, { transaction: t });
   }
 }
 
-export const getSaveAnalysis = async (id: string): Promise<SaveAnalysis> => {
+export const getSaveAnalysis = async (id: string): Promise<SaveAnalysisDto> => {
   const definition = await ProcessDefinition.findByPk(parseInt(id, 10), {
-    attributes: ['id', 'status'],
+    attributes: attrs<ProcessDefinition>()('id', 'status'),
   });
   if (!definition) {
     throw new Error('Process definition not found.');
@@ -164,23 +144,13 @@ export const getSaveAnalysis = async (id: string): Promise<SaveAnalysis> => {
     where: { processDefId: id as unknown as number },
   });
 
-  const response: SaveAnalysis = {
-    state: definition.status,
-    instancesCount,
-    action: 'UPDATE_IN_PLACE',
-  };
-
-  if (definition.status === 'ACTIVE' || instancesCount > 0) {
-    response.action = 'CREATE_NEW_VERSION';
-  }
-
-  return response;
+  return toSaveAnalysis(definition.status, instancesCount);
 };
 
 export const saveProcessDefinition = async (
   id: string | undefined,
-  data: SaveProcessPayload,
-): Promise<ProcessDefinition> => {
+  data: SaveProcessInput,
+): Promise<ProcessDefinitionRowDto> => {
   const { elements = [], sequences = [], ...definitionData } = data;
 
   return sequelize.transaction(async (t) => {
@@ -266,7 +236,7 @@ export const saveProcessDefinition = async (
         await ElementFormLink.bulkCreate(newFormLinksToCreate, { transaction: t });
       }
 
-      return newDefinition;
+      return toDefinitionRow(newDefinition);
     } else {
       let processDefinition: ProcessDefinition;
       const finalDefinitionData = {
@@ -310,15 +280,15 @@ export const saveProcessDefinition = async (
       await syncElements(processDefId, elements, t);
       await syncSequences(processDefId, sequences, t);
 
-      return processDefinition;
+      return toDefinitionRow(processDefinition);
     }
   });
 };
 
 export const updateProcessDefinitionMetadata = async (
   id: string,
-  data: MetadataPayload,
-): Promise<ProcessDefinition | null> => {
+  data: MetadataInput,
+): Promise<ProcessDefinitionRowDto | null> => {
   const processDefId = parseInt(id, 10);
 
   return sequelize.transaction(async (t) => {
@@ -344,7 +314,7 @@ export const updateProcessDefinitionMetadata = async (
       }
     }
 
-    const allowedUpdates: MetadataPayload = {
+    const allowedUpdates: MetadataInput = {
       name: data.name,
       description: data.description,
       category: data.category,
@@ -371,12 +341,13 @@ export const updateProcessDefinitionMetadata = async (
       }
     }
 
-    return ProcessDefinition.findByPk(processDefId, { transaction: t });
+    const updated = await ProcessDefinition.findByPk(processDefId, { transaction: t });
+    return updated ? toDefinitionRow(updated) : null;
   });
 };
 
-export const getAllProcessDefinitions = async (): Promise<ProcessDefinition[]> => {
-  return ProcessDefinition.findAll({
+export const getAllProcessDefinitions = async (): Promise<ProcessDefinitionListItemDto[]> => {
+  const definitions = await ProcessDefinition.findAll({
     attributes: {
       exclude: ['bpmnXml'],
     },
@@ -385,20 +356,22 @@ export const getAllProcessDefinitions = async (): Promise<ProcessDefinition[]> =
     },
     order: [['createdAt', 'desc']],
   });
+  return definitions.map(toDefinitionListItem);
 };
 
-export const getAllProcessDefinitionsAdmin = async (): Promise<ProcessDefinition[]> => {
-  return ProcessDefinition.findAll({
+export const getAllProcessDefinitionsAdmin = async (): Promise<ProcessDefinitionListItemDto[]> => {
+  const definitions = await ProcessDefinition.findAll({
     attributes: {
       exclude: ['bpmnXml'],
     },
     order: [['createdAt', 'desc']],
   });
+  return definitions.map(toDefinitionListItem);
 };
 
 export const getProcessDefinitionById = async (
   id: string,
-): Promise<Record<string, unknown> | null> => {
+): Promise<ProcessDefinitionDetailDto | null> => {
   const processDefinition = await ProcessDefinition.findByPk(parseInt(id, 10), {
     include: [
       { model: ProcessElement, as: 'processElements' },
@@ -406,27 +379,7 @@ export const getProcessDefinitionById = async (
     ],
   });
 
-  if (!processDefinition) return null;
-
-  // Mismo orden de claves que el JS: toJSON() + elements/sequences/diagramJson, sin processElements/processSequences/bpmnXml.
-  const result: Record<string, unknown> = { ...processDefinition.toJSON() };
-
-  result.elements = result.processElements;
-  result.sequences = result.processSequences;
-  delete result.processElements;
-  delete result.processSequences;
-
-  try {
-    const diagramJson: unknown = processDefinition.bpmnXml
-      ? JSON.parse(processDefinition.bpmnXml)
-      : {};
-    result.diagramJson = diagramJson;
-  } catch {
-    result.diagramJson = {};
-  }
-  delete result.bpmnXml;
-
-  return result;
+  return processDefinition ? toDefinitionDetail(processDefinition) : null;
 };
 
 export const deleteProcessDefinition = async (id: string): Promise<{ message: string }> => {
@@ -472,23 +425,11 @@ export const getStartForm = async (processDefId: string): Promise<StartFormDefin
 
   // elementFormLinks se pobla con el include de arriba (siempre es un arreglo, posiblemente vacío).
   const links = startEventElement.elementFormLinks ?? [];
-  const formFields = links.map((link): StartFormField => {
+  const formFields = links.map((link) =>
     // fieldDefinition se pobla con el include anidado; field_def_id es NOT NULL, por lo que siempre existe.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const fieldDefinition = link.fieldDefinition!;
-    return {
-      name: fieldDefinition.name,
-      label: fieldDefinition.label,
-      fieldType: fieldDefinition.fieldType,
-      value: null,
-      validations: {
-        ...fieldDefinition.validations,
-        isRequired: link.isRequired,
-        isReadonly: link.isReadonly,
-        ...link.contextualValidations,
-      },
-    };
-  });
+    toFormField(link.fieldDefinition!, link, null),
+  );
 
   const formDefinition: StartFormDefinition = {
     // Se conserva `||` (no `??`): un nombre vacío cae al valor por defecto como en el JS original.

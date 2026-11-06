@@ -1,16 +1,13 @@
 import { catchAsync } from '../../utils/catchAsync';
 import * as decisionService from './decision.service';
 import type { DecisionContext } from './decision.service';
+import type { DecideNextTaskInput } from './decision.schemas';
 
-interface DecideNextTaskBody {
-  businessProcessKey?: string;
-  currentBpmnElementId?: string;
-  contextData?: DecisionContext;
-}
-
-export const decideNextTask = catchAsync<Record<string, string>, unknown, DecideNextTaskBody>(
+export const decideNextTask = catchAsync<Record<string, string>, unknown, DecideNextTaskInput>(
   async (req, res) => {
-    const { businessProcessKey, currentBpmnElementId, contextData } = req.body;
+    const { businessProcessKey, currentBpmnElementId } = req.body;
+    // El cuerpo viene del JSON del cliente y se pasa tal cual: coincide con la forma de `DecisionContext`.
+    const contextData = req.body.contextData as DecisionContext | undefined;
     // Obtenemos el userId del usuario autenticado (passport lo deja en req.user).
     // `protect` garantiza que `req.user` existe en esta ruta.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

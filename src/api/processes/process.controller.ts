@@ -1,5 +1,5 @@
 import * as processService from './process.service';
-import type { MetadataPayload, SaveProcessPayload } from './process.service';
+import type { MetadataInput, SaveProcessInput } from './process.schemas';
 import { catchAsync } from '../../utils/catchAsync';
 
 interface IdParams {
@@ -17,7 +17,7 @@ export const getSaveAnalysis = catchAsync<IdParams>(async (req, res) => {
   res.status(200).json(analysis);
 });
 
-export const saveProcessDefinition = catchAsync<OptionalIdParams, unknown, SaveProcessPayload>(
+export const saveProcessDefinition = catchAsync<OptionalIdParams, unknown, SaveProcessInput>(
   async (req, res) => {
     const { id } = req.params; // Podría no existir para la creación
     const processDefinition = await processService.saveProcessDefinition(id, req.body);
@@ -25,7 +25,7 @@ export const saveProcessDefinition = catchAsync<OptionalIdParams, unknown, SaveP
   },
 );
 
-export const updateProcessDefinitionMetadata = catchAsync<IdParams, unknown, MetadataPayload>(
+export const updateProcessDefinitionMetadata = catchAsync<IdParams, unknown, MetadataInput>(
   async (req, res) => {
     const { id } = req.params;
     const processDefinition = await processService.updateProcessDefinitionMetadata(id, req.body);

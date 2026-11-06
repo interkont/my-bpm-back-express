@@ -1,8 +1,6 @@
 import { catchAsync } from '../../utils/catchAsync';
-import {
-  completeTask as completeTaskInEngine,
-  type CompletionData,
-} from '../engine/processEngine.service';
+import { completeTask as completeTaskInEngine } from '../engine/execution.service';
+import type { CompleteTaskInput } from './task.schemas';
 import * as taskService from './task.service';
 
 /**
@@ -34,7 +32,7 @@ export const getTaskForm = catchAsync<{ id: string }>(async (req, res) => {
 /**
  * Completa una tarea y avanza el proceso.
  */
-export const completeTask = catchAsync<{ id: string }, unknown, CompletionData>(
+export const completeTask = catchAsync<{ id: string }, unknown, CompleteTaskInput>(
   async (req, res) => {
     const { id: taskId } = req.params;
     const completionData = req.body;

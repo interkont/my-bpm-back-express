@@ -4,6 +4,7 @@ import {
   type CreationOptional,
   type InferAttributes,
   type InferCreationAttributes,
+  type BelongsToManySetAssociationsMixin,
   type NonAttribute,
 } from 'sequelize';
 import { sequelize } from '../config/database';
@@ -27,6 +28,7 @@ export class User extends Model<InferAttributes<User>, InferCreationAttributes<U
 
   // Asociaciones (alias definidos en src/models/index)
   declare roles?: NonAttribute<Role[]>;
+  declare setRoles: BelongsToManySetAssociationsMixin<Role, number>;
   declare UserRole?: NonAttribute<UserRole>;
   declare startedProcessInstances?: NonAttribute<ProcessInstance[]>;
   declare completedTasks?: NonAttribute<TaskInstance[]>;

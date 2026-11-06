@@ -1,5 +1,7 @@
 import {
   DataTypes,
+  type BelongsToManyCountAssociationsMixin,
+  type BelongsToManySetAssociationsMixin,
   Model,
   type CreationOptional,
   type InferAttributes,
@@ -24,6 +26,10 @@ export class Role extends Model<InferAttributes<Role>, InferCreationAttributes<R
   declare processElements?: NonAttribute<ProcessElement[]>;
   declare taskInstances?: NonAttribute<TaskInstance[]>;
   declare caseAssignments?: NonAttribute<CaseAssignment[]>;
+
+  // Mixins de Role.belongsToMany(User, { as: 'users' }) (definido en src/models/index)
+  declare setUsers: BelongsToManySetAssociationsMixin<User, number>;
+  declare countUsers: BelongsToManyCountAssociationsMixin;
 }
 
 Role.init(

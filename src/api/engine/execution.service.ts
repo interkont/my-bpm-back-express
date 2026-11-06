@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- port 1:1: `||` trata también valores falsy como ausentes, igual que el JS original */
+// Cáscara de ejecución del motor (T054): carga el grafo una sola vez por operación, recorre con la
+// semántica pura de `NODE_SEMANTICS` y aplica los efectos en la base dentro de la transacción.
 import { Op, type Transaction } from 'sequelize';
 import {
   sequelize,
@@ -9,8 +11,10 @@ import {
   TaskInstance,
 } from '../../models';
 import type { BusinessData, JsonValue } from '../../domain/types';
-import { evaluateExpression } from '../../utils/expressionEngine';
 import { logger } from '../../utils/logger';
+import { buildGraph, outgoingOf, type ElementNode, type ProcessGraph } from './graph';
+import { buildEvaluationContext, chooseExclusiveRoute } from './context';
+import { NODE_SEMANTICS } from './semantics';
 
 // Datos que el cliente envía al completar una tarea.
 export type CompletionData = {
@@ -29,125 +33,85 @@ export interface TaskContext {
   completedBy?: { id: number; roleIds: number[] | undefined };
 }
 
+// Carga elementos y secuencias de la definición una sola vez (sin N+1) y arma el grafo.
+const loadGraph = async (processDefId: number, t: Transaction): Promise<ProcessGraph> => {
+  const elements = await ProcessElement.findAll({ where: { processDefId }, transaction: t });
+  const sequences = await ProcessSequence.findAll({ where: { processDefId }, transaction: t });
+  return buildGraph(elements, sequences);
+};
+
 const createTaskInstance = async (
-  elementDefinition: ProcessElement,
+  element: ElementNode,
   processInstance: ProcessInstance,
   t: Transaction,
 ): Promise<TaskInstance> => {
-  logger.debug(`[Engine] > Creating USER_TASK for element: ${elementDefinition.bpmnElementId}`);
+  logger.debug(`[Engine] > Creating USER_TASK for element: ${element.bpmnElementId}`);
   return TaskInstance.create(
     {
       processInstanceId: processInstance.id,
-      elementDefId: elementDefinition.id,
+      elementDefId: element.id,
       status: 'PENDING',
-      assignedToRoleId: elementDefinition.assignedRoleId,
+      assignedToRoleId: element.assignedRoleId,
     },
     { transaction: t },
   );
 };
 
+// Resuelve el destino de una arista; si no existe en el grafo falla (se tipará como error de dominio en US4).
+const targetOf = (graph: ProcessGraph, target: string): ElementNode => {
+  const node = graph.elements.get(target);
+  if (!node) throw new Error(`Process modelling error: Element not found: ${target}`);
+  return node;
+};
+
 const processElement = async (
-  elementToProcess: ProcessElement,
+  graph: ProcessGraph,
+  node: ElementNode,
   processInstance: ProcessInstance,
   t: Transaction,
   taskContext: TaskContext = {},
 ): Promise<void> => {
-  logger.debug(
-    `[Engine] Processing element: ${elementToProcess.bpmnElementId} | Type: ${elementToProcess.type}`,
-  );
-  switch (elementToProcess.type) {
-    case 'START_EVENT':
-    case 'PARALLEL_GATEWAY': {
-      const outgoingSequences = await ProcessSequence.findAll({
-        where: {
-          processDefId: elementToProcess.processDefId,
-          sourceElementBpmnId: elementToProcess.bpmnElementId,
-        },
-        transaction: t,
-      });
-      logger.debug(
-        `[Engine] | Found ${outgoingSequences.length} outgoing sequence(s). Following all.`,
-      );
-      await Promise.all(
-        outgoingSequences.map(async (sequence) => {
-          const nextElement = await ProcessElement.findOne({
-            where: {
-              processDefId: elementToProcess.processDefId,
-              bpmnElementId: sequence.targetElementBpmnId,
-            },
-            transaction: t,
-          });
-          // Comportamiento heredado 1:1: si el destino de la secuencia no existe, la llamada
-          // recursiva falla igual que en el JS original (se corrige en una fase posterior).
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          await processElement(nextElement!, processInstance, t, taskContext);
-        }),
-      );
+  logger.debug(`[Engine] Processing element: ${node.bpmnElementId} | Type: ${node.type}`);
+  const behavior = NODE_SEMANTICS[node.type].execution;
+  switch (behavior.kind) {
+    case 'FOLLOW_ALL': {
+      const edges = outgoingOf(graph, node.bpmnElementId);
+      logger.debug(`[Engine] | Found ${edges.length} outgoing sequence(s). Following all.`);
+      // Secuencial y en orden de arista (reemplaza Promise.all dentro de una sola transacción).
+      for (const edge of edges) {
+        await processElement(graph, targetOf(graph, edge.target), processInstance, t, taskContext);
+      }
       break;
     }
-    case 'USER_TASK': {
-      await createTaskInstance(elementToProcess, processInstance, t);
+    case 'CREATE_TASK': {
+      await createTaskInstance(node, processInstance, t);
       break;
     }
-    case 'EXCLUSIVE_GATEWAY': {
-      const outgoingSequences = await ProcessSequence.findAll({
-        where: {
-          processDefId: elementToProcess.processDefId,
-          sourceElementBpmnId: elementToProcess.bpmnElementId,
-        },
-        transaction: t,
-      });
+    case 'EXCLUSIVE': {
       const { businessData, ...instanceData } = processInstance.get({ plain: true });
-      const fullContext = {
-        ...(businessData || {}),
-        instance: instanceData,
-        task: taskContext,
-      };
-      let chosenSequence: ProcessSequence | null | undefined = null;
-      for (const seq of outgoingSequences) {
-        if (seq.conditionExpression && evaluateExpression(seq.conditionExpression, fullContext)) {
-          chosenSequence = seq;
-          break;
-        }
-      }
-      if (!chosenSequence) {
-        chosenSequence ??= outgoingSequences.find((seq) => !seq.conditionExpression);
-      }
-      if (chosenSequence) {
-        logger.debug(`[Engine] | Chosen route: -> ${chosenSequence.targetElementBpmnId}`);
-        const nextElement = await ProcessElement.findOne({
-          where: {
-            processDefId: elementToProcess.processDefId,
-            bpmnElementId: chosenSequence.targetElementBpmnId,
-          },
-          transaction: t,
-        });
-        // Comportamiento heredado 1:1: destino inexistente falla en la llamada recursiva.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        await processElement(nextElement!, processInstance, t, taskContext);
-      } else {
+      const context = buildEvaluationContext(businessData, instanceData, taskContext);
+      const chosen = chooseExclusiveRoute(outgoingOf(graph, node.bpmnElementId), context);
+      if (!chosen) {
         throw new Error(
-          `No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${elementToProcess.bpmnElementId}.`,
+          `No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${node.bpmnElementId}.`,
         );
       }
+      logger.debug(`[Engine] | Chosen route: -> ${chosen.target}`);
+      await processElement(graph, targetOf(graph, chosen.target), processInstance, t, taskContext);
       break;
     }
-    case 'END_EVENT': {
+    case 'COMPLETE_INSTANCE': {
       logger.info(
         `[Engine] > Reached END_EVENT. Completing process instance ${processInstance.id}.`,
       );
       await ProcessInstance.update(
         { status: 'COMPLETED', endTime: new Date() },
-        {
-          where: { id: processInstance.id },
-          transaction: t,
-        },
+        { where: { id: processInstance.id }, transaction: t },
       );
       break;
     }
-    case 'AUTO_TASK':
-    default:
-      throw new Error(`Unsupported element type: ${elementToProcess.type}`);
+    case 'UNSUPPORTED':
+      throw new Error(`Unsupported element type: ${node.type}`);
   }
 };
 
@@ -177,12 +141,13 @@ export const startProcess = async (
       { transaction: t },
     );
     logger.info(`[Engine] | Created process instance ID: ${processInstance.id}`);
+    const graph = await loadGraph(processDefinition.id, t);
     const startEvent = await ProcessElement.findOne({
       where: { processDefId: processDefinition.id, type: 'START_EVENT' },
       transaction: t,
     });
     if (!startEvent) throw new Error('Process is invalid: No START_EVENT found.');
-    await processElement(startEvent, processInstance, t, {});
+    await processElement(graph, targetOf(graph, startEvent.bpmnElementId), processInstance, t, {});
     return processInstance;
   });
 };
@@ -246,26 +211,17 @@ export const completeTask = async (
       completedBy: { id: userId, roleIds },
     };
 
-    const outgoingSequence = await ProcessSequence.findOne({
-      where: {
-        processDefId: taskElement.processDefId,
-        sourceElementBpmnId: taskElement.bpmnElementId,
-      },
-      transaction: t,
-    });
+    const graph = await loadGraph(taskElement.processDefId, t);
+
+    // Una sola secuencia de salida por tarea: la primera por id (las aristas ya vienen ordenadas).
+    const outgoingSequence = outgoingOf(graph, taskElement.bpmnElementId)[0];
     if (!outgoingSequence) {
       throw new Error(
         `Process modelling error: No outgoing sequence for ${taskElement.bpmnElementId}`,
       );
     }
 
-    const nextElement = await ProcessElement.findOne({
-      where: {
-        processDefId: taskElement.processDefId,
-        bpmnElementId: outgoingSequence.targetElementBpmnId,
-      },
-      transaction: t,
-    });
+    const nextElement = graph.elements.get(outgoingSequence.target);
     if (!nextElement) {
       throw new Error(`Process modelling error: Next element not found.`);
     }
@@ -276,32 +232,13 @@ export const completeTask = async (
 
     if (nextElement.type === 'PARALLEL_GATEWAY') {
       logger.debug(`[Engine] | Reached a PARALLEL_GATEWAY join. Checking for completion...`);
-      const joinGateway = nextElement;
-      const incomingSequences = await ProcessSequence.findAll({
-        where: {
-          processDefId: joinGateway.processDefId,
-          targetElementBpmnId: joinGateway.bpmnElementId,
-        },
-        transaction: t,
-      });
-      const sourceElementBpmnIds = incomingSequences.map((seq) => seq.sourceElementBpmnId);
-      // Conteo muerto heredado (fuera de la transacción y sin usar); se corrige en US2/US4.
-      await TaskInstance.count({
-        where: {
-          processInstanceId: task.processInstanceId,
-          status: 'COMPLETED',
-        },
-      });
-
-      const sourceElements = await ProcessElement.findAll({
-        where: {
-          bpmnElementId: { [Op.in]: sourceElementBpmnIds },
-          processDefId: joinGateway.processDefId,
-        },
-        attributes: ['id'],
-        transaction: t,
-      });
-      const sourceElementIds = sourceElements.map((el) => el.id);
+      const incomingSequences = graph.incoming.get(nextElement.bpmnElementId) ?? [];
+      // Elementos fuente de las secuencias entrantes del join (los ausentes del grafo se omiten).
+      const sourceElementIds: number[] = [];
+      for (const sourceBpmnId of new Set(incomingSequences.map((edge) => edge.source))) {
+        const source = graph.elements.get(sourceBpmnId);
+        if (source) sourceElementIds.push(source.id);
+      }
 
       const completedTaskCountForJoin = await TaskInstance.count({
         where: {
@@ -317,10 +254,10 @@ export const completeTask = async (
       );
       if (completedTaskCountForJoin === incomingSequences.length) {
         logger.debug(`[Engine] | All parallel tasks complete. Continuing from gateway.`);
-        await processElement(joinGateway, reloadedInstance, t, taskContext);
+        await processElement(graph, nextElement, reloadedInstance, t, taskContext);
       }
     } else {
-      await processElement(nextElement, reloadedInstance, t, taskContext);
+      await processElement(graph, nextElement, reloadedInstance, t, taskContext);
     }
 
     return { message: 'Task completed successfully.' };

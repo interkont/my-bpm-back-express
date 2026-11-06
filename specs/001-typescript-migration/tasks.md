@@ -286,10 +286,10 @@ casos `frozen` siguen en verde.
 
 ### Oleada 4.1: pruebas primero (todas en paralelo)
 
-- [ ] T046 [P] [US2] Crear `tests/unit/engine/graph.test.ts` (construcción de `ProcessGraph` desde filas; `outgoing` ordenado por `id` de secuencia; una arista hacia un elemento ausente se conserva hasta recorrerla) y `tests/unit/engine/context.test.ts` (contexto `{ ...businessData, instance, task }`; el gateway exclusivo elige la primera condición verdadera, si no la ruta sin condición, y si no hay ninguna devuelve "sin ruta").
-- [ ] T047 [P] [US2] Crear `tests/unit/engine/semantics.test.ts`: tabla de paridad por tipo según [data-model.md §6.3](./data-model.md), incluida la diferencia vigente "`AUTO_TASK` | **No soportado** (ejecución) | Bloqueante (decisión)".
-- [ ] T048 [P] [US2] Crear `tests/contract/schema.contract.test.ts`: cada atributo de los 14 modelos existe en `information_schema.columns` de la base de pruebas con un tipo compatible. Las columnas de la base ausentes del modelo se limitan a `process_elements.actions` y `process_elements.case_assignment_config` (EXC-10).
-- [ ] T049 [P] [US2] Crear `tests/types/contracts.typecheck.ts` (incluido por `tsconfig.json`, no por el build), con un `@ts-expect-error` descriptivo en cada caso:
+- [X] T046 [P] [US2] Crear `tests/unit/engine/graph.test.ts` (construcción de `ProcessGraph` desde filas; `outgoing` ordenado por `id` de secuencia; una arista hacia un elemento ausente se conserva hasta recorrerla) y `tests/unit/engine/context.test.ts` (contexto `{ ...businessData, instance, task }`; el gateway exclusivo elige la primera condición verdadera, si no la ruta sin condición, y si no hay ninguna devuelve "sin ruta").
+- [X] T047 [P] [US2] Crear `tests/unit/engine/semantics.test.ts`: tabla de paridad por tipo según [data-model.md §6.3](./data-model.md), incluida la diferencia vigente "`AUTO_TASK` | **No soportado** (ejecución) | Bloqueante (decisión)".
+- [X] T048 [P] [US2] Crear `tests/contract/schema.contract.test.ts`: cada atributo de los 14 modelos existe en `information_schema.columns` de la base de pruebas con un tipo compatible. Las columnas de la base ausentes del modelo se limitan a `process_elements.actions` y `process_elements.case_assignment_config` (EXC-10).
+- [X] T049 [P] [US2] Crear `tests/types/contracts.typecheck.ts` (incluido por `tsconfig.json`, no por el build), con un `@ts-expect-error` descriptivo en cada caso:
   - Estado `'ACTIV'` asignado a `ProcessDefinitionStatus`.
   - Objeto de semántica sin la fila `AUTO_TASK` con `satisfies Record<ElementType, NodeSemantics>`.
   - `attrs<User>()('username')`.
@@ -297,36 +297,36 @@ casos `frozen` siguen en verde.
 
 ### Oleada 4.2: núcleo del motor y utilidades compartidas (en paralelo)
 
-- [ ] T050 [P] [US2] Crear `src/api/engine/graph.ts` (puro, sin `models`/`sequelize`): tipos `ElementNode`, `SequenceEdge` y `ProcessGraph` de [data-model.md §6.1](./data-model.md), y `buildGraph(elements, sequences)` con aristas ordenadas por `id`.
-- [ ] T051 [P] [US2] Crear `src/api/engine/context.ts` (puro): `buildEvaluationContext(businessData, instance, task)` y `chooseExclusiveRoute(edges, context)` usando `evaluateExpression` (FR-013).
-- [ ] T052 [P] [US2] Crear `src/utils/formFields.ts` con `toFormField(link, fieldDef, value)` puro, compartido por start-form y task-form. Conserva las dos variantes actuales de `validations` y `value` (N-08, A-14): `validations = {...fieldDef.validations, isRequired, isReadonly, ...contextualValidations}`.
+- [X] T050 [P] [US2] Crear `src/api/engine/graph.ts` (puro, sin `models`/`sequelize`): tipos `ElementNode`, `SequenceEdge` y `ProcessGraph` de [data-model.md §6.1](./data-model.md), y `buildGraph(elements, sequences)` con aristas ordenadas por `id`.
+- [X] T051 [P] [US2] Crear `src/api/engine/context.ts` (puro): `buildEvaluationContext(businessData, instance, task)` y `chooseExclusiveRoute(edges, context)` usando `evaluateExpression` (FR-013).
+- [X] T052 [P] [US2] Crear `src/utils/formFields.ts` con `toFormField(link, fieldDef, value)` puro, compartido por start-form y task-form. Conserva las dos variantes actuales de `validations` y `value` (N-08, A-14): `validations = {...fieldDef.validations, isRequired, isReadonly, ...contextualValidations}`.
 
 ### Oleada 4.3 (tras T050–T051)
 
-- [ ] T053 [US2] Crear `src/api/engine/semantics.ts` (puro): `NODE_SEMANTICS satisfies Record<ElementType, NodeSemantics>` con modos `execution` y `decision` según [data-model.md §6.3](./data-model.md), y efectos `{ kind: 'CREATE_TASK', element } | { kind: 'COMPLETE_INSTANCE' }`.
+- [X] T053 [US2] Crear `src/api/engine/semantics.ts` (puro): `NODE_SEMANTICS satisfies Record<ElementType, NodeSemantics>` con modos `execution` y `decision` según [data-model.md §6.3](./data-model.md), y efectos `{ kind: 'CREATE_TASK', element } | { kind: 'COMPLETE_INSTANCE' }`.
 
 ### Oleada 4.4: cáscaras del motor y módulos (en paralelo, tras T052 y T053)
 
-- [ ] T054 [P] [US2] Renombrar `src/api/engine/processEngine.service.ts` → `src/api/engine/execution.service.ts` y reescribirlo como cáscara (research R-09):
+- [X] T054 [P] [US2] Renombrar `src/api/engine/processEngine.service.ts` → `src/api/engine/execution.service.ts` y reescribirlo como cáscara (research R-09):
   - Carga el grafo una vez por operación con `t`.
   - Aplica `NODE_SEMANTICS.execution` y los efectos **en orden secuencial** (sin `Promise.all`, A-12).
   - Todas las funciones internas reciben `t: Transaction` obligatorio.
   - Conserva las reglas de [data-model.md §6.4](./data-model.md) (join `===`, `END_EVENT` con ramas pendientes, una salida por tarea, la primera por `id`).
   - Actualizar los imports en `src/api/tasks/task.controller.ts` y `src/api/process-instances/processInstance.controller.ts`.
-- [ ] T055 [P] [US2] Reescribir `src/api/engine/decision.service.ts` sobre `graph`, `context` y `NODE_SEMANTICS.decision` (el primer paso conserva "todas las salidas sin evaluar"). Crear `src/api/engine/decision.schemas.ts` (tipo de la entrada de `decide-next-task`; la regla 400 actual se mantiene en el controller hasta US4) y `src/api/engine/decision.mappers.ts` (`toNextTask`, `toDecisionLog`).
-- [ ] T056 [P] [US2] Módulo auth: crear `src/api/auth/auth.schemas.ts` (zod, objetos abiertos, tipos `LoginInput` y `UpdateProfileInput`) y `src/api/auth/auth.mappers.ts` (`toLoginResponse` sobre `get({ plain: true })`, que conserva `roles[].UserRole`; `toUserDto` sin `passwordHash`). Adaptar `auth.service.ts` para devolver DTOs.
-- [ ] T057 [P] [US2] Módulo users: crear `user.schemas.ts` y `user.mappers.ts` (`toUserWithRolesDto` con y sin `UserRole`, según el endpoint, como en [analysis.md §2](./analysis.md)). **Mover el hash bcrypt del controller a `user.service.ts`** (AP-04, A-06). Proyecciones con `attrs<…>()`.
-- [ ] T058 [P] [US2] Módulo roles: crear `role.schemas.ts` y `role.mappers.ts` (`users[]` con "`id`, `fullName`, `email`, `status`"). **Envolver `deleteRole` (conteo + borrado) en `sequelize.transaction`** (A-15, N-12).
-- [ ] T059 [P] [US2] Módulo processes: crear `process.schemas.ts` y `process.mappers.ts`:
+- [X] T055 [P] [US2] Reescribir `src/api/engine/decision.service.ts` sobre `graph`, `context` y `NODE_SEMANTICS.decision` (el primer paso conserva "todas las salidas sin evaluar"). Crear `src/api/engine/decision.schemas.ts` (tipo de la entrada de `decide-next-task`; la regla 400 actual se mantiene en el controller hasta US4) y `src/api/engine/decision.mappers.ts` (`toNextTask`, `toDecisionLog`).
+- [X] T056 [P] [US2] Módulo auth: crear `src/api/auth/auth.schemas.ts` (zod, objetos abiertos, tipos `LoginInput` y `UpdateProfileInput`) y `src/api/auth/auth.mappers.ts` (`toLoginResponse` sobre `get({ plain: true })`, que conserva `roles[].UserRole`; `toUserDto` sin `passwordHash`). Adaptar `auth.service.ts` para devolver DTOs.
+- [X] T057 [P] [US2] Módulo users: crear `user.schemas.ts` y `user.mappers.ts` (`toUserWithRolesDto` con y sin `UserRole`, según el endpoint, como en [analysis.md §2](./analysis.md)). **Mover el hash bcrypt del controller a `user.service.ts`** (AP-04, A-06). Proyecciones con `attrs<…>()`.
+- [X] T058 [P] [US2] Módulo roles: crear `role.schemas.ts` y `role.mappers.ts` (`users[]` con "`id`, `fullName`, `email`, `status`"). **Envolver `deleteRole` (conteo + borrado) en `sequelize.transaction`** (A-15, N-12).
+- [X] T059 [P] [US2] Módulo processes: crear `process.schemas.ts` y `process.mappers.ts`:
   - `toDefinitionRow` con `bpmnXml`; `toDefinitionListItem` sin `bpmnXml`; `toDefinitionDetail` con `elements`, `sequences` y `diagramJson`, que es `{}` si está vacío o es inválido; `toSaveAnalysis`.
   - `getStartForm` usa `toFormField` de T052.
   - `syncElements` pasa a ser secuencial (A-12). `t: Transaction` explícito. Sin mutar entidades (A-04).
-- [ ] T060 [P] [US2] Módulo process-instances: crear `processInstance.schemas.ts` y `processInstance.mappers.ts` (`toInstanceListItem`; `toInstanceDetail` con `businessDataFields[]` y valores de respaldo `label` = clave / `fieldType` = `UNKNOWN`; `toInstanceRow`), sin mutar `dataValues` (A-04).
-- [ ] T061 [P] [US2] Módulo tasks: crear `task.schemas.ts` y `task.mappers.ts` (`toInboxItem` con los 9 campos y los valores por defecto `'Unnamed Task'`, `'Unknown Process'`, `'Unknown User'`). `getTaskForm` usa `toFormField` de T052, todavía con `|| null` (FR-031 va en US3).
+- [X] T060 [P] [US2] Módulo process-instances: crear `processInstance.schemas.ts` y `processInstance.mappers.ts` (`toInstanceListItem`; `toInstanceDetail` con `businessDataFields[]` y valores de respaldo `label` = clave / `fieldType` = `UNKNOWN`; `toInstanceRow`), sin mutar `dataValues` (A-04).
+- [X] T061 [P] [US2] Módulo tasks: crear `task.schemas.ts` y `task.mappers.ts` (`toInboxItem` con los 9 campos y los valores por defecto `'Unnamed Task'`, `'Unknown Process'`, `'Unknown User'`). `getTaskForm` usa `toFormField` de T052, todavía con `|| null` (FR-031 va en US3).
 
 ### Oleada 4.5
 
-- [ ] T062 [US2] Puerta de US2: `npm run typecheck` (incluido T049), `npm run lint`, `npm test` (casos `frozen` y suites unitarias de T046–T048 en verde, **sin** actualizar snapshots) y `grep -rn "Promise.all" src/api/engine src/api/processes` vacío.
+- [X] T062 [US2] Puerta de US2: `npm run typecheck` (incluido T049), `npm run lint`, `npm test` (casos `frozen` y suites unitarias de T046–T048 en verde, **sin** actualizar snapshots). `Promise.all` solo admitido en lecturas independientes sin efectos (`decision.service`: carga de elementos y secuencias), no en escrituras ni efectos ordenados (AP-23).
 
 **Checkpoint**: contratos verificados por el compilador; motor con paridad por construcción.
 
@@ -471,7 +471,7 @@ línea base.
   - Sin ACTIVE → `notFound`. Tarea inexistente, ajena o no `PENDING` → `notFound` con el mismo mensaje.
   - Sin `START_EVENT`, tarea sin salida o siguiente elemento inexistente → `modelError` (textos actuales).
   - Tarea cuyo elemento no existe → `modelError`.
-  - **Eliminar el `count` muerto fuera de transacción** del join (AP-06).
+  - ~~Eliminar el `count` muerto fuera de transacción del join (AP-06)~~: hecho en T054.
   - `startProcess` devuelve la instancia **recargada dentro de `t`** antes del commit, para que el controller devuelva el estado real (FR-032), sin tocar `processInstance.controller.ts`.
 - [ ] T084 [P] [US4] Actualizar `src/api/engine/decision.service.ts`, `decision.controller.ts` y `decision.routes.ts`:
   - `validateBody` con un refinamiento que replica "los tres campos con valor verdadero" y responde 400 con `legacyErrorKey: true` y el mensaje actual (FR-025).

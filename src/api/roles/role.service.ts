@@ -1,46 +1,43 @@
-import type {
-  BelongsToManyCountAssociationsMixin,
-  BelongsToManySetAssociationsMixin,
-  InferAttributes,
-  InferCreationAttributes,
-} from 'sequelize';
+import type { Transaction } from 'sequelize';
 import { Role, User } from '../../models';
+import { sequelize } from '../../config/database';
+import { attrs } from '../../utils/pick';
+import { toRoleDetailDto, toRoleDto, type RoleDetailDto, type RoleDto } from './role.mappers';
+import type { RoleCreateInput, RoleUpdateInput } from './role.schemas';
 
-// Métodos de asociación que Sequelize agrega en runtime vía Role.belongsToMany(User)
-// y que el modelo no declara.
-interface RoleConUsuarios {
-  setUsers: BelongsToManySetAssociationsMixin<User, number>;
-  countUsers: BelongsToManyCountAssociationsMixin;
-}
-
-export type RoleCreateInput = InferCreationAttributes<Role>;
-
-// Datos de actualización: campos del rol más la lista opcional de miembros.
-export type RoleUpdateInput = Partial<InferAttributes<Role>> & { userIds?: number[] };
+export type { RoleCreateInput, RoleUpdateInput };
 
 const crearErrorConEstado = (message: string, statusCode: number): Error =>
   Object.assign(new Error(message), { statusCode });
 
-export const createRole = (data: RoleCreateInput): Promise<Role> => {
-  return Role.create(data);
+const memberAttrs = attrs<User>()('id', 'fullName', 'email', 'status');
+
+export const createRole = async (data: RoleCreateInput): Promise<RoleDto> => {
+  return toRoleDto(await Role.create(data));
 };
 
-export const getAllRoles = (): Promise<Role[]> => {
-  return Role.findAll();
+export const getAllRoles = async (): Promise<RoleDto[]> => {
+  const roles = await Role.findAll();
+  return roles.map(toRoleDto);
 };
 
-export const getRoleById = (id: number): Promise<Role | null> => {
-  return Role.findByPk(id, {
+export const getRoleById = async (id: number, t?: Transaction): Promise<RoleDetailDto | null> => {
+  const role = await Role.findByPk(id, {
     include: {
       model: User,
       as: 'users',
-      attributes: ['id', 'fullName', 'email', 'status'],
+      attributes: memberAttrs,
       through: { attributes: [] },
     },
+    transaction: t,
   });
+  return role ? toRoleDetailDto(role) : null;
 };
 
-export const updateRole = async (id: number, data: RoleUpdateInput): Promise<Role | null> => {
+export const updateRole = async (
+  id: number,
+  data: RoleUpdateInput,
+): Promise<RoleDetailDto | null> => {
   const { userIds, ...roleData } = data;
   const role = await Role.findByPk(id);
 
@@ -54,8 +51,7 @@ export const updateRole = async (id: number, data: RoleUpdateInput): Promise<Rol
   // Si se proporciona userIds, sincronizar la lista de miembros
   if (userIds !== undefined) {
     // Permite pasar un array vacío [] para quitar todos los usuarios
-    // Aserción: Role.belongsToMany(User) garantiza setUsers en runtime (no declarado en el modelo).
-    await (role as Role & RoleConUsuarios).setUsers(userIds);
+    await role.setUsers(userIds);
   }
 
   // Recargar y devolver el rol con los usuarios actualizados
@@ -63,17 +59,18 @@ export const updateRole = async (id: number, data: RoleUpdateInput): Promise<Rol
 };
 
 export const deleteRole = async (id: number): Promise<void> => {
-  const role = await Role.findByPk(id);
+  await sequelize.transaction(async (t) => {
+    const role = await Role.findByPk(id, { transaction: t });
 
-  if (!role) {
-    throw crearErrorConEstado('Role not found', 404);
-  }
+    if (!role) {
+      throw crearErrorConEstado('Role not found', 404);
+    }
 
-  // Aserción: Role.belongsToMany(User) garantiza countUsers en runtime (no declarado en el modelo).
-  const userCount = await (role as Role & RoleConUsuarios).countUsers();
-  if (userCount > 0) {
-    throw crearErrorConEstado('Cannot delete role with associated users', 409);
-  }
+    const userCount = await role.countUsers({ transaction: t });
+    if (userCount > 0) {
+      throw crearErrorConEstado('Cannot delete role with associated users', 409);
+    }
 
-  return role.destroy();
+    await role.destroy({ transaction: t });
+  });
 };

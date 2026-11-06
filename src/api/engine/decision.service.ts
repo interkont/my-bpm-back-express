@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- port 1:1: `||` trata también valores falsy como ausentes, igual que el JS original */
-import { Op } from 'sequelize';
 import {
   ProcessDefinition,
   ProcessElement,
@@ -7,8 +6,12 @@ import {
   DecisionLog,
   User,
 } from '../../models';
+import { isElementType } from '../../domain/constants';
 import type { BusinessData, JsonObject, JsonValue } from '../../domain/types';
-import { evaluateExpression } from '../../utils/expressionEngine';
+import { buildEvaluationContext, chooseExclusiveRoute, type EvaluationContext } from './context';
+import { buildGraph, outgoingOf, type ElementNode, type ProcessGraph } from './graph';
+import { NODE_SEMANTICS } from './semantics';
+import { toNextTask, type NextTaskDto } from './decision.mappers';
 
 // Contexto que envía el cliente: la instancia (con su `businessData`) y la tarea actual.
 export type DecisionContext = {
@@ -16,113 +19,63 @@ export type DecisionContext = {
   task?: JsonObject;
 };
 
-export type NextTask = {
-  bpmnElementId: string;
-  name: string | null;
-  type: string;
-  assignedRoleId: number | null;
-};
+export type NextTask = NextTaskDto;
 
 export type DecisionResponse = {
   nextTasks: NextTask[];
 };
 
 /**
- * Función recursiva para navegar el grafo del proceso y encontrar las siguientes tareas o eventos de fin.
+ * Elementos destino de una lista de aristas, como los devolvía `findAll ... IN (...)`: sin
+ * duplicados, ignorando destinos inexistentes y en orden de `id` de elemento (orden de inserción).
  */
-const findNextBlockingElements = async (
-  element: ProcessElement | null,
-  processDefId: number,
-  contextData: DecisionContext,
-): Promise<ProcessElement[]> => {
-  // Caso base: Si el elemento actual es una tarea de usuario, una tarea automática o un evento de fin, lo hemos encontrado.
-  if (!element) return []; // Si no hay elemento, no hay nada que hacer.
-  if (
-    element.type === 'USER_TASK' ||
-    element.type === 'END_EVENT' ||
-    element.type === 'AUTO_TASK'
-  ) {
-    return [element];
+const targetsOf = (graph: ProcessGraph, edges: readonly { target: string }[]): ElementNode[] => {
+  const unique = new Set(edges.map((edge) => edge.target));
+  const found: ElementNode[] = [];
+  for (const bpmnId of unique) {
+    const node = graph.elements.get(bpmnId);
+    if (node) found.push(node);
+  }
+  return found.sort((a, b) => a.id - b.id);
+};
+
+/**
+ * Recorre el grafo (puro, ya cargado) para encontrar las siguientes tareas o eventos de fin.
+ */
+const findNextBlockingElements = (
+  element: ElementNode,
+  graph: ProcessGraph,
+  evaluationContext: EvaluationContext,
+): ElementNode[] => {
+  // Tipo ajeno a `ELEMENT_TYPE` (dato corrupto): como antes, sin salidas es callejón y con salidas falla.
+  if (!isElementType(element.type)) {
+    if (outgoingOf(graph, element.bpmnElementId).length === 0) return [];
+    throw new Error(`Unsupported element type for decision traversal: ${String(element.type)}`);
   }
 
-  // Obtener las secuencias de salida del elemento actual.
-  const outgoingSequences = await ProcessSequence.findAll({
-    where: { processDefId, sourceElementBpmnId: element.bpmnElementId },
-  });
-
-  if (outgoingSequences.length === 0) {
-    return []; // Callejón sin salida
-  }
-
-  const nextElementsToProcess: ProcessElement[] = [];
-
-  // Determinar los siguientes elementos a procesar basado en el tipo del elemento actual.
-  switch (element.type) {
-    case 'START_EVENT':
-    case 'PARALLEL_GATEWAY': {
-      // Seguir todos los caminos.
-      const targetBpmnIds = outgoingSequences.map((seq) => seq.targetElementBpmnId);
-      nextElementsToProcess.push(
-        ...(await ProcessElement.findAll({
-          where: { processDefId, bpmnElementId: { [Op.in]: targetBpmnIds } },
-        })),
+  const behavior = NODE_SEMANTICS[element.type].decision;
+  switch (behavior.kind) {
+    case 'BLOCK':
+      return [element];
+    case 'FOLLOW_ALL': {
+      const outgoing = outgoingOf(graph, element.bpmnElementId);
+      return targetsOf(graph, outgoing).flatMap((next) =>
+        findNextBlockingElements(next, graph, evaluationContext),
       );
-      break;
     }
-
-    case 'EXCLUSIVE_GATEWAY': {
-      // Replicar la construcción del contexto del motor principal.
-      const businessData = contextData.instance?.businessData || {};
-      const instanceData = { ...contextData.instance };
-      delete instanceData.businessData; // Limpiar para no tener datos duplicados.
-
-      const evaluationContext = {
-        ...businessData, // Aplanar businessData en el nivel superior.
-        instance: instanceData,
-        task: contextData.task || {},
-      };
-
-      // Evaluar condiciones para encontrar un único camino.
-      let chosenSequence: ProcessSequence | null | undefined = null;
-      for (const seq of outgoingSequences) {
-        if (
-          seq.conditionExpression &&
-          evaluateExpression(seq.conditionExpression, evaluationContext)
-        ) {
-          chosenSequence = seq;
-          break;
-        }
-      }
-      // Si ninguna condición se cumple, buscar el camino por defecto (sin condición).
-      if (!chosenSequence) {
-        chosenSequence ??= outgoingSequences.find((seq) => !seq.conditionExpression);
-      }
-      if (chosenSequence) {
-        const nextElement = await ProcessElement.findOne({
-          where: { processDefId, bpmnElementId: chosenSequence.targetElementBpmnId },
-        });
-        if (nextElement) nextElementsToProcess.push(nextElement);
-      } else {
+    case 'EXCLUSIVE': {
+      const outgoing = outgoingOf(graph, element.bpmnElementId);
+      if (outgoing.length === 0) return []; // Callejón sin salida
+      const chosen = chooseExclusiveRoute(outgoing, evaluationContext);
+      if (!chosen) {
         throw new Error(
           `No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${element.bpmnElementId}.`,
         );
       }
-      break;
+      const next = graph.elements.get(chosen.target);
+      return next ? findNextBlockingElements(next, graph, evaluationContext) : [];
     }
-
-    default:
-      throw new Error(`Unsupported element type for decision traversal: ${String(element.type)}`);
   }
-
-  // Llamada recursiva para cada uno de los siguientes elementos.
-  const results = await Promise.all(
-    nextElementsToProcess.map((nextEl) =>
-      findNextBlockingElements(nextEl, processDefId, contextData),
-    ),
-  );
-
-  // Aplanar el array de resultados.
-  return results.flat();
 };
 
 /**
@@ -157,55 +110,45 @@ export const decideNextTask = async (
       throw new Error(`Process with key '${businessProcessKey}' not found or is not active.`);
     }
 
-    // 2. Encontrar el elemento de partida.
-    const startElement = await ProcessElement.findOne({
-      where: { processDefId: processDefinition.id, bpmnElementId: currentBpmnElementId },
-    });
+    // 2. Cargar elementos y secuencias una sola vez y construir el grafo.
+    const [elements, sequences] = await Promise.all([
+      ProcessElement.findAll({ where: { processDefId: processDefinition.id } }),
+      ProcessSequence.findAll({ where: { processDefId: processDefinition.id } }),
+    ]);
+    const graph = buildGraph(elements, sequences);
+
+    // 3. Encontrar el elemento de partida.
+    const startElement = graph.elements.get(currentBpmnElementId);
     if (!startElement) {
       throw new Error(
         `Element with BPMN ID '${currentBpmnElementId}' not found in process '${businessProcessKey}'.`,
       );
     }
 
-    // 3. Dar el "primer paso" desde el elemento actual para encontrar los siguientes candidatos.
-    const initialOutgoingSequences = await ProcessSequence.findAll({
-      where: {
-        processDefId: processDefinition.id,
-        sourceElementBpmnId: startElement.bpmnElementId,
-      },
-    });
-
-    if (initialOutgoingSequences.length === 0) {
+    // 4. Primer paso: todas las salidas del elemento actual, sin evaluar condiciones.
+    const initialOutgoing = outgoingOf(graph, startElement.bpmnElementId);
+    if (initialOutgoing.length === 0) {
       // Si no hay salida, la respuesta es vacía, pero la llamada fue exitosa.
       const emptyResponse: DecisionResponse = { nextTasks: [] };
       await log.update({ responsePayload: { nextTasks: [] } });
       return emptyResponse;
     }
 
-    const initialTargetBpmnIds = initialOutgoingSequences.map((seq) => seq.targetElementBpmnId);
-    const elementsAfterStart = await ProcessElement.findAll({
-      where: {
-        processDefId: processDefinition.id,
-        bpmnElementId: { [Op.in]: initialTargetBpmnIds },
-      },
-    });
-
-    // 4. Iniciar la búsqueda recursiva DESDE LOS SIGUIENTES elementos.
-    const results = await Promise.all(
-      elementsAfterStart.map((nextEl) =>
-        findNextBlockingElements(nextEl, processDefinition.id, contextData),
-      ),
+    // Mismo contexto de evaluación que el motor principal.
+    const { businessData, ...instanceData } = contextData.instance ?? {};
+    const evaluationContext = buildEvaluationContext(
+      businessData,
+      instanceData,
+      contextData.task || {},
     );
-    const blockingElements = results.flat();
 
-    // 5. Formatear la respuesta para el cliente.
-    const nextTasks: NextTask[] = blockingElements.map((el) => ({
-      bpmnElementId: el.bpmnElementId,
-      name: el.name,
-      type: el.type,
-      assignedRoleId: el.assignedRoleId,
-    }));
+    // 5. Búsqueda DESDE LOS SIGUIENTES elementos.
+    const blockingElements = targetsOf(graph, initialOutgoing).flatMap((nextEl) =>
+      findNextBlockingElements(nextEl, graph, evaluationContext),
+    );
 
+    // 6. Formatear la respuesta para el cliente.
+    const nextTasks: NextTask[] = blockingElements.map(toNextTask);
     const response: DecisionResponse = { nextTasks };
 
     // Actualizar el log con la respuesta exitosa

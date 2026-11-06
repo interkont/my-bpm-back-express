@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import * as roleService from './role.service';
+import type { RoleCreateInput, RoleUpdateInput } from './role.schemas';
 
 interface ErrorConEstado {
   statusCode: number;
@@ -11,7 +12,7 @@ const tieneEstado = (error: unknown): error is ErrorConEstado =>
   typeof error === 'object' && error !== null && 'statusCode' in error && Boolean(error.statusCode);
 
 export const createRole = async (
-  req: Request<object, unknown, roleService.RoleCreateInput>,
+  req: Request<object, unknown, RoleCreateInput>,
   res: Response,
   next: NextFunction,
 ) => {
@@ -50,7 +51,7 @@ export const getRoleById = async (
 };
 
 export const updateRole = async (
-  req: Request<{ id: string }, unknown, roleService.RoleUpdateInput>,
+  req: Request<{ id: string }, unknown, RoleUpdateInput>,
   res: Response,
   next: NextFunction,
 ) => {

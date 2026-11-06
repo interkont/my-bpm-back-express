@@ -1,23 +1,11 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import type { InferAttributes } from 'sequelize';
 import { User, Role, SystemRoleModule } from '../../models';
 import { config } from '../../config';
-
-export type UserWithoutPassword = Omit<InferAttributes<User>, 'passwordHash'>;
-
-export interface LoginResult {
-  user: UserWithoutPassword;
-  token: string;
-  modules: string[];
-}
-
-export interface UpdateProfileData {
-  fullName?: string;
-  email?: string;
-  oldPassword?: string;
-  newPassword?: string;
-}
+import { attrs } from '../../utils/pick';
+import type { UpdateProfileInput } from './auth.schemas';
+import { toLoginResponse, toUserDto } from './auth.mappers';
+import type { LoginResponseDto, UserDto } from './auth.mappers';
 
 interface UpdateProfileFields {
   fullName?: string;
@@ -29,7 +17,7 @@ interface ErrorWithStatus extends Error {
   statusCode?: number;
 }
 
-export const login = async (email: string, password: string): Promise<LoginResult> => {
+export const login = async (email: string, password: string): Promise<LoginResponseDto> => {
   const user = await User.findOne({
     where: { email },
     include: [{ model: Role, as: 'roles' }],
@@ -46,7 +34,7 @@ export const login = async (email: string, password: string): Promise<LoginResul
   // Obtener los módulos permitidos para el systemRole del usuario
   const roleModules = await SystemRoleModule.findAll({
     where: { systemRole: user.systemRole },
-    attributes: ['moduleName'],
+    attributes: attrs<SystemRoleModule>()('moduleName'),
   });
   const modules = roleModules.map((rm) => rm.moduleName);
 
@@ -61,17 +49,11 @@ export const login = async (email: string, password: string): Promise<LoginResul
 
   const token = jwt.sign(tokenPayload, config.jwt.secret, { expiresIn: '8h' });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { passwordHash, ...userWithoutPassword } = user.get({ plain: true });
-
   // Añadir los módulos al objeto de respuesta
-  return { user: userWithoutPassword, token, modules };
+  return toLoginResponse(user, token, modules);
 };
 
-export const updateProfile = async (
-  userId: number,
-  data: UpdateProfileData,
-): Promise<UserWithoutPassword> => {
+export const updateProfile = async (userId: number, data: UpdateProfileInput): Promise<UserDto> => {
   const user = await User.findByPk(userId);
   if (!user) {
     const error: ErrorWithStatus = new Error('User not found');
@@ -104,7 +86,5 @@ export const updateProfile = async (
 
   await user.update(updateData);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { passwordHash, ...userWithoutPassword } = user.get({ plain: true });
-  return userWithoutPassword;
+  return toUserDto(user);
 };

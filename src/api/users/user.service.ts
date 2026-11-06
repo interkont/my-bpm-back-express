@@ -1,109 +1,92 @@
 import bcrypt from 'bcryptjs';
 import { User, Role } from '../../models';
-import type { SystemRole } from '../../domain/constants';
+import { attrs } from '../../utils/pick';
+import { toUserWithRolesDto, type UserWithRolesDto } from './user.mappers';
+import type { CreateUserInput, UpdateUserInput } from './user.schemas';
 
-export interface CreateUserData {
-  fullName: string;
-  email: string;
-  passwordHash: string;
-  status?: string;
-  systemRole?: SystemRole;
-  roleIds?: number[];
-}
+const BCRYPT_ROUNDS = 10;
 
-export interface UpdateUserData {
-  fullName?: string;
-  email?: string;
-  status?: string;
-  systemRole?: SystemRole;
-  password?: string;
-  roleIds?: number[];
-}
+const userAttrs = attrs<User>()('id', 'fullName', 'email', 'status', 'systemRole', 'createdAt');
 
-interface UpdateUserFields {
-  fullName?: string;
-  email?: string;
-  status?: string;
-  systemRole?: SystemRole;
-  passwordHash?: string;
-}
-
-// El mixin `setRoles` lo genera Sequelize por la asociación belongsToMany y no está declarado en el modelo.
-type UserWithSetRoles = User & { setRoles(roleIds: number[]): Promise<void> };
-
-export const createUser = async (userData: CreateUserData): Promise<User | null> => {
-  const { roleIds, ...userPayload } = userData;
-  const user = await User.create(userPayload);
+export const createUser = async (input: CreateUserInput): Promise<UserWithRolesDto | null> => {
+  const { password, roleIds, ...userData } = input;
+  // Si falta la contraseña bcrypt lanza y el endpoint responde 500 (comportamiento actual).
+  const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
+  const user = await User.create({ ...userData, passwordHash });
 
   if (roleIds && roleIds.length > 0) {
-    // Invariante: la asociación `roles` (belongsToMany) siempre define `setRoles` en runtime.
-    await (user as UserWithSetRoles).setRoles(roleIds);
+    await user.setRoles(roleIds);
   }
 
   // Recargamos el usuario para devolverlo con los roles asociados
-  return User.findByPk(user.id, {
+  const reloaded = await User.findByPk(user.id, {
     include: {
       model: Role,
       as: 'roles',
       attributes: { exclude: ['createdAt', 'updatedAt'] },
       through: { attributes: [] }, // No incluir datos de la tabla intermedia
     },
-    attributes: { exclude: ['passwordHash'] },
+    attributes: userAttrs,
   });
+  return reloaded ? toUserWithRolesDto(reloaded) : null;
 };
 
-export const getAllUsers = (): Promise<User[]> => {
-  return User.findAll({
-    attributes: { exclude: ['passwordHash'] },
+export const getAllUsers = async (): Promise<UserWithRolesDto[]> => {
+  const users = await User.findAll({
+    attributes: userAttrs,
     include: {
       model: Role,
       as: 'roles',
     },
   });
+  return users.map(toUserWithRolesDto);
 };
 
-export const getUserById = (id: number): Promise<User | null> => {
-  return User.findByPk(id, {
-    attributes: { exclude: ['passwordHash'] },
+export const getUserById = async (id: number): Promise<UserWithRolesDto | null> => {
+  const user = await User.findByPk(id, {
+    attributes: userAttrs,
     include: {
       model: Role,
       as: 'roles',
     },
   });
+  return user ? toUserWithRolesDto(user) : null;
 };
 
-export const updateUser = async (id: number, data: UpdateUserData): Promise<User | null> => {
-  const { roleIds, password, ...rest } = data;
-  const updateData: UpdateUserFields = rest;
+export const updateUser = async (
+  id: number,
+  data: UpdateUserInput,
+): Promise<UserWithRolesDto | null> => {
+  const { roleIds, password, ...updateData } = data;
   const user = await User.findByPk(id);
 
   if (!user) {
     throw new Error('User not found');
   }
 
-  if (password) {
-    updateData.passwordHash = await bcrypt.hash(password, 10);
-  }
+  const fields = password
+    ? { ...updateData, passwordHash: await bcrypt.hash(password, BCRYPT_ROUNDS) }
+    : updateData;
 
   // Actualizar datos del usuario
-  await user.update(updateData);
+  await user.update(fields);
 
   // Actualizar roles si se proporcionan
   if (roleIds) {
-    // Invariante: la asociación `roles` (belongsToMany) siempre define `setRoles` en runtime.
-    await (user as UserWithSetRoles).setRoles(roleIds);
+    await user.setRoles(roleIds);
   }
 
   // Recargamos el usuario para devolverlo con los roles actualizados
-  return User.findByPk(id, {
+  const reloaded = await User.findByPk(id, {
     include: {
       model: Role,
       as: 'roles',
       attributes: { exclude: ['createdAt', 'updatedAt'] },
       through: { attributes: [] },
     },
-    attributes: { exclude: ['passwordHash'] },
+    attributes: userAttrs,
   });
+  return reloaded ? toUserWithRolesDto(reloaded) : null;
 };
 
 export const deleteUser = (id: number): Promise<number> => {
