@@ -517,7 +517,7 @@ cumple en Windows y Linux.
 
 ### Oleada 7.3
 
-- [X] T091 [US5] Puerta de US5: T086–T088 en verde y ejecutar a mano [quickstart.md §5](./quickstart.md) (5.1–5.7) en Windows y en Linux, anotando los tiempos (SC-007).
+- [ ] T091 [US5] (Parcial: T086–T088 en verde y arranque verificado en Windows con `tsx` y `dist`; falta la ejecución manual en Linux) Puerta de US5: T086–T088 en verde y ejecutar a mano [quickstart.md §5](./quickstart.md) (5.1–5.7) en Windows y en Linux, anotando los tiempos (SC-007).
 
 **Checkpoint**: arranque y operación predecibles en ambas plataformas.
 
@@ -552,7 +552,7 @@ cumple en Windows y Linux.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T095 Limpiar dependencias en `package.json` (FR-034, research R-17):
+- [X] T095 Limpiar dependencias en `package.json` (FR-034, research R-17):
   - Quitar `express-validator`, `swagger-jsdoc`, `swagger-ui-express` y `nodemon`; borrar `nodemon.json`.
   - Sustituir los metadatos de plantilla (`name` → `flowify-bpm-backend`, `description`, `author`; quitar `main`).
   - `npm update` y `npm audit fix` **sin** `--force`; `expr-eval` debe seguir en `2.0.2` exacta.
