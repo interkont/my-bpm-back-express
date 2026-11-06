@@ -173,7 +173,7 @@ Cada suite cubre los caminos correctos con `expectFrozen` y los errores con `exp
 (ambos sirven para la línea base). Las formas a congelar están en [analysis.md §2](./analysis.md) y
 [contracts/http-api.md](./contracts/http-api.md).
 
-- [ ] T024 [P] Crear las suites de contrato:
+- [X] T024 [P] Crear las suites de contrato:
 
   | Archivo | Endpoints |
   |---|---|
@@ -186,14 +186,14 @@ Cada suite cubre los caminos correctos con `expectFrozen` y los errores con `exp
   | `tests/contract/engine.contract.test.ts` | `decide-next-task` (camino correcto y 400 `{ error }`) y `decision-logs` (se graba el 500 actual como evidencia del "hoy") |
   | `tests/contract/platform.contract.test.ts` | `GET /`, ruta inexistente, 401 `Unauthorized` de passport, 403 de `isAdmin` y JSON malformado (500 actual) |
 
-- [ ] T025 [P] Crear las suites del motor y de expresiones:
+- [X] T025 [P] Crear las suites del motor y de expresiones:
   - `tests/engine/execution.scenarios.test.ts`: escenarios `LINEAR`, `EXCLUSIVE` (condición y ruta por defecto), `PARALLEL` (completando las ramas en los dos órdenes) y `END_AT_START`. Comparar tareas creadas, estados, `businessData` y estado final vía `GET /process-instances/:id`.
   - `tests/engine/decision.scenarios.test.ts`: `decide-next-task` desde inicio, desde una tarea y desde un gateway, y `AUTO_TASK` como bloqueante.
   - `tests/unit/expressionEngine.test.ts`: evalúa `tests/fixtures/expressions.json` con `src/utils/expressionEngine` (resuelve `.js` o `.ts` según exista) y graba los resultados por snapshot.
 
 ### Oleada 2.3 (secuencial)
 
-- [ ] T026 Grabar la línea base **sobre el código JS sin modificar**:
+- [X] T026 Grabar la línea base **sobre el código JS sin modificar**:
   1. `npm run db:test:up`.
   2. `npm run test:baseline` (`CHARACTERIZATION_TARGET=js`, `jest -u --selectProjects contract engine unit`).
   3. Revisar a mano que los snapshots no contengan secretos ni hashes.
@@ -419,7 +419,7 @@ En cada tarea, el controller pasa a `catchAsync` sin `try/catch` (A-05, EXC-11) 
   - `pick` (FR-029): `/record` "`processDefId`, `description`, `status`, `businessData`, `startTime`, `endTime`" (`startedByUserId` lo fuerza el controller); `PUT` "`description`, `status`, `businessData`, `endTime`" (sigue devolviendo `[n]`).
   - `order: [[{ model: TaskInstance, as: 'taskInstances' }, 'createdAt', 'ASC']]` en el nivel superior (FR-030, AP-15).
 - [ ] T075 [P] [US3] Módulo tasks y formularios (`src/api/tasks/task.routes.ts`, `task.controller.ts`, `task.service.ts`, `src/utils/formFields.ts`):
-  - `idParam` en `/:id/form` y `parseIntIdParam` en `/:id/complete`.
+  - `parseIntIdParam` en `/:id/form` y en `/:id/complete`: la línea base (T024) muestra que hoy `GET /tasks/1abc/form` responde con éxito, y FR-023 prohíbe rechazarlo. Antes de aplicar `idParam` en cualquier otra ruta, verificar en los snapshots que hoy un id no numérico falla.
   - `my-tasks` sin `roleIds` → `missingAuthData()` con `legacyErrorKey: true` (FR-025).
   - `getTaskForm` inexistente → `notFound('Task not found')`; elemento o campo inexistente → `modelError` (FR-027).
   - `value: businessData[name] ?? null` (FR-031, AP-14).

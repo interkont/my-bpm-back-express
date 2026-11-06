@@ -1,0 +1,754 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`process-instances contract PUT y DELETE [frozen] DELETE /process-instances/:id inexistente responde 204 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] DELETE /process-instances/:id responde 204 y las tareas quedan huérfanas 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] DELETE /process-instances/:id responde 204 y las tareas quedan huérfanas: instances 1`] = `[]`;
+
+exports[`process-instances contract PUT y DELETE [frozen] DELETE /process-instances/:id responde 204 y las tareas quedan huérfanas: tasks 1`] = `
+[
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 2,
+    "id": 4,
+    "process_instance_id": 4,
+    "status": "PENDING",
+  },
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 2,
+    "id": 5,
+    "process_instance_id": 4,
+    "status": "PENDING",
+  },
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 2,
+    "id": 6,
+    "process_instance_id": 4,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id con cuerpo vacío (hoy) 1`] = `
+{
+  "body": [
+    0,
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id con id y processDefId en el cuerpo (asignación masiva hoy) 1`] = `
+{
+  "body": [
+    1,
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id con id y processDefId en el cuerpo (asignación masiva hoy): instances 1`] = `
+[
+  {
+    "business_data": {
+      "approved": true,
+      "notes": "ok",
+    },
+    "description": "Instancia LINEAR completada",
+    "has_end_time": true,
+    "id": 600,
+    "process_def_id": 8,
+    "started_by_user_id": 3,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id devuelve [n] y persiste los campos 1`] = `
+{
+  "body": [
+    1,
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id devuelve [n] y persiste los campos: instances 1`] = `
+[
+  {
+    "business_data": {
+      "reason": "x",
+    },
+    "description": "Cancelada",
+    "has_end_time": false,
+    "id": 3,
+    "process_def_id": 8,
+    "started_by_user_id": 3,
+    "status": "CANCELLED",
+  },
+]
+`;
+
+exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id inexistente devuelve [0] 1`] = `
+{
+  "body": [
+    0,
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave AUTO falla y revierte la transacción (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave AUTO falla y revierte la transacción (hoy): instances 1`] = `[]`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave AUTO falla y revierte la transacción (hoy): tasks 1`] = `[]`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave VERSIONED usa la versión ACTIVE (v2) 1`] = `
+{
+  "body": {
+    "message": "Process instance started successfully.",
+    "processInstanceId": 9,
+    "status": "RUNNING",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave VERSIONED usa la versión ACTIVE (v2): instances 1`] = `
+[
+  {
+    "business_data": {},
+    "description": null,
+    "has_end_time": false,
+    "id": 9,
+    "process_def_id": 8,
+    "started_by_user_id": 3,
+    "status": "RUNNING",
+  },
+]
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave inexistente (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia END_AT_START (hoy la respuesta dice RUNNING aunque se completa) 1`] = `
+{
+  "body": {
+    "message": "Process instance started successfully.",
+    "processInstanceId": 6,
+    "status": "RUNNING",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia END_AT_START (hoy la respuesta dice RUNNING aunque se completa): instances 1`] = `
+[
+  {
+    "business_data": {},
+    "description": null,
+    "has_end_time": true,
+    "id": 6,
+    "process_def_id": 4,
+    "started_by_user_id": 3,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia END_AT_START (hoy la respuesta dice RUNNING aunque se completa): tasks 1`] = `[]`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia LINEAR (201 con processInstanceId, status, message) 1`] = `
+{
+  "body": {
+    "message": "Process instance started successfully.",
+    "processInstanceId": 5,
+    "status": "RUNNING",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia LINEAR (201 con processInstanceId, status, message): instances 1`] = `
+[
+  {
+    "business_data": {
+      "approved": false,
+      "purchaseAmount": 10,
+    },
+    "description": "Caso lineal de prueba",
+    "has_end_time": false,
+    "id": 5,
+    "process_def_id": 1,
+    "started_by_user_id": 3,
+    "status": "RUNNING",
+  },
+]
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances inicia LINEAR (201 con processInstanceId, status, message): tasks 1`] = `
+[
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 2,
+    "id": 7,
+    "process_instance_id": 5,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances sin businessData ni description (hoy) 1`] = `
+{
+  "body": {
+    "message": "Process instance started successfully.",
+    "processInstanceId": 7,
+    "status": "RUNNING",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances sin businessData ni description (hoy): instances 1`] = `
+[
+  {
+    "business_data": null,
+    "description": null,
+    "has_end_time": false,
+    "id": 7,
+    "process_def_id": 1,
+    "started_by_user_id": 3,
+    "status": "RUNNING",
+  },
+]
+`;
+
+exports[`process-instances contract inicio con el motor [frozen] POST /process-instances sin businessProcessKey (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances lista con processDefinition y startedByUser, startTime DESC 1`] = `
+{
+  "body": [
+    {
+      "businessData": {
+        "purchaseAmount": 5,
+      },
+      "description": "Instancia LINEAR para orden de tareas (FR-030)",
+      "endTime": null,
+      "id": 4,
+      "processDefId": 1,
+      "processDefinition": {
+        "bpmnProcessId": "Process_LINEAR",
+        "businessProcessKey": "LINEAR",
+        "category": "SEED",
+        "description": "Seed LINEAR v1",
+        "id": 1,
+        "name": "Linear process",
+        "status": "ACTIVE",
+        "version": 1,
+      },
+      "startTime": "<date>",
+      "startedByUser": {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+      },
+      "startedByUserId": 3,
+      "status": "RUNNING",
+    },
+    {
+      "businessData": {},
+      "description": "Instancia VERSIONED v2 en curso",
+      "endTime": null,
+      "id": 3,
+      "processDefId": 8,
+      "processDefinition": {
+        "bpmnProcessId": "Process_VERSIONED",
+        "businessProcessKey": "VERSIONED",
+        "category": "SEED",
+        "description": "Seed VERSIONED v2",
+        "id": 8,
+        "name": "Versioned process",
+        "status": "ACTIVE",
+        "version": 2,
+      },
+      "startTime": "<date>",
+      "startedByUser": {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+      },
+      "startedByUserId": 3,
+      "status": "RUNNING",
+    },
+    {
+      "businessData": {
+        "approved": false,
+        "extraKey": "x",
+        "notes": "",
+        "purchaseAmount": 0,
+      },
+      "description": "Instancia LINEAR en curso (valores falsy)",
+      "endTime": null,
+      "id": 1,
+      "processDefId": 1,
+      "processDefinition": {
+        "bpmnProcessId": "Process_LINEAR",
+        "businessProcessKey": "LINEAR",
+        "category": "SEED",
+        "description": "Seed LINEAR v1",
+        "id": 1,
+        "name": "Linear process",
+        "status": "ACTIVE",
+        "version": 1,
+      },
+      "startTime": "<date>",
+      "startedByUser": {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+      },
+      "startedByUserId": 3,
+      "status": "RUNNING",
+    },
+    {
+      "businessData": {
+        "approved": true,
+        "notes": "ok",
+      },
+      "description": "Instancia LINEAR completada",
+      "endTime": "<date>",
+      "id": 2,
+      "processDefId": 1,
+      "processDefinition": {
+        "bpmnProcessId": "Process_LINEAR",
+        "businessProcessKey": "LINEAR",
+        "category": "SEED",
+        "description": "Seed LINEAR v1",
+        "id": 1,
+        "name": "Linear process",
+        "status": "ACTIVE",
+        "version": 1,
+      },
+      "startTime": "<date>",
+      "startedByUser": {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+      },
+      "startedByUserId": 3,
+      "status": "COMPLETED",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances/:id inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Process instance not found",
+  "status": 404,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances/:id instancia 1 con businessDataFields (extraKey UNKNOWN, falsy preservados) 1`] = `
+{
+  "body": {
+    "businessData": {
+      "approved": false,
+      "extraKey": "x",
+      "notes": "",
+      "purchaseAmount": 0,
+    },
+    "businessDataFields": [
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "value": "",
+      },
+      {
+        "fieldType": "BOOLEAN",
+        "label": "Aprobado",
+        "name": "approved",
+        "value": false,
+      },
+      {
+        "fieldType": "UNKNOWN",
+        "label": "extraKey",
+        "name": "extraKey",
+        "value": "x",
+      },
+      {
+        "fieldType": "NUMBER",
+        "label": "Monto de compra",
+        "name": "purchaseAmount",
+        "value": 0,
+      },
+    ],
+    "description": "Instancia LINEAR en curso (valores falsy)",
+    "endTime": null,
+    "id": 1,
+    "processDefId": 1,
+    "processDefinition": {
+      "bpmnProcessId": "Process_LINEAR",
+      "businessProcessKey": "LINEAR",
+      "category": "SEED",
+      "description": "Seed LINEAR v1",
+      "id": 1,
+      "name": "Linear process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    "startTime": "<date>",
+    "startedByUser": {
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+    },
+    "startedByUserId": 3,
+    "status": "RUNNING",
+    "taskInstances": [
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 1,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 1,
+        "status": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances/:id instancia 4 con taskInstances en el orden actual 1`] = `
+{
+  "body": {
+    "businessData": {
+      "purchaseAmount": 5,
+    },
+    "businessDataFields": [
+      {
+        "fieldType": "NUMBER",
+        "label": "Monto de compra",
+        "name": "purchaseAmount",
+        "value": 5,
+      },
+    ],
+    "description": "Instancia LINEAR para orden de tareas (FR-030)",
+    "endTime": null,
+    "id": 4,
+    "processDefId": 1,
+    "processDefinition": {
+      "bpmnProcessId": "Process_LINEAR",
+      "businessProcessKey": "LINEAR",
+      "category": "SEED",
+      "description": "Seed LINEAR v1",
+      "id": 1,
+      "name": "Linear process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    "startTime": "<date>",
+    "startedByUser": {
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+    },
+    "startedByUserId": 3,
+    "status": "RUNNING",
+    "taskInstances": [
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 4,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 4,
+        "status": "PENDING",
+      },
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 5,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 4,
+        "status": "PENDING",
+      },
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 6,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 4,
+        "status": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances/:id instancia con businessData vacío -> businessDataFields [] 1`] = `
+{
+  "body": {
+    "businessData": {},
+    "businessDataFields": [],
+    "description": "Instancia VERSIONED v2 en curso",
+    "endTime": null,
+    "id": 3,
+    "processDefId": 8,
+    "processDefinition": {
+      "bpmnProcessId": "Process_VERSIONED",
+      "businessProcessKey": "VERSIONED",
+      "category": "SEED",
+      "description": "Seed VERSIONED v2",
+      "id": 8,
+      "name": "Versioned process",
+      "status": "ACTIVE",
+      "version": 2,
+    },
+    "startTime": "<date>",
+    "startedByUser": {
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+    },
+    "startedByUserId": 3,
+    "status": "RUNNING",
+    "taskInstances": [
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 31,
+        "id": 3,
+        "processElement": {
+          "bpmnElementId": "Task_V",
+          "name": "Versioned task",
+        },
+        "processInstanceId": 3,
+        "status": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract lecturas [frozen] GET /process-instances/:id no numérico (hoy parseInt -> NaN) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record con id y startedByUserId en el cuerpo (asignación masiva hoy) 1`] = `
+{
+  "body": {
+    "businessData": {},
+    "description": null,
+    "endTime": null,
+    "id": 500,
+    "processDefId": 1,
+    "startTime": "<date>",
+    "startedByUserId": 3,
+    "status": "COMPLETED",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record con id y startedByUserId en el cuerpo (asignación masiva hoy): instances 1`] = `
+[
+  {
+    "business_data": {
+      "notes": "directo",
+    },
+    "description": "Registro directo",
+    "has_end_time": false,
+    "id": 5,
+    "process_def_id": 1,
+    "started_by_user_id": 3,
+    "status": "RUNNING",
+  },
+  {
+    "business_data": {},
+    "description": null,
+    "has_end_time": false,
+    "id": 500,
+    "process_def_id": 1,
+    "started_by_user_id": 3,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record crea el registro (201, fila cruda) 1`] = `
+{
+  "body": {
+    "businessData": {
+      "notes": "directo",
+    },
+    "description": "Registro directo",
+    "endTime": null,
+    "id": 5,
+    "processDefId": 1,
+    "startTime": "<date>",
+    "startedByUserId": 3,
+    "status": "RUNNING",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record crea el registro (201, fila cruda): instances 1`] = `
+[
+  {
+    "business_data": {
+      "notes": "directo",
+    },
+    "description": "Registro directo",
+    "has_end_time": false,
+    "id": 5,
+    "process_def_id": 1,
+    "started_by_user_id": 3,
+    "status": "RUNNING",
+  },
+]
+`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record crea el registro (201, fila cruda): tasks 1`] = `[]`;
+
+exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record sin processDefId (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;

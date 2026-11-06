@@ -1,0 +1,1653 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definición con instancias y vínculos de formulario (hoy) 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definición con instancias y vínculos de formulario (hoy): defs 1`] = `[]`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definición con instancias y vínculos de formulario (hoy): elements 1`] = `[]`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definición con instancias y vínculos de formulario (hoy): instances 1`] = `
+[
+  {
+    "id": 1,
+    "process_def_id": 1,
+    "status": "RUNNING",
+  },
+  {
+    "id": 2,
+    "process_def_id": 1,
+    "status": "COMPLETED",
+  },
+  {
+    "id": 3,
+    "process_def_id": 8,
+    "status": "RUNNING",
+  },
+  {
+    "id": 4,
+    "process_def_id": 1,
+    "status": "RUNNING",
+  },
+]
+`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definición con instancias y vínculos de formulario (hoy): links 1`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 4,
+    "field_def_id": 1,
+    "id": 1,
+    "is_readonly": false,
+    "is_required": true,
+  },
+  {
+    "contextual_validations": {
+      "maxLength": 200,
+    },
+    "display_order": 2,
+    "element_id": 4,
+    "field_def_id": 2,
+    "id": 2,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 2,
+    "field_def_id": 3,
+    "id": 3,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 2,
+    "element_id": 2,
+    "field_def_id": 4,
+    "id": 4,
+    "is_readonly": true,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id inexistente (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id responde 204 y borra elementos y secuencias 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id responde 204 y borra elementos y secuencias: defs 1`] = `[]`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id responde 204 y borra elementos y secuencias: elements 1`] = `[]`;
+
+exports[`processes contract DELETE [frozen] DELETE /processes/:id responde 204 y borra elementos y secuencias: sequences 1`] = `[]`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id actualiza metadatos permitidos e ignora el resto 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "C2",
+    "createdAt": "<date>",
+    "description": "d2",
+    "id": 9,
+    "name": "Renombrado",
+    "status": "DRAFT",
+    "version": 3,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id actualiza metadatos permitidos e ignora el resto: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "C2",
+    "description": "d2",
+    "id": 9,
+    "name": "Renombrado",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id inexistente (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status 'FOO' se persiste (hoy) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed VERSIONED v1",
+    "id": 7,
+    "name": "Versioned process",
+    "status": "FOO",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status 'FOO' se persiste (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v1",
+    "id": 7,
+    "name": "Versioned process",
+    "status": "FOO",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status ACTIVE con otra ACTIVE para la clave (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status ACTIVE con otra ACTIVE para la clave (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v1",
+    "id": 7,
+    "name": "Versioned process",
+    "status": "INACTIVE",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v2",
+    "id": 8,
+    "name": "Versioned process",
+    "status": "ACTIVE",
+    "version": 2,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "C2",
+    "description": "d2",
+    "id": 9,
+    "name": "Renombrado",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status ACTIVE sin otra ACTIVE 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "C2",
+    "createdAt": "<date>",
+    "description": "d2",
+    "id": 9,
+    "name": "Renombrado",
+    "status": "ACTIVE",
+    "version": 3,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status ACTIVE sin otra ACTIVE: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v1",
+    "id": 7,
+    "name": "Versioned process",
+    "status": "INACTIVE",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v2",
+    "id": 8,
+    "name": "Versioned process",
+    "status": "INACTIVE",
+    "version": 2,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "C2",
+    "description": "d2",
+    "id": 9,
+    "name": "Renombrado",
+    "status": "ACTIVE",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PUT casos límite [frozen] POST /processes con id/version en el cuerpo (asignación masiva hoy) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_MASS",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "MASS",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 555,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT casos límite [frozen] POST /processes con id/version en el cuerpo (asignación masiva hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_MASS",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "MASS",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 555,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id/version/createdAt en el cuerpo (asignación masiva hoy) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 9,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 42,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id/version/createdAt en el cuerpo (asignación masiva hoy): created_at 1`] = `
+[
+  {
+    "created_at": "2020-02-02 00:00:00+00",
+    "id": 9,
+  },
+]
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id/version/createdAt en el cuerpo (asignación masiva hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v1",
+    "id": 7,
+    "name": "Versioned process",
+    "status": "INACTIVE",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v2",
+    "id": 8,
+    "name": "Versioned process",
+    "status": "ACTIVE",
+    "version": 2,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 9,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 42,
+  },
+]
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_NEWPROC",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "NEWPROC",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_NEWPROC",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "NEWPROC",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): elements 1`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_N",
+    "description": null,
+    "id": 36,
+    "name": "Inicio",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_N",
+    "description": null,
+    "id": 37,
+    "name": "Revisar",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_N",
+    "description": null,
+    "id": 38,
+    "name": "Fin",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "END_EVENT",
+    "webhook_target": null,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 7,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v2",
+    "id": 8,
+    "name": "Versioned process",
+    "status": "ACTIVE",
+    "version": 2,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v3",
+    "id": 9,
+    "name": "Versioned process",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy): elements 1`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_L",
+    "description": null,
+    "id": 39,
+    "name": "Start",
+    "process_def_id": 11,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_L",
+    "description": null,
+    "id": 40,
+    "name": "Linear task",
+    "process_def_id": 11,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_EXCLUSIVE",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "EXCLUSIVE",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "EXCLUSIVE v2",
+    "status": "DRAFT",
+    "version": 2,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_EXCLUSIVE",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "EXCLUSIVE",
+    "category": "SEED",
+    "description": "Seed EXCLUSIVE v1",
+    "id": 2,
+    "name": "Exclusive process",
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_EXCLUSIVE",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "EXCLUSIVE",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "EXCLUSIVE v2",
+    "status": "DRAFT",
+    "version": 2,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: elements 1`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_X",
+    "description": null,
+    "id": 36,
+    "name": "Start",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_High",
+    "description": null,
+    "id": 37,
+    "name": "High",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_X",
+    "description": null,
+    "id": 38,
+    "name": "End",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "END_EVENT",
+    "webhook_target": null,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: links 1`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 36,
+    "field_def_id": 1,
+    "id": 5,
+    "is_readonly": false,
+    "is_required": true,
+  },
+  {
+    "contextual_validations": {
+      "maxLength": 200,
+    },
+    "display_order": 2,
+    "element_id": 36,
+    "field_def_id": 2,
+    "id": 6,
+    "is_readonly": false,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: sequences 1`] = `
+[
+  {
+    "condition_expression": null,
+    "id": 30,
+    "process_def_id": 10,
+    "source_element_bpmn_id": "StartEvent_X",
+    "target_element_bpmn_id": "Task_High",
+  },
+  {
+    "condition_expression": null,
+    "id": 31,
+    "process_def_id": 10,
+    "source_element_bpmn_id": "Task_High",
+    "target_element_bpmn_id": "EndEvent_X",
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre DRAFT con instancias crea nueva versión 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_LINEAR",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "LINEAR",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 11,
+    "name": "LINEAR v2",
+    "status": "DRAFT",
+    "version": 2,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre DRAFT con instancias crea nueva versión: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_LINEAR",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "LINEAR",
+    "category": "SEED",
+    "description": "Seed LINEAR v1",
+    "id": 1,
+    "name": "Linear process",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_LINEAR",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "LINEAR",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 11,
+    "name": "LINEAR v2",
+    "status": "DRAFT",
+    "version": 2,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre DRAFT con instancias crea nueva versión: links 1`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 40,
+    "field_def_id": 3,
+    "id": 7,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 2,
+    "element_id": 40,
+    "field_def_id": 4,
+    "id": 8,
+    "is_readonly": true,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre VERSIONED v1 INACTIVE sin instancias con v3 existente actualiza en sitio (hoy) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 7,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre VERSIONED v1 INACTIVE sin instancias con v3 existente actualiza en sitio (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 7,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v2",
+    "id": 8,
+    "name": "Versioned process",
+    "status": "ACTIVE",
+    "version": 2,
+  },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "SEED",
+    "description": "Seed VERSIONED v3",
+    "id": 9,
+    "name": "Versioned process",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT a ACTIVE con otra ACTIVE para la clave (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT a ACTIVE con otra ACTIVE para la clave (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[],"edited":true}",
+    "business_process_key": "VERSIONED",
+    "category": "EDIT",
+    "description": "nueva",
+    "id": 9,
+    "name": "V3 editada",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT sin instancias actualiza en sitio, sincroniza elementos y reemplaza secuencias 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[],"edited":true}",
+    "businessProcessKey": "VERSIONED",
+    "category": "EDIT",
+    "createdAt": "<date>",
+    "description": "nueva",
+    "id": 9,
+    "name": "V3 editada",
+    "status": "DRAFT",
+    "version": 3,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT sin instancias actualiza en sitio, sincroniza elementos y reemplaza secuencias: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[],"edges":[],"edited":true}",
+    "business_process_key": "VERSIONED",
+    "category": "EDIT",
+    "description": "nueva",
+    "id": 9,
+    "name": "V3 editada",
+    "status": "DRAFT",
+    "version": 3,
+  },
+]
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT sin instancias actualiza en sitio, sincroniza elementos y reemplaza secuencias: elements 1`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_V",
+    "description": null,
+    "id": 33,
+    "name": "Inicio editado",
+    "process_def_id": 9,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 2,
+    "bpmn_element_id": "Task_V",
+    "description": null,
+    "id": 34,
+    "name": "Tarea editada",
+    "process_def_id": 9,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_New",
+    "description": null,
+    "id": 36,
+    "name": "Nueva tarea",
+    "process_def_id": 9,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+]
+`;
+
+exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT sin instancias actualiza en sitio, sincroniza elementos y reemplaza secuencias: sequences 1`] = `
+[
+  {
+    "condition_expression": null,
+    "id": 30,
+    "process_def_id": 9,
+    "source_element_bpmn_id": "StartEvent_V",
+    "target_element_bpmn_id": "Task_V",
+  },
+  {
+    "condition_expression": "x > 1",
+    "id": 31,
+    "process_def_id": 9,
+    "source_element_bpmn_id": "Task_V",
+    "target_element_bpmn_id": "Task_New",
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes con status ACTIVE sin otra ACTIVE para la clave 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_BRANDNEW",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "BRANDNEW",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 11,
+    "name": "Proceso nuevo",
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes con status ACTIVE sin otra ACTIVE para la clave: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_BRANDNEW",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "BRANDNEW",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 11,
+    "name": "Proceso nuevo",
+    "status": "ACTIVE",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes con status ACTIVE y otra ACTIVE para la clave (hoy) 1`] = `
+{
+  "body": {},
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes con status ACTIVE y otra ACTIVE para la clave (hoy): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_LINEAR",
+    "bpmn_xml": "{"nodes":[],"edges":[]}",
+    "business_process_key": "LINEAR",
+    "category": "SEED",
+    "description": "Seed LINEAR v1",
+    "id": 1,
+    "name": "Linear process",
+    "status": "ACTIVE",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes crea (201) y devuelve la definición con bpmnXml string sin elements 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_NEWPROC",
+    "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "businessProcessKey": "NEWPROC",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes crea (201) y devuelve la definición con bpmnXml string sin elements: defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_NEWPROC",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "NEWPROC",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 10,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes crea (201) y devuelve la definición con bpmnXml string sin elements: elements 1`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_N",
+    "description": null,
+    "id": 36,
+    "name": "Inicio",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_N",
+    "description": null,
+    "id": 37,
+    "name": "Revisar",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_N",
+    "description": null,
+    "id": 38,
+    "name": "Fin",
+    "process_def_id": 10,
+    "sla_definition": null,
+    "type": "END_EVENT",
+    "webhook_target": null,
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes crea (201) y devuelve la definición con bpmnXml string sin elements: sequences 1`] = `
+[
+  {
+    "condition_expression": null,
+    "id": 30,
+    "process_def_id": 10,
+    "source_element_bpmn_id": "StartEvent_N",
+    "target_element_bpmn_id": "Task_N",
+  },
+  {
+    "condition_expression": null,
+    "id": 31,
+    "process_def_id": 10,
+    "source_element_bpmn_id": "Task_N",
+    "target_element_bpmn_id": "EndEvent_N",
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes sin diagramJson (hoy bpmnXml queda sin valor) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_NODIAG",
+    "bpmnXml": null,
+    "businessProcessKey": "NODIAG",
+    "category": "TEST",
+    "createdAt": "<date>",
+    "description": "Descripción del proceso",
+    "id": 12,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes sin diagramJson (hoy bpmnXml queda sin valor): defs 1`] = `
+[
+  {
+    "bpmn_process_id": "Process_NODIAG",
+    "bpmn_xml": null,
+    "business_process_key": "NODIAG",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 12,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 1,
+  },
+]
+`;
+
+exports[`processes contract creación POST [frozen] POST /processes sin name (hoy error de validación) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes lista solo ACTIVE, sin bpmnXml, createdAt DESC 1`] = `
+{
+  "body": [
+    {
+      "bpmnProcessId": "Process_VERSIONED",
+      "businessProcessKey": "VERSIONED",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed VERSIONED v2",
+      "id": 8,
+      "name": "Versioned process",
+      "status": "ACTIVE",
+      "version": 2,
+    },
+    {
+      "bpmnProcessId": "Process_APPROVAL",
+      "businessProcessKey": "APPROVAL",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed APPROVAL v1",
+      "id": 6,
+      "name": "Approval process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_AUTO",
+      "businessProcessKey": "AUTO",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed AUTO v1",
+      "id": 5,
+      "name": "Auto task process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_END_AT_START",
+      "businessProcessKey": "END_AT_START",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed END_AT_START v1",
+      "id": 4,
+      "name": "End at start process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_PARALLEL",
+      "businessProcessKey": "PARALLEL",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed PARALLEL v1",
+      "id": 3,
+      "name": "Parallel process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_EXCLUSIVE",
+      "businessProcessKey": "EXCLUSIVE",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed EXCLUSIVE v1",
+      "id": 2,
+      "name": "Exclusive process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_LINEAR",
+      "businessProcessKey": "LINEAR",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed LINEAR v1",
+      "id": 1,
+      "name": "Linear process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml NULL devuelve diagramJson {} 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_END_AT_START",
+    "businessProcessKey": "END_AT_START",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed END_AT_START v1",
+    "diagramJson": {},
+    "elements": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_E",
+        "description": null,
+        "id": 16,
+        "name": "Start",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "description": null,
+        "id": 17,
+        "name": "End",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 4,
+    "name": "End at start process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 15,
+        "processDefId": 4,
+        "sourceElementBpmnId": "StartEvent_E",
+        "targetElementBpmnId": "EndEvent_E",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml inválido devuelve diagramJson {} 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_END_AT_START",
+    "businessProcessKey": "END_AT_START",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed END_AT_START v1",
+    "diagramJson": {},
+    "elements": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_E",
+        "description": null,
+        "id": 16,
+        "name": "Start",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "description": null,
+        "id": 17,
+        "name": "End",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 4,
+    "name": "End at start process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 15,
+        "processDefId": 4,
+        "sourceElementBpmnId": "StartEvent_E",
+        "targetElementBpmnId": "EndEvent_E",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml vacío devuelve diagramJson {} 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_END_AT_START",
+    "businessProcessKey": "END_AT_START",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed END_AT_START v1",
+    "diagramJson": {},
+    "elements": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_E",
+        "description": null,
+        "id": 16,
+        "name": "Start",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "description": null,
+        "id": 17,
+        "name": "End",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 4,
+    "name": "End at start process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 15,
+        "processDefId": 4,
+        "sourceElementBpmnId": "StartEvent_E",
+        "targetElementBpmnId": "EndEvent_E",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id detalle con elements, sequences y diagramJson parseado 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_END_AT_START",
+    "businessProcessKey": "END_AT_START",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed END_AT_START v1",
+    "diagramJson": {
+      "edges": [],
+      "nodes": [],
+    },
+    "elements": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_E",
+        "description": null,
+        "id": 16,
+        "name": "Start",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "description": null,
+        "id": 17,
+        "name": "End",
+        "processDefId": 4,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 4,
+    "name": "End at start process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 15,
+        "processDefId": 4,
+        "sourceElementBpmnId": "StartEvent_E",
+        "targetElementBpmnId": "EndEvent_E",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Process definition not found",
+  "status": 404,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id no numérico (hoy parseInt -> NaN) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask ACTIVE -> CREATE_NEW_VERSION 1`] = `
+{
+  "body": {
+    "action": "CREATE_NEW_VERSION",
+    "instancesCount": 3,
+    "state": "ACTIVE",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask DRAFT sin instancias -> UPDATE_IN_PLACE 1`] = `
+{
+  "body": {
+    "action": "UPDATE_IN_PLACE",
+    "instancesCount": 0,
+    "state": "DRAFT",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask de DRAFT con instancias -> CREATE_NEW_VERSION 1`] = `
+{
+  "body": {
+    "action": "CREATE_NEW_VERSION",
+    "instancesCount": 3,
+    "state": "DRAFT",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask inexistente (hoy error genérico) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/start-form EXCLUSIVE fusiona validaciones 1`] = `
+{
+  "body": {
+    "actions": [
+      "start",
+    ],
+    "fields": [
+      {
+        "fieldType": "NUMBER",
+        "label": "Monto de compra",
+        "name": "purchaseAmount",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": true,
+          "min": 0,
+        },
+        "value": null,
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Justificacion",
+        "name": "justification",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": false,
+          "maxLength": 200,
+        },
+        "value": null,
+      },
+    ],
+    "taskName": "Start",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/start-form inexistente (hoy error) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/start-form sin START_EVENT (hoy error) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/:id/start-form sin vínculos devuelve fields [] 1`] = `
+{
+  "body": {
+    "actions": [
+      "start",
+    ],
+    "fields": [],
+    "taskName": "Start",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/all como admin lista todas sin bpmnXml 1`] = `
+{
+  "body": [
+    {
+      "bpmnProcessId": "Process_VERSIONED",
+      "businessProcessKey": "VERSIONED",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed VERSIONED v3",
+      "id": 9,
+      "name": "Versioned process",
+      "status": "DRAFT",
+      "version": 3,
+    },
+    {
+      "bpmnProcessId": "Process_VERSIONED",
+      "businessProcessKey": "VERSIONED",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed VERSIONED v2",
+      "id": 8,
+      "name": "Versioned process",
+      "status": "ACTIVE",
+      "version": 2,
+    },
+    {
+      "bpmnProcessId": "Process_VERSIONED",
+      "businessProcessKey": "VERSIONED",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed VERSIONED v1",
+      "id": 7,
+      "name": "Versioned process",
+      "status": "INACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_APPROVAL",
+      "businessProcessKey": "APPROVAL",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed APPROVAL v1",
+      "id": 6,
+      "name": "Approval process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_AUTO",
+      "businessProcessKey": "AUTO",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed AUTO v1",
+      "id": 5,
+      "name": "Auto task process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_END_AT_START",
+      "businessProcessKey": "END_AT_START",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed END_AT_START v1",
+      "id": 4,
+      "name": "End at start process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_PARALLEL",
+      "businessProcessKey": "PARALLEL",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed PARALLEL v1",
+      "id": 3,
+      "name": "Parallel process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_EXCLUSIVE",
+      "businessProcessKey": "EXCLUSIVE",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed EXCLUSIVE v1",
+      "id": 2,
+      "name": "Exclusive process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    {
+      "bpmnProcessId": "Process_LINEAR",
+      "businessProcessKey": "LINEAR",
+      "category": "SEED",
+      "createdAt": "<date>",
+      "description": "Seed LINEAR v1",
+      "id": 1,
+      "name": "Linear process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract lecturas [frozen] GET /processes/all como no admin responde error 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;

@@ -1,0 +1,298 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`roles (caracterización JS) GET /api/roles [frozen] lista roles 1`] = `
+{
+  "body": [
+    {
+      "description": "Rol que aprueba solicitudes",
+      "id": 1,
+      "name": "Aprobador",
+    },
+    {
+      "description": "Rol que crea solicitudes",
+      "id": 2,
+      "name": "Solicitante",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`roles (caracterización JS) GET /api/roles [frozen] no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`roles (caracterización JS) GET /api/roles [frozen] sin token responde 401 1`] = `
+{
+  "keys": [],
+  "message": "Unauthorized",
+  "status": 401,
+}
+`;
+
+exports[`roles (caracterización JS) GET /api/roles/:id [frozen] id no numérico responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`roles (caracterización JS) GET /api/roles/:id [frozen] inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Role not found",
+  "status": 404,
+}
+`;
+
+exports[`roles (caracterización JS) GET /api/roles/:id [frozen] rol con users[] (id, fullName, email, status) 1`] = `
+{
+  "body": {
+    "description": "Rol que aprueba solicitudes",
+    "id": 1,
+    "name": "Aprobador",
+    "users": [
+      {
+        "email": "admin@flowify.test",
+        "fullName": "Admin Test",
+        "id": 1,
+        "status": "ACTIVE",
+      },
+      {
+        "email": "approver@flowify.test",
+        "fullName": "Approver Test",
+        "id": 2,
+        "status": "ACTIVE",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] DELETE inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Role not found",
+  "status": 404,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] DELETE no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] DELETE rol con usuarios responde 409 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Cannot delete role with associated users",
+  "status": 409,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] DELETE rol sin usuarios responde 204 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] DELETE rol sin usuarios responde 204 2`] = `
+[
+  {
+    "id": 1,
+    "name": "Aprobador",
+  },
+  {
+    "id": 2,
+    "name": "Solicitante",
+  },
+]
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] POST crea rol (201) 1`] = `
+{
+  "body": {
+    "description": "Rol de auditoría",
+    "id": 3,
+    "name": "Auditor",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] POST no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] POST nombre duplicado responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] POST sin name responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT con userIds [] quita todos los miembros 1`] = `
+{
+  "body": {
+    "description": "Solo descripción",
+    "id": 3,
+    "name": "Auditor 2",
+    "users": [],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT con userIds [] quita todos los miembros 2`] = `
+[
+  {
+    "role_id": 1,
+    "user_id": 1,
+  },
+  {
+    "role_id": 1,
+    "user_id": 2,
+  },
+  {
+    "role_id": 2,
+    "user_id": 3,
+  },
+]
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT con userIds reemplaza miembros 1`] = `
+{
+  "body": {
+    "description": "Editado",
+    "id": 3,
+    "name": "Auditor 2",
+    "users": [
+      {
+        "email": "approver@flowify.test",
+        "fullName": "Approver Test",
+        "id": 2,
+        "status": "ACTIVE",
+      },
+      {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+        "status": "ACTIVE",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT con userIds reemplaza miembros 2`] = `
+[
+  {
+    "role_id": 1,
+    "user_id": 1,
+  },
+  {
+    "role_id": 1,
+    "user_id": 2,
+  },
+  {
+    "role_id": 3,
+    "user_id": 2,
+  },
+  {
+    "role_id": 2,
+    "user_id": 3,
+  },
+  {
+    "role_id": 3,
+    "user_id": 3,
+  },
+]
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Role not found",
+  "status": 404,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`roles (caracterización JS) mutaciones [frozen] PUT sin userIds conserva miembros 1`] = `
+{
+  "body": {
+    "description": "Solo descripción",
+    "id": 3,
+    "name": "Auditor 2",
+    "users": [
+      {
+        "email": "approver@flowify.test",
+        "fullName": "Approver Test",
+        "id": 2,
+        "status": "ACTIVE",
+      },
+      {
+        "email": "requester@flowify.test",
+        "fullName": "Requester Test",
+        "id": 3,
+        "status": "ACTIVE",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;

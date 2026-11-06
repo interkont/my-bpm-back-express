@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`expressionEngine.evaluateExpression evaluates every fixture case as recorded 1`] = `
+[
+  {
+    "label": "empty-string",
+    "result": false,
+  },
+  {
+    "label": "null-expression",
+    "result": false,
+  },
+  {
+    "label": "literal-true",
+    "result": true,
+  },
+  {
+    "label": "gt1000-above",
+    "result": true,
+  },
+  {
+    "label": "gt1000-equal",
+    "result": false,
+  },
+  {
+    "label": "gt1000-below",
+    "result": false,
+  },
+  {
+    "label": "gt1000-string-number",
+    "result": true,
+  },
+  {
+    "label": "gt1000-missing",
+    "result": false,
+  },
+  {
+    "label": "gt1500-above",
+    "result": true,
+  },
+  {
+    "label": "gt1500-below",
+    "result": false,
+  },
+  {
+    "label": "gt1500-missing",
+    "result": false,
+  },
+  {
+    "label": "task-APROBAR-upper",
+    "result": true,
+  },
+  {
+    "label": "task-APROBAR-capitalized",
+    "result": false,
+  },
+  {
+    "label": "task-APROBAR-missing-task",
+    "result": false,
+  },
+  {
+    "label": "task-APROBAR-empty-task",
+    "result": false,
+  },
+  {
+    "label": "task-RECHAZAR-upper",
+    "result": true,
+  },
+  {
+    "label": "task-RECHAZAR-other",
+    "result": false,
+  },
+  {
+    "label": "task-approve-dq",
+    "result": true,
+  },
+  {
+    "label": "task-approve-dq-upper",
+    "result": false,
+  },
+  {
+    "label": "root-action-in-task",
+    "result": false,
+  },
+  {
+    "label": "root-action-in-businessData",
+    "result": true,
+  },
+  {
+    "label": "root-action-missing",
+    "result": false,
+  },
+  {
+    "label": "syntax-error",
+    "result": false,
+  },
+  {
+    "label": "full-context",
+    "result": true,
+  },
+]
+`;

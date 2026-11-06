@@ -1,0 +1,420 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`users (caracterización JS) GET /api/users [frozen] lista usuarios con roles[].UserRole y sin passwordHash 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "<date>",
+      "email": "admin@flowify.test",
+      "fullName": "Admin Test",
+      "id": 1,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 1,
+            "userId": 1,
+          },
+          "description": "Rol que aprueba solicitudes",
+          "id": 1,
+          "name": "Aprobador",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "ADMIN",
+    },
+    {
+      "createdAt": "<date>",
+      "email": "approver@flowify.test",
+      "fullName": "Approver Test",
+      "id": 2,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 1,
+            "userId": 2,
+          },
+          "description": "Rol que aprueba solicitudes",
+          "id": 1,
+          "name": "Aprobador",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "USER",
+    },
+    {
+      "createdAt": "<date>",
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 2,
+            "userId": 3,
+          },
+          "description": "Rol que crea solicitudes",
+          "id": 2,
+          "name": "Solicitante",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "USER",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`users (caracterización JS) GET /api/users [frozen] no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`users (caracterización JS) GET /api/users/:id [frozen] id no numérico responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`users (caracterización JS) GET /api/users/:id [frozen] inexistente responde 404 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "User not found",
+  "status": 404,
+}
+`;
+
+exports[`users (caracterización JS) GET /api/users/:id [frozen] no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`users (caracterización JS) GET /api/users/:id [frozen] usuario existente 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "approver@flowify.test",
+    "fullName": "Approver Test",
+    "id": 2,
+    "roles": [
+      {
+        "UserRole": {
+          "created_at": "<date>",
+          "roleId": 1,
+          "userId": 2,
+        },
+        "description": "Rol que aprueba solicitudes",
+        "id": 1,
+        "name": "Aprobador",
+      },
+    ],
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] DELETE existente responde 204 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] DELETE existente responde 204 2`] = `
+[
+  {
+    "email": "admin@flowify.test",
+    "full_name": "Admin Test",
+    "has_hash": true,
+    "id": 1,
+  },
+  {
+    "email": "approver@flowify.test",
+    "full_name": "Approver Test",
+    "has_hash": true,
+    "id": 2,
+  },
+  {
+    "email": "requester@flowify.test",
+    "full_name": "Requester Test",
+    "has_hash": true,
+    "id": 3,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] DELETE existente responde 204 3`] = `
+[
+  {
+    "role_id": 1,
+    "user_id": 1,
+  },
+  {
+    "role_id": 1,
+    "user_id": 2,
+  },
+  {
+    "role_id": 2,
+    "user_id": 3,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] DELETE inexistente responde 204 (hoy) 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] DELETE no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST crea usuario (201, roles sin UserRole) 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "nuevo@flowify.test",
+    "fullName": "Nuevo Usuario",
+    "id": 4,
+    "roles": [
+      {
+        "description": "Rol que aprueba solicitudes",
+        "id": 1,
+        "name": "Aprobador",
+      },
+      {
+        "description": "Rol que crea solicitudes",
+        "id": 2,
+        "name": "Solicitante",
+      },
+    ],
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST crea usuario (201, roles sin UserRole) 2`] = `
+[
+  {
+    "email": "admin@flowify.test",
+    "full_name": "Admin Test",
+    "has_hash": true,
+    "id": 1,
+  },
+  {
+    "email": "approver@flowify.test",
+    "full_name": "Approver Test",
+    "has_hash": true,
+    "id": 2,
+  },
+  {
+    "email": "requester@flowify.test",
+    "full_name": "Requester Test",
+    "has_hash": true,
+    "id": 3,
+  },
+  {
+    "email": "nuevo@flowify.test",
+    "full_name": "Nuevo Usuario",
+    "has_hash": true,
+    "id": 4,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST crea usuario (201, roles sin UserRole) 3`] = `
+[
+  {
+    "role_id": 1,
+    "user_id": 1,
+  },
+  {
+    "role_id": 1,
+    "user_id": 2,
+  },
+  {
+    "role_id": 2,
+    "user_id": 3,
+  },
+  {
+    "role_id": 1,
+    "user_id": 4,
+  },
+  {
+    "role_id": 2,
+    "user_id": 4,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST email duplicado responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] POST sin password responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT actualiza datos y reemplaza roles vía roleIds 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "nuevo@flowify.test",
+    "fullName": "Nuevo Editado",
+    "id": 4,
+    "roles": [
+      {
+        "description": "Rol que crea solicitudes",
+        "id": 2,
+        "name": "Solicitante",
+      },
+    ],
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT actualiza datos y reemplaza roles vía roleIds 2`] = `
+[
+  {
+    "email": "admin@flowify.test",
+    "full_name": "Admin Test",
+    "has_hash": true,
+    "id": 1,
+  },
+  {
+    "email": "approver@flowify.test",
+    "full_name": "Approver Test",
+    "has_hash": true,
+    "id": 2,
+  },
+  {
+    "email": "requester@flowify.test",
+    "full_name": "Requester Test",
+    "has_hash": true,
+    "id": 3,
+  },
+  {
+    "email": "nuevo@flowify.test",
+    "full_name": "Nuevo Editado",
+    "has_hash": true,
+    "id": 4,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT actualiza datos y reemplaza roles vía roleIds 3`] = `
+[
+  {
+    "role_id": 1,
+    "user_id": 1,
+  },
+  {
+    "role_id": 1,
+    "user_id": 2,
+  },
+  {
+    "role_id": 2,
+    "user_id": 3,
+  },
+  {
+    "role_id": 2,
+    "user_id": 4,
+  },
+]
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT con password actualiza el hash 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "nuevo@flowify.test",
+    "fullName": "Nuevo Editado",
+    "id": 4,
+    "roles": [
+      {
+        "description": "Rol que crea solicitudes",
+        "id": 2,
+        "name": "Solicitante",
+      },
+    ],
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT inexistente responde 500 (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`users (caracterización JS) mutaciones [frozen] PUT no admin responde 403 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Forbidden: Requires admin privileges.",
+  "status": 403,
+}
+`;

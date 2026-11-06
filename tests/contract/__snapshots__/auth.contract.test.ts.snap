@@ -1,0 +1,241 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] email desconocido responde 500 (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] login admin OK: user con roles[].UserRole, modules, sin passwordHash 1`] = `
+{
+  "body": {
+    "modules": [
+      "INBOX",
+      "PROCESSES",
+      "ROLES",
+      "USERS",
+    ],
+    "token": "<jwt>",
+    "user": {
+      "createdAt": "<date>",
+      "email": "admin@flowify.test",
+      "fullName": "Admin Test",
+      "id": 1,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 1,
+            "userId": 1,
+          },
+          "description": "Rol que aprueba solicitudes",
+          "id": 1,
+          "name": "Aprobador",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "ADMIN",
+    },
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] login requester OK: modules del systemRole USER 1`] = `
+{
+  "body": {
+    "modules": [
+      "INBOX",
+      "PROCESSES",
+    ],
+    "token": "<jwt>",
+    "user": {
+      "createdAt": "<date>",
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 2,
+            "userId": 3,
+          },
+          "description": "Rol que crea solicitudes",
+          "id": 2,
+          "name": "Solicitante",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "USER",
+    },
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] password incorrecta responde 500 (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] sin email responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`auth (caracterización JS) POST /api/auth/login [frozen] sin password responde (hoy) 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] body vacío responde 200 con el usuario sin cambios 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "requester.new@flowify.test",
+    "fullName": "Requester Renamed",
+    "id": 3,
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambia nombre y email 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "requester.new@flowify.test",
+    "fullName": "Requester Renamed",
+    "id": 3,
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambia nombre y email 2`] = `
+[
+  {
+    "email": "admin@flowify.test",
+    "full_name": "Admin Test",
+    "has_hash": true,
+    "id": 1,
+  },
+  {
+    "email": "approver@flowify.test",
+    "full_name": "Approver Test",
+    "has_hash": true,
+    "id": 2,
+  },
+  {
+    "email": "requester.new@flowify.test",
+    "full_name": "Requester Renamed",
+    "has_hash": true,
+    "id": 3,
+  },
+]
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambio de password OK y login con la nueva funciona 1`] = `
+{
+  "body": {
+    "createdAt": "<date>",
+    "email": "requester.new@flowify.test",
+    "fullName": "Requester Renamed",
+    "id": 3,
+    "status": "ACTIVE",
+    "systemRole": "USER",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambio de password OK y login con la nueva funciona 2`] = `
+{
+  "body": {
+    "modules": [
+      "INBOX",
+      "PROCESSES",
+    ],
+    "token": "<jwt>",
+    "user": {
+      "createdAt": "<date>",
+      "email": "requester.new@flowify.test",
+      "fullName": "Requester Renamed",
+      "id": 3,
+      "roles": [
+        {
+          "UserRole": {
+            "created_at": "<date>",
+            "roleId": 2,
+            "userId": 3,
+          },
+          "description": "Rol que crea solicitudes",
+          "id": 2,
+          "name": "Solicitante",
+        },
+      ],
+      "status": "ACTIVE",
+      "systemRole": "USER",
+    },
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambio de password OK y login con la nueva funciona 3`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] newPassword sin oldPassword responde 400 (hoy) 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Old password is required to set a new password",
+  "status": 400,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] oldPassword incorrecta responde 401 (hoy) 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Invalid old password",
+  "status": 401,
+}
+`;
+
+exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] sin token responde 401 texto 1`] = `
+{
+  "keys": [],
+  "message": "Unauthorized",
+  "status": 401,
+}
+`;

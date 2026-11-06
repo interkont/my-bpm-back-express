@@ -1,0 +1,665 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`decision engine scenarios APPROVAL from Task_Approval with action APROBAR 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Approved",
+        "name": "Approved follow-up",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios APPROVAL from Task_Approval with action APROBAR 2`] = `
+[
+  {
+    "business_process_key": "APPROVAL",
+    "current_bpmn_element_id": "Task_Approval",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "APPROVAL",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {
+          "action": "APROBAR",
+        },
+      },
+      "currentBpmnElementId": "Task_Approval",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Approved",
+          "name": "Approved follow-up",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios APPROVAL from Task_Approval with action RECHAZAR 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Rejected",
+        "name": "Rejected follow-up",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios APPROVAL from Task_Approval with action RECHAZAR 2`] = `
+[
+  {
+    "business_process_key": "APPROVAL",
+    "current_bpmn_element_id": "Task_Approval",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "APPROVAL",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {
+          "action": "RECHAZAR",
+        },
+      },
+      "currentBpmnElementId": "Task_Approval",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Rejected",
+          "name": "Rejected follow-up",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios AUTO from StartEvent_A (AUTO_TASK blocking) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "Auto_1",
+        "name": "Automatic task",
+        "type": "AUTO_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios AUTO from StartEvent_A (AUTO_TASK blocking) 2`] = `
+[
+  {
+    "business_process_key": "AUTO",
+    "current_bpmn_element_id": "StartEvent_A",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "AUTO",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_A",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "Auto_1",
+          "name": "Automatic task",
+          "type": "AUTO_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios END_AT_START from StartEvent_E 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "name": "End",
+        "type": "END_EVENT",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios END_AT_START from StartEvent_E 2`] = `
+[
+  {
+    "business_process_key": "END_AT_START",
+    "current_bpmn_element_id": "StartEvent_E",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "END_AT_START",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_E",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "EndEvent_E",
+          "name": "End",
+          "type": "END_EVENT",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from Gateway_X directly (all outgoing) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_High",
+        "name": "High amount review",
+        "type": "USER_TASK",
+      },
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from Gateway_X directly (all outgoing) 2`] = `
+[
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "Gateway_X",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 5000,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "Gateway_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_High",
+          "name": "High amount review",
+          "type": "USER_TASK",
+        },
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (amount 10) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (amount 10) 2`] = `
+[
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 10,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (amount 5000) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_High",
+        "name": "High amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (amount 5000) 2`] = `
+[
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 5000,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_High",
+          "name": "High amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (top-level amount is not flattened) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios EXCLUSIVE from StartEvent_X (top-level amount is not flattened) 2`] = `
+[
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "purchaseAmount": 5000,
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios LINEAR from Task_L (USER_TASK) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_L",
+        "name": "End",
+        "type": "END_EVENT",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios LINEAR from Task_L (USER_TASK) 2`] = `
+[
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "Task_L",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "Task_L",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "EndEvent_L",
+          "name": "End",
+          "type": "END_EVENT",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios PARALLEL from StartEvent_P (fork) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_A",
+        "name": "Parallel task A",
+        "type": "USER_TASK",
+      },
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_B",
+        "name": "Parallel task B",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios PARALLEL from StartEvent_P (fork) 2`] = `
+[
+  {
+    "business_process_key": "PARALLEL",
+    "current_bpmn_element_id": "StartEvent_P",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "PARALLEL",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_P",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_A",
+          "name": "Parallel task A",
+          "type": "USER_TASK",
+        },
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_B",
+          "name": "Parallel task B",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios PARALLEL from Task_A (traverses join) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_C",
+        "name": "Final task C",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios PARALLEL from Task_A (traverses join) 2`] = `
+[
+  {
+    "business_process_key": "PARALLEL",
+    "current_bpmn_element_id": "Task_A",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "PARALLEL",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "Task_A",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_C",
+          "name": "Final task C",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios end event has no outgoing (empty nextTasks) 1`] = `
+{
+  "body": {
+    "nextTasks": [],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios end event has no outgoing (empty nextTasks) 2`] = `
+[
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "EndEvent_L",
+    "error_message": null,
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "EndEvent_L",
+    },
+    "response_payload": {
+      "nextTasks": [],
+    },
+  },
+]
+`;
+
+exports[`decision engine scenarios missing contextData is rejected before logging 1`] = `
+{
+  "body": {
+    "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+  },
+  "status": 400,
+  "text": undefined,
+}
+`;
+
+exports[`decision engine scenarios unknown element (error stored in log) 1`] = `
+{
+  "body": {},
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`decision engine scenarios unknown element (error stored in log) 2`] = `
+[
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "Nope",
+    "error_message": "Element with BPMN ID 'Nope' not found in process 'LINEAR'.",
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "Nope",
+    },
+    "response_payload": null,
+  },
+]
+`;
+
+exports[`decision engine scenarios unknown process key (error stored in log) 1`] = `
+{
+  "body": {},
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`decision engine scenarios unknown process key (error stored in log) 2`] = `
+[
+  {
+    "business_process_key": "NOPE",
+    "current_bpmn_element_id": "StartEvent_L",
+    "error_message": "Process with key 'NOPE' not found or is not active.",
+    "executed_by_user_id": 1,
+    "request_payload": {
+      "businessProcessKey": "NOPE",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_L",
+    },
+    "response_payload": null,
+  },
+]
+`;

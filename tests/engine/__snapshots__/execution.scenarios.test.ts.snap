@@ -1,0 +1,815 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`engine execution scenarios APPROVAL: action APROBAR goes to Task_Approved 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_Approval",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_Approval",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "APROBAR",
+          },
+          "element": "Task_Approval",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_Approved",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_Approved",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "APROBAR",
+          },
+          "element": "Task_Approval",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_Approved",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios APPROVAL: any other action goes to Task_Rejected 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_Approval",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_Approval",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "RECHAZAR",
+          },
+          "element": "Task_Approval",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_Rejected",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_Rejected",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "RECHAZAR",
+          },
+          "element": "Task_Approval",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_Rejected",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios AUTO: start fails and the transaction rolls back 1`] = `
+{
+  "completes": [],
+  "start": {
+    "body": {},
+    "status": 500,
+    "text": "Something broke!",
+  },
+  "timeline": [
+    {
+      "instances": [],
+      "label": "after-start",
+      "tasks": [],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios END_AT_START: instance completes at start 1`] = `
+{
+  "completes": [],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios EXCLUSIVE: purchaseAmount 10 takes the default branch 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {
+            "purchaseAmount": 10,
+          },
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_Low",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {
+            "purchaseAmount": 10,
+          },
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_Low",
+      "tasks": [
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_Low",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios EXCLUSIVE: purchaseAmount 5000 takes the condition branch 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {
+            "purchaseAmount": 5000,
+          },
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_High",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {
+            "purchaseAmount": 5000,
+          },
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_High",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_High",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios LINEAR: start, complete, COMPLETED 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {
+            "notes": "n",
+          },
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_L",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {
+            "approved": true,
+            "notes": "n",
+          },
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_L",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+            "comments": "ok",
+            "formData": {
+              "approved": true,
+            },
+          },
+          "element": "Task_L",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios PARALLEL: Task_A then Task_B, join fires, finishes COMPLETED 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_A",
+          "status": "PENDING",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_B",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_A",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_A",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_B",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_B",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_A",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_B",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_C",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_C",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_A",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_B",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_C",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`engine execution scenarios PARALLEL: Task_B then Task_A, join fires, finishes COMPLETED 1`] = `
+{
+  "completes": [
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+    {
+      "body": {
+        "message": "Task completed successfully.",
+      },
+      "status": 200,
+      "text": undefined,
+    },
+  ],
+  "start": {
+    "body": {
+      "message": "Process instance started successfully.",
+      "processInstanceId": 5,
+      "status": "RUNNING",
+    },
+    "status": 201,
+    "text": undefined,
+  },
+  "timeline": [
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-start",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_A",
+          "status": "PENDING",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_B",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_B",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_A",
+          "status": "PENDING",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_B",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": false,
+          "status": "RUNNING",
+        },
+      ],
+      "label": "after-complete-Task_A",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_A",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_B",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": null,
+          "completion_payload": null,
+          "element": "Task_C",
+          "status": "PENDING",
+        },
+      ],
+    },
+    {
+      "instances": [
+        {
+          "business_data": {},
+          "ended": true,
+          "status": "COMPLETED",
+        },
+      ],
+      "label": "after-complete-Task_C",
+      "tasks": [
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_A",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 2,
+          "completed_by_user_id": 3,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_B",
+          "status": "COMPLETED",
+        },
+        {
+          "assigned_to_role_id": 1,
+          "completed_by_user_id": 2,
+          "completion_payload": {
+            "action": "complete",
+          },
+          "element": "Task_C",
+          "status": "COMPLETED",
+        },
+      ],
+    },
+  ],
+}
+`;

@@ -1,0 +1,532 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] id with numeric prefix "1abc" is parsed with parseInt 1`] = `
+{
+  "body": {
+    "actions": [
+      "complete",
+    ],
+    "fields": [
+      {
+        "fieldType": "BOOLEAN",
+        "label": "Aprobado",
+        "name": "approved",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {
+          "isReadonly": true,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+    ],
+    "taskName": "Linear task",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] non-numeric task id 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] pending task 1: falsy values 0/false/"" become null 1`] = `
+{
+  "body": {
+    "actions": [
+      "complete",
+    ],
+    "fields": [
+      {
+        "fieldType": "BOOLEAN",
+        "label": "Aprobado",
+        "name": "approved",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {
+          "isReadonly": true,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+    ],
+    "taskName": "Linear task",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] task of a role the caller does not hold is still readable 1`] = `
+{
+  "body": {
+    "actions": [
+      "complete",
+    ],
+    "fields": [
+      {
+        "fieldType": "BOOLEAN",
+        "label": "Aprobado",
+        "name": "approved",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {
+          "isReadonly": true,
+          "isRequired": false,
+        },
+        "value": null,
+      },
+    ],
+    "taskName": "Linear task",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] task without form links returns empty fields 1`] = `
+{
+  "body": {
+    "actions": [
+      "complete",
+    ],
+    "fields": [],
+    "taskName": "Versioned task",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] unknown task id 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] approver sees pending role-1 tasks as 9-field DTOs ordered by createdAt desc 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 4,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 6,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 5,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia VERSIONED v2 en curso",
+      "processInstanceId": 3,
+      "processName": "Versioned process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 2,
+      "taskId": 3,
+      "taskName": "Versioned task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR en curso (valores falsy)",
+      "processInstanceId": 1,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 1,
+      "taskName": "Linear task",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] requester (role 2, no assigned tasks) gets an empty array 1`] = `
+{
+  "body": [],
+  "status": 200,
+  "text": "[]",
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] token with empty roleIds array returns an empty list 1`] = `
+{
+  "body": [],
+  "status": 200,
+  "text": "[]",
+}
+`;
+
+exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] token without roleIds is rejected with 401 { error } 1`] = `
+{
+  "body": {
+    "error": "User authentication data is missing.",
+  },
+  "status": 401,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] already COMPLETED task 2 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] already COMPLETED task 2 2`] = `
+[
+  {
+    "comments": "ok",
+    "completed_by_user_id": 2,
+    "completion_payload": {
+      "action": "complete",
+      "comments": "ok",
+      "formData": {},
+    },
+    "has_completion_time": true,
+    "id": 2,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] no body at all 1`] = `
+{
+  "keys": [
+    "message",
+  ],
+  "message": "Task completed successfully.",
+  "status": 200,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] no body at all 2`] = `
+[
+  {
+    "comments": null,
+    "completed_by_user_id": 2,
+    "completion_payload": {},
+    "has_completion_time": true,
+    "id": 1,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] non-numeric id yields NaN 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] requester is not authorized for a role-1 task 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] requester is not authorized for a role-1 task 2`] = `
+[
+  {
+    "comments": null,
+    "completed_by_user_id": null,
+    "completion_payload": null,
+    "has_completion_time": false,
+    "id": 1,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] token without roleIds on complete 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] token without roleIds on complete 2`] = `
+[
+  {
+    "comments": null,
+    "completed_by_user_id": 2,
+    "completion_payload": {},
+    "has_completion_time": true,
+    "id": 1,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] unknown task id 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] approver completes task 1 and the DB side effects are recorded 1`] = `
+{
+  "body": {
+    "message": "Task completed successfully.",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] approver completes task 1 and the DB side effects are recorded 2`] = `
+{
+  "allTasks": [
+    {
+      "id": 1,
+      "process_instance_id": 1,
+      "status": "COMPLETED",
+    },
+    {
+      "id": 2,
+      "process_instance_id": 2,
+      "status": "COMPLETED",
+    },
+    {
+      "id": 3,
+      "process_instance_id": 3,
+      "status": "PENDING",
+    },
+    {
+      "id": 4,
+      "process_instance_id": 4,
+      "status": "PENDING",
+    },
+    {
+      "id": 5,
+      "process_instance_id": 4,
+      "status": "PENDING",
+    },
+    {
+      "id": 6,
+      "process_instance_id": 4,
+      "status": "PENDING",
+    },
+  ],
+  "instances": [
+    {
+      "business_data": {
+        "approved": true,
+        "extraKey": "x",
+        "notes": "",
+        "purchaseAmount": 0,
+      },
+      "has_end_time": true,
+      "id": 1,
+      "status": "COMPLETED",
+    },
+  ],
+  "tasks": [
+    {
+      "comments": "ok",
+      "completed_by_user_id": 2,
+      "completion_payload": {
+        "action": "complete",
+        "comments": "ok",
+        "formData": {
+          "approved": true,
+        },
+      },
+      "has_completion_time": true,
+      "id": 1,
+      "status": "COMPLETED",
+    },
+  ],
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] completing the same task again fails 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] completing the same task again fails 2`] = `
+[
+  {
+    "comments": "ok",
+    "completed_by_user_id": 2,
+    "completion_payload": {
+      "action": "complete",
+      "comments": "ok",
+      "formData": {
+        "approved": true,
+      },
+    },
+    "has_completion_time": true,
+    "id": 1,
+    "status": "COMPLETED",
+  },
+]
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] my-tasks after completion no longer lists task 1 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 4,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 6,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia LINEAR para orden de tareas (FR-030)",
+      "processInstanceId": 4,
+      "processName": "Linear process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 1,
+      "taskId": 5,
+      "taskName": "Linear task",
+    },
+    {
+      "createdAt": "<date>",
+      "dueDate": null,
+      "processDescription": "Instancia VERSIONED v2 en curso",
+      "processInstanceId": 3,
+      "processName": "Versioned process",
+      "processStartedBy": "Requester Test",
+      "processVersion": 2,
+      "taskId": 3,
+      "taskName": "Versioned task",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/1abc/complete (parseInt semantics) [frozen] "1abc" completes task 1 1`] = `
+{
+  "body": {
+    "message": "Task completed successfully.",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`tasks contract (JS baseline) POST /api/tasks/1abc/complete (parseInt semantics) [frozen] "1abc" completes task 1 2`] = `
+{
+  "instances": [
+    {
+      "business_data": {
+        "approved": false,
+        "extraKey": "x",
+        "notes": "via 1abc",
+        "purchaseAmount": 0,
+      },
+      "has_end_time": true,
+      "id": 1,
+      "status": "COMPLETED",
+    },
+  ],
+  "tasks": [
+    {
+      "comments": "parseInt",
+      "completed_by_user_id": 2,
+      "completion_payload": {
+        "action": "complete",
+        "comments": "parseInt",
+        "formData": {
+          "notes": "via 1abc",
+        },
+      },
+      "has_completion_time": true,
+      "id": 1,
+      "status": "COMPLETED",
+    },
+  ],
+}
+`;

@@ -1,0 +1,183 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`platform contract (JS baseline) [frozen] CORS preflight status and allow-origin 1`] = `
+{
+  "allowOrigin": "*",
+  "hasAllowMethods": true,
+  "status": 204,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] GET / serves the static index.html 1`] = `
+{
+  "contentType": "text/html; charset=UTF-8",
+  "hasDoctype": true,
+  "hasHtmlTag": true,
+  "status": 200,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] GET /index.html serves the same static file 1`] = `
+{
+  "contentType": "text/html; charset=UTF-8",
+  "status": 200,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] admin route as USER -> 403 body 1`] = `
+{
+  "body": {
+    "message": "Forbidden: Requires admin privileges.",
+  },
+  "status": 403,
+  "text": undefined,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] body larger than 100kb on POST /api/auth/login 1`] = `
+{
+  "contentType": "text/html; charset=utf-8",
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] error responses keep the plain-text shape 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] expired token -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] malformed JSON body on POST /api/auth/login -> 500 text 1`] = `
+{
+  "contentType": "text/html; charset=utf-8",
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] protected route with malformed token -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] protected route with wrong auth scheme -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] protected route without token -> 401 Unauthorized 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] response header names (helmet, rate limit, cors) 1`] = `
+{
+  "absent": [
+    "x-powered-by",
+    "cross-origin-embedder-policy",
+    "ratelimit",
+    "ratelimit-limit",
+    "ratelimit-remaining",
+    "ratelimit-reset",
+    "ratelimit-policy",
+    "retry-after",
+  ],
+  "present": [
+    "x-content-type-options",
+    "x-frame-options",
+    "x-dns-prefetch-control",
+    "x-download-options",
+    "x-permitted-cross-domain-policies",
+    "x-xss-protection",
+    "strict-transport-security",
+    "content-security-policy",
+    "cross-origin-opener-policy",
+    "cross-origin-resource-policy",
+    "origin-agent-cluster",
+    "referrer-policy",
+    "access-control-allow-origin",
+    "x-ratelimit-limit",
+    "x-ratelimit-remaining",
+    "x-ratelimit-reset",
+  ],
+  "ratelimitLimitValue": "100",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] token claiming ADMIN for a non-admin user is trusted (payload systemRole) 1`] = `
+{
+  "isArray": true,
+  "status": 200,
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] token of a non-existent user (id 999) -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] token signed with a different secret -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] unknown POST route returns the default 404 1`] = `
+{
+  "status": 404,
+  "text": "<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot POST /nowhere</pre>
+</body>
+</html>
+",
+}
+`;
+
+exports[`platform contract (JS baseline) [frozen] unknown route /api/nope returns the default 404 1`] = `
+{
+  "contentType": "text/html; charset=utf-8",
+  "status": 404,
+  "text": "<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Error</title>
+</head>
+<body>
+<pre>Cannot GET /api/nope</pre>
+</body>
+</html>
+",
+}
+`;

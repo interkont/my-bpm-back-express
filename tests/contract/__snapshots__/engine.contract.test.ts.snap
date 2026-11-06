@@ -1,0 +1,624 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] admin result (users has no username column) 1`] = `
+{
+  "body": {},
+  "status": 500,
+  "text": "Something broke!",
+}
+`;
+
+exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] non-admin -> 403 1`] = `
+{
+  "body": {
+    "message": "Forbidden: Requires admin privileges.",
+  },
+  "status": 403,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] unknown key error shape 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] decision_logs rows created by the failed decisions 1`] = `
+[
+  {
+    "business_process_key": "NOPE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": "Process with key 'NOPE' not found or is not active.",
+    "executed_by_user_id": 2,
+    "id": 2,
+    "request_payload": {
+      "businessProcessKey": "NOPE",
+      "contextData": {},
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": null,
+  },
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "Nope_Element",
+    "error_message": "Element with BPMN ID 'Nope_Element' not found in process 'LINEAR'.",
+    "executed_by_user_id": 2,
+    "id": 3,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {},
+      "currentBpmnElementId": "Nope_Element",
+    },
+    "response_payload": null,
+  },
+]
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing businessProcessKey -> 400 { error } 1`] = `
+{
+  "body": {
+    "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+  },
+  "status": 400,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing contextData -> 400 { error } 1`] = `
+{
+  "body": {
+    "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+  },
+  "status": 400,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing currentBpmnElementId -> 400 { error } 1`] = `
+{
+  "body": {
+    "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+  },
+  "status": 400,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] no body at all -> 400 { error } 1`] = `
+{
+  "body": {
+    "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+  },
+  "status": 400,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] no validation failure writes to decision_logs 1`] = `[]`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] unknown element in a known process 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] unknown process key 1`] = `
+{
+  "keys": [],
+  "message": "Something broke!",
+  "status": 500,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] without token -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] APPROVAL from the gateway 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Approved",
+        "name": "Approved follow-up",
+        "type": "USER_TASK",
+      },
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Rejected",
+        "name": "Rejected follow-up",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] AUTO process returns AUTO_TASK as a blocking element 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "Auto_1",
+        "name": "Automatic task",
+        "type": "AUTO_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] END_AT_START from StartEvent_E returns the end event 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_E",
+        "name": "End",
+        "type": "END_EVENT",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] EXCLUSIVE from the gateway takes all outgoing targets without evaluating conditions 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_High",
+        "name": "High amount review",
+        "type": "USER_TASK",
+      },
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] EXCLUSIVE start with condition false (purchaseAmount 500) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] EXCLUSIVE start with condition on a missing value 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_Low",
+        "name": "Low amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] EXCLUSIVE start with condition true (purchaseAmount 2000) 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_High",
+        "name": "High amount review",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] LINEAR from StartEvent_L 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_L",
+        "name": "Linear task",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] LINEAR from USER_TASK Task_L 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_L",
+        "name": "End",
+        "type": "END_EVENT",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] PARALLEL from StartEvent_P returns both branches 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_A",
+        "name": "Parallel task A",
+        "type": "USER_TASK",
+      },
+      {
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_B",
+        "name": "Parallel task B",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] PARALLEL from Task_A traverses the join 1`] = `
+{
+  "body": {
+    "nextTasks": [
+      {
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_C",
+        "name": "Final task C",
+        "type": "USER_TASK",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`engine contract (JS baseline) POST /api/engine/decide-next-task [frozen] decision_logs rows created by the successful decisions 1`] = `
+[
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 2,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 2000,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_High",
+          "name": "High amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 3,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 500,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "StartEvent_X",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 4,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {},
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "StartEvent_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "Task_L",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 5,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {},
+      "currentBpmnElementId": "Task_L",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "EndEvent_L",
+          "name": "End",
+          "type": "END_EVENT",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "LINEAR",
+    "current_bpmn_element_id": "StartEvent_L",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 6,
+    "request_payload": {
+      "businessProcessKey": "LINEAR",
+      "contextData": {},
+      "currentBpmnElementId": "StartEvent_L",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "EXCLUSIVE",
+    "current_bpmn_element_id": "Gateway_X",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 7,
+    "request_payload": {
+      "businessProcessKey": "EXCLUSIVE",
+      "contextData": {
+        "instance": {
+          "businessData": {
+            "purchaseAmount": 2000,
+          },
+        },
+        "task": {},
+      },
+      "currentBpmnElementId": "Gateway_X",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_High",
+          "name": "High amount review",
+          "type": "USER_TASK",
+        },
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Low",
+          "name": "Low amount review",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "PARALLEL",
+    "current_bpmn_element_id": "StartEvent_P",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 8,
+    "request_payload": {
+      "businessProcessKey": "PARALLEL",
+      "contextData": {},
+      "currentBpmnElementId": "StartEvent_P",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_A",
+          "name": "Parallel task A",
+          "type": "USER_TASK",
+        },
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_B",
+          "name": "Parallel task B",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "PARALLEL",
+    "current_bpmn_element_id": "Task_A",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 9,
+    "request_payload": {
+      "businessProcessKey": "PARALLEL",
+      "contextData": {},
+      "currentBpmnElementId": "Task_A",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 1,
+          "bpmnElementId": "Task_C",
+          "name": "Final task C",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "END_AT_START",
+    "current_bpmn_element_id": "StartEvent_E",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 10,
+    "request_payload": {
+      "businessProcessKey": "END_AT_START",
+      "contextData": {},
+      "currentBpmnElementId": "StartEvent_E",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "EndEvent_E",
+          "name": "End",
+          "type": "END_EVENT",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "AUTO",
+    "current_bpmn_element_id": "StartEvent_A",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 11,
+    "request_payload": {
+      "businessProcessKey": "AUTO",
+      "contextData": {},
+      "currentBpmnElementId": "StartEvent_A",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": null,
+          "bpmnElementId": "Auto_1",
+          "name": "Automatic task",
+          "type": "AUTO_TASK",
+        },
+      ],
+    },
+  },
+  {
+    "business_process_key": "APPROVAL",
+    "current_bpmn_element_id": "Gateway_AP",
+    "error_message": null,
+    "executed_by_user_id": 2,
+    "id": 12,
+    "request_payload": {
+      "businessProcessKey": "APPROVAL",
+      "contextData": {
+        "task": {
+          "action": "APROBAR",
+        },
+      },
+      "currentBpmnElementId": "Gateway_AP",
+    },
+    "response_payload": {
+      "nextTasks": [
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Approved",
+          "name": "Approved follow-up",
+          "type": "USER_TASK",
+        },
+        {
+          "assignedRoleId": 2,
+          "bpmnElementId": "Task_Rejected",
+          "name": "Rejected follow-up",
+          "type": "USER_TASK",
+        },
+      ],
+    },
+  },
+]
+`;
