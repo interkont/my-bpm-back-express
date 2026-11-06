@@ -40,8 +40,15 @@ export class AppError extends Error {
 
 export const isAppError = (error: unknown): error is AppError => error instanceof AppError;
 
-export const validation = (details: unknown, message = 'Invalid input'): AppError =>
-  new AppError(400, 'VALIDATION_ERROR', message, { details });
+// `legacyErrorKey` conserva la clave `error` donde hoy existe (decide-next-task, FR-025).
+export const validation = (
+  details: unknown,
+  message = 'Invalid input',
+  options: { legacyErrorKey?: boolean } = {},
+): AppError => new AppError(400, 'VALIDATION_ERROR', message, { details, ...options });
+
+export const malformedJson = (message = 'Malformed JSON body'): AppError =>
+  new AppError(400, 'MALFORMED_JSON', message);
 
 export const invalidOldPassword = (message: string): AppError =>
   new AppError(400, 'INVALID_OLD_PASSWORD', message);

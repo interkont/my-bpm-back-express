@@ -380,17 +380,17 @@ claves), FR-024, FR-028…FR-031 y FR-033. Los casos `frozen` de éxito siguen e
 
 ### Oleada 5.2: middlewares (en paralelo)
 
-- [ ] T068 [P] [US3] Reescribir `src/api/middlewares/error.middleware.ts` como único formateador ([contracts/errors.md](./contracts/errors.md)):
+- [X] T068 [P] [US3] Reescribir `src/api/middlewares/error.middleware.ts` como único formateador ([contracts/errors.md](./contracts/errors.md)):
   - `AppError` → `{ message, code, details? }` (+ `error` si `legacyErrorKey`).
   - `UniqueConstraintError` y `ForeignKeyConstraintError` → 409 `CONFLICT`.
   - `type === 'entity.parse.failed'` → 400 `MALFORMED_JSON`.
   - Lo demás → 500 `{ message: 'Internal server error' }`.
   - Registra con el logger `method`, `url`, `userId` y el stack (N-10), sin el body.
-- [ ] T069 [P] [US3] Crear `src/api/middlewares/validate.middleware.ts`:
+- [X] T069 [P] [US3] Crear `src/api/middlewares/validate.middleware.ts`:
   - `validateBody(schema)` y `validateParams(schema)`: con zod; fallo → `next(validation(details))`, con `details = [{ field, msg }]`.
   - `idParam`: `^\d+$` convertido a `number`.
   - `parseIntIdParam`: semántica de `parseInt`, solo rechaza `NaN` (research R-13).
-- [ ] T070 [P] [US3] Cambiar `src/api/middlewares/admin.middleware.ts` a `next(forbidden())`, con el mismo `message`.
+- [X] T070 [P] [US3] Cambiar `src/api/middlewares/admin.middleware.ts` a `next(forbidden())`, con el mismo `message`.
 
 ### Oleada 5.3: módulos (todas en paralelo, tras T068–T070)
 

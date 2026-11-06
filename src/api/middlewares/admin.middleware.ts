@@ -1,12 +1,11 @@
 import type { NextFunction, Request, Response } from 'express';
+import { forbidden } from '../../domain/errors';
 
-export const isAdmin = (req: Request, res: Response, next: NextFunction): void => {
-  // Passport ya adjuntó el usuario autenticado a req.user, que incluye { id, roleIds, systemRole }.
+export const isAdmin = (req: Request, _res: Response, next: NextFunction): void => {
+  // Passport adjunta el usuario autenticado; systemRole viene del token (C-05).
   if (req.user && req.user.systemRole === 'ADMIN') {
     next();
     return;
   }
-
-  // Si no es administrador, responde 403 Forbidden.
-  res.status(403).json({ message: 'Forbidden: Requires admin privileges.' });
+  next(forbidden('Forbidden: Requires admin privileges.'));
 };
