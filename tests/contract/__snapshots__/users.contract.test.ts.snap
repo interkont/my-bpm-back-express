@@ -72,6 +72,7 @@ exports[`users (caracterización JS) GET /api/users [frozen] lista usuarios con 
 exports[`users (caracterización JS) GET /api/users [frozen] no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -81,15 +82,20 @@ exports[`users (caracterización JS) GET /api/users [frozen] no admin responde 4
 
 exports[`users (caracterización JS) GET /api/users/:id [frozen] id no numérico responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
 exports[`users (caracterización JS) GET /api/users/:id [frozen] inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "User not found",
@@ -100,6 +106,7 @@ exports[`users (caracterización JS) GET /api/users/:id [frozen] inexistente res
 exports[`users (caracterización JS) GET /api/users/:id [frozen] no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -193,6 +200,7 @@ exports[`users (caracterización JS) mutaciones [frozen] DELETE inexistente resp
 exports[`users (caracterización JS) mutaciones [frozen] DELETE no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -283,15 +291,19 @@ exports[`users (caracterización JS) mutaciones [frozen] POST crea usuario (201,
 
 exports[`users (caracterización JS) mutaciones [frozen] POST email duplicado responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "The request conflicts with existing data.",
+  "status": 409,
 }
 `;
 
 exports[`users (caracterización JS) mutaciones [frozen] POST no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -301,9 +313,13 @@ exports[`users (caracterización JS) mutaciones [frozen] POST no admin responde 
 
 exports[`users (caracterización JS) mutaciones [frozen] POST sin password responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid input",
+  "status": 400,
 }
 `;
 
@@ -403,15 +419,19 @@ exports[`users (caracterización JS) mutaciones [frozen] PUT con password actual
 
 exports[`users (caracterización JS) mutaciones [frozen] PUT inexistente responde 500 (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "User not found",
+  "status": 404,
 }
 `;
 
 exports[`users (caracterización JS) mutaciones [frozen] PUT no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",

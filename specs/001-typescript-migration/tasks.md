@@ -347,16 +347,16 @@ claves), FR-024, FR-028…FR-031 y FR-033. Los casos `frozen` de éxito siguen e
 
 ### Oleada 5.1: pruebas primero (todas en paralelo)
 
-- [ ] T063 [P] [US3] Crear `tests/contract/corrections/auth.corrections.test.ts`:
+- [X] T063 [P] [US3] Crear `tests/contract/corrections/auth.corrections.test.ts`:
   - Login con credenciales inválidas → 401 `INVALID_CREDENTIALS` "Invalid credentials".
   - Login sin `email` o sin `password` → 400 `VALIDATION_ERROR`.
   - Perfil con `oldPassword` errónea → **400** `INVALID_OLD_PASSWORD` y la sesión sigue válida: una petición posterior con el mismo token da 200 (FR-024).
-- [ ] T064 [P] [US3] Crear `tests/contract/corrections/users-roles.corrections.test.ts`:
+- [X] T064 [P] [US3] Crear `tests/contract/corrections/users-roles.corrections.test.ts`:
   - `PUT /users/:id` inexistente → 404 "User not found".
   - `POST /users` sin `password` → 400.
   - Email o nombre de rol duplicado → 409 `CONFLICT`.
   - Los 404 y 409 de roles mantienen `message` y añaden `code` (FR-022, research R-12).
-- [ ] T065 [P] [US3] Crear `tests/contract/corrections/processes.corrections.test.ts`:
+- [X] T065 [P] [US3] Crear `tests/contract/corrections/processes.corrections.test.ts`:
   - `save-ask`, `PATCH`, `DELETE` y `start-form` con id inexistente → 404 "Process definition not found." / "Start form definition not found for this process.".
   - `PUT /processes/:id` inexistente → 404 **y no se crea ninguna fila** (N-01).
   - Segunda ACTIVE → 409 `ACTIVE_VERSION_CONFLICT` con el mensaje actual y la base sin cambios.
@@ -364,13 +364,13 @@ claves), FR-024, FR-028…FR-031 y FR-033. Los casos `frozen` de éxito siguen e
   - Body con `id`, `version` y `createdAt` (en la definición) e `id` y `processDefId` (en los elementos): se ignoran (FR-029).
   - `PATCH` con `status: 'FOO'` → 400 (FR-033).
   - `start-form` con un link a una `FieldDefinition` inexistente → 422 `PROCESS_MODEL_ERROR` (FR-027).
-- [ ] T066 [P] [US3] Crear `tests/contract/corrections/instances-tasks.corrections.test.ts`:
+- [X] T066 [P] [US3] Crear `tests/contract/corrections/instances-tasks.corrections.test.ts`:
   - `/record` y `PUT /process-instances/:id` ignoran `id`, `processDefId`, `startedByUserId` y `startTime` según la lista blanca (FR-029); los demás campos que hoy se persisten se siguen persistiendo.
   - `taskInstances` de `GET /process-instances/:id` ordenadas por `createdAt` ASC (FR-030).
   - El formulario de tarea muestra `0`, `false` y `""` (FR-031).
   - `GET /tasks/:id/form` inexistente → 404 "Task not found"; tarea con elemento borrado → 422.
   - `my-tasks` con un token sin `roleIds` → 401 `{ error, message, code: 'MISSING_AUTH_DATA' }` (FR-025).
-- [ ] T067 [P] [US3] Crear `tests/contract/corrections/platform.corrections.test.ts`:
+- [X] T067 [P] [US3] Crear `tests/contract/corrections/platform.corrections.test.ts`:
   - JSON malformado → 400 `MALFORMED_JSON`.
   - `:id` no numérico en `/users`, `/roles`, `/processes` y `/process-instances` → 400.
   - `POST /tasks/12abc/complete` **no** se rechaza por el id (research R-13).
@@ -397,15 +397,15 @@ claves), FR-024, FR-028…FR-031 y FR-033. Los casos `frozen` de éxito siguen e
 En cada tarea, el controller pasa a `catchAsync` sin `try/catch` (A-05, EXC-11) y el servicio lanza
 `AppError` (AP-01).
 
-- [ ] T071 [P] [US3] Módulo auth (`auth.routes.ts`, `auth.controller.ts`, `auth.service.ts`, `auth.schemas.ts`):
+- [X] T071 [P] [US3] Módulo auth (`auth.routes.ts`, `auth.controller.ts`, `auth.service.ts`, `auth.schemas.ts`):
   - Login con `validateBody` (`email` y `password` presentes como string) e `invalidCredentials()` en las dos ramas.
   - `updateProfile`: `oldPassword` errónea → `invalidOldPassword()` (**400**, FR-024); falta de `oldPassword` → 400 (mismo mensaje); usuario inexistente → 404 (mismo mensaje).
-- [ ] T072 [P] [US3] Módulos users y roles (`src/api/users/*.ts`, `src/api/roles/*.ts`):
+- [X] T072 [P] [US3] Módulos users y roles (`src/api/users/*.ts`, `src/api/roles/*.ts`):
   - `idParam` en rutas con `:id`; `POST /users` exige `password`.
   - `updateUser` inexistente → `notFound('User not found')`.
   - Escrituras con `pick` según [data-model.md §9](./data-model.md): users "`fullName`, `email`, `systemRole`, `status` (+ `password`, `roleIds`)"; roles "`name`, `description` (+ `userIds` como relación)".
   - Los 404 y 409 actuales de roles pasan a `AppError` con el mismo `message`.
-- [ ] T073 [P] [US3] Módulo processes (`src/api/processes/*.ts`):
+- [X] T073 [P] [US3] Módulo processes (`src/api/processes/*.ts`):
   - `idParam` en rutas con `:id`.
   - Los 4 "Process definition not found." y el de start-form → `notFound`.
   - `PUT` con id inexistente → `notFound` **antes** de entrar a la rama de alta (N-01).
@@ -414,11 +414,11 @@ En cada tarea, el controller pasa a `catchAsync` sin `try/catch` (A-05, EXC-11) 
   - `pick` (FR-029): definición "`businessProcessKey`, `name`, `description`, `category`, `status`, `bpmnProcessId`, `bpmnXml` (desde `diagramJson`)"; elementos "`bpmnElementId`, `name`, `description`, `type`, `assignedRoleId`, `webhookTarget`, `slaDefinition`"; secuencias "`sourceElementBpmnId`, `targetElementBpmnId`, `conditionExpression`".
   - `PATCH` valida `status` contra `PROCESS_DEFINITION_STATUS` (400, FR-033) y **elimina el bloque DEPRECATED inalcanzable** (AP-05).
   - `getStartForm` con una `FieldDefinition` inexistente → `modelError` (FR-027).
-- [ ] T074 [P] [US3] Módulo process-instances (`src/api/process-instances/*.ts`):
+- [X] T074 [P] [US3] Módulo process-instances (`src/api/process-instances/*.ts`):
   - `idParam`; 404 del detalle vía `notFound` (mismo mensaje).
   - `pick` (FR-029): `/record` "`processDefId`, `description`, `status`, `businessData`, `startTime`, `endTime`" (`startedByUserId` lo fuerza el controller); `PUT` "`description`, `status`, `businessData`, `endTime`" (sigue devolviendo `[n]`).
   - `order: [[{ model: TaskInstance, as: 'taskInstances' }, 'createdAt', 'ASC']]` en el nivel superior (FR-030, AP-15).
-- [ ] T075 [P] [US3] Módulo tasks y formularios (`src/api/tasks/task.routes.ts`, `task.controller.ts`, `task.service.ts`, `src/utils/formFields.ts`):
+- [X] T075 [P] [US3] Módulo tasks y formularios (`src/api/tasks/task.routes.ts`, `task.controller.ts`, `task.service.ts`, `src/utils/formFields.ts`):
   - `parseIntIdParam` en `/:id/form` y en `/:id/complete`: la línea base (T024) muestra que hoy `GET /tasks/1abc/form` responde con éxito, y FR-023 prohíbe rechazarlo. Antes de aplicar `idParam` en cualquier otra ruta, verificar en los snapshots que hoy un id no numérico falla.
   - `my-tasks` sin `roleIds` → `missingAuthData()` con `legacyErrorKey: true` (FR-025).
   - `getTaskForm` inexistente → `notFound('Task not found')`; elemento o campo inexistente → `modelError` (FR-027).
@@ -426,7 +426,7 @@ En cada tarea, el controller pasa a `catchAsync` sin `try/catch` (A-05, EXC-11) 
 
 ### Oleada 5.4
 
-- [ ] T076 [US3] Puerta de US3: suites `corrections` de T063–T067 en verde. Actualizar con `-u` **solo** los snapshots de error que esas correcciones cambian; revisar el diff y confirmar que ningún snapshot de éxito cambió. `typecheck`, `lint` y `npm test` completos en verde.
+- [X] T076 [US3] Puerta de US3: suites `corrections` de T063–T067 en verde. Actualizar con `-u` **solo** los snapshots de error que esas correcciones cambian; revisar el diff y confirmar que ningún snapshot de éxito cambió. `typecheck`, `lint` y `npm test` completos en verde.
 
 **Checkpoint**: el frontend muestra el mensaje real de cada error y la sesión no se cierra por errores
 de negocio.
@@ -450,11 +450,11 @@ línea base.
 
 ### Oleada 6.1: pruebas primero (todas en paralelo)
 
-- [ ] T077 [P] [US4] Crear `tests/fixtures/defective-graphs.sql`: grafos `MISSING_TARGET` (secuencia hacia un `bpmnElementId` inexistente), `GATEWAY_CYCLE` (dos gateways exclusivos en ciclo sin tareas), `TASK_NO_OUT` (user task sin salida), `ORPHAN_TASK` (tarea `PENDING` cuyo `element_def_id` no existe), `NO_ROUTE` (gateway exclusivo sin condición verdadera ni ruta por defecto) y `DIAMOND` (fork → A y B → mismo gateway exclusivo → tarea).
-- [ ] T078 [P] [US4] Crear `tests/unit/engine/traversal.test.ts`: el `DIAMOND` procesa el gateway compartido dos veces, igual que hoy; el `GATEWAY_CYCLE` se detecta por el conjunto de ancestros y nombra el elemento (research R-10).
-- [ ] T079 [P] [US4] Crear `tests/engine/defective-graphs.execution.test.ts`: iniciar y completar sobre cada grafo defectuoso → 422 `PROCESS_MODEL_ERROR`; ninguna fila nueva en `process_instances` ni en `task_instances` (rollback); `GET /` responde después; `AUTO` → 422 "Unsupported element type: AUTO_TASK".
-- [ ] T080 [P] [US4] Crear `tests/engine/defective-graphs.decision.test.ts`: `decide-next-task` sobre `GATEWAY_CYCLE`, `MISSING_TARGET` y `NO_ROUTE` → 422; `decision_logs` con `errorMessage`; si falla la actualización del log (mock), se propaga el error original (N-09).
-- [ ] T081 [P] [US4] Crear `tests/contract/corrections/engine.corrections.test.ts`:
+- [X] T077 [P] [US4] Crear `tests/fixtures/defective-graphs.sql`: grafos `MISSING_TARGET` (secuencia hacia un `bpmnElementId` inexistente), `GATEWAY_CYCLE` (dos gateways exclusivos en ciclo sin tareas), `TASK_NO_OUT` (user task sin salida), `ORPHAN_TASK` (tarea `PENDING` cuyo `element_def_id` no existe), `NO_ROUTE` (gateway exclusivo sin condición verdadera ni ruta por defecto) y `DIAMOND` (fork → A y B → mismo gateway exclusivo → tarea).
+- [X] T078 [P] [US4] Crear `tests/unit/engine/traversal.test.ts`: el `DIAMOND` procesa el gateway compartido dos veces, igual que hoy; el `GATEWAY_CYCLE` se detecta por el conjunto de ancestros y nombra el elemento (research R-10).
+- [X] T079 [P] [US4] Crear `tests/engine/defective-graphs.execution.test.ts`: iniciar y completar sobre cada grafo defectuoso → 422 `PROCESS_MODEL_ERROR`; ninguna fila nueva en `process_instances` ni en `task_instances` (rollback); `GET /` responde después; `AUTO` → 422 "Unsupported element type: AUTO_TASK".
+- [X] T080 [P] [US4] Crear `tests/engine/defective-graphs.decision.test.ts`: `decide-next-task` sobre `GATEWAY_CYCLE`, `MISSING_TARGET` y `NO_ROUTE` → 422; `decision_logs` con `errorMessage`; si falla la actualización del log (mock), se propaga el error original (N-09).
+- [X] T081 [P] [US4] Crear `tests/contract/corrections/engine.corrections.test.ts`:
   - `POST /process-instances` en `END_AT_START` → `status: 'COMPLETED'` (FR-032).
   - Key sin ACTIVE → 404.
   - Completar una tarea ajena, inexistente o no `PENDING` → **404** (nunca 401).
@@ -463,17 +463,17 @@ línea base.
 
 ### Oleada 6.2
 
-- [ ] T082 [US4] En `src/api/engine/semantics.ts` y `src/api/engine/graph.ts`, implementar el recorrido con conjunto de **ancestros del camino actual**. Al revisitar un nodo no bloqueante del camino → `modelError` "cycle without blocking elements at <bpmnElementId>". Una arista hacia un elemento ausente → `modelError` que nombra la secuencia. Gateway sin ruta y tipo no soportado → `modelError` con el mensaje actual ([contracts/errors.md](./contracts/errors.md)).
+- [X] T082 [US4] En `src/api/engine/semantics.ts` y `src/api/engine/graph.ts`, implementar el recorrido con conjunto de **ancestros del camino actual**. Al revisitar un nodo no bloqueante del camino → `modelError` "cycle without blocking elements at <bpmnElementId>". Una arista hacia un elemento ausente → `modelError` que nombra la secuencia. Gateway sin ruta y tipo no soportado → `modelError` con el mensaje actual ([contracts/errors.md](./contracts/errors.md)).
 
 ### Oleada 6.3 (en paralelo, tras T082)
 
-- [ ] T083 [P] [US4] Actualizar `src/api/engine/execution.service.ts`:
+- [X] T083 [P] [US4] Actualizar `src/api/engine/execution.service.ts`:
   - Sin ACTIVE → `notFound`. Tarea inexistente, ajena o no `PENDING` → `notFound` con el mismo mensaje.
   - Sin `START_EVENT`, tarea sin salida o siguiente elemento inexistente → `modelError` (textos actuales).
   - Tarea cuyo elemento no existe → `modelError`.
   - ~~Eliminar el `count` muerto fuera de transacción del join (AP-06)~~: hecho en T054.
   - `startProcess` devuelve la instancia **recargada dentro de `t`** antes del commit, para que el controller devuelva el estado real (FR-032), sin tocar `processInstance.controller.ts`.
-- [ ] T084 [P] [US4] Actualizar `src/api/engine/decision.service.ts`, `decision.controller.ts` y `decision.routes.ts`:
+- [X] T084 [P] [US4] Actualizar `src/api/engine/decision.service.ts`, `decision.controller.ts` y `decision.routes.ts`:
   - `validateBody` con un refinamiento que replica "los tres campos con valor verdadero" y responde 400 con `legacyErrorKey: true` y el mensaje actual (FR-025).
   - Key o elemento inexistente → `notFound`.
   - En el `catch`, actualizar el log con `errorMessage` dentro de su propio `try` y relanzar **siempre** el error original (N-09).
@@ -481,7 +481,7 @@ línea base.
 
 ### Oleada 6.4
 
-- [ ] T085 [US4] Puerta de US4: T077–T081 en verde; los escenarios de T025 siguen coincidiendo con la línea base; actualizar con `-u` **solo** los snapshots de error del motor que cambian, revisando el diff. `typecheck`, `lint` y `npm test` en verde.
+- [X] T085 [US4] Puerta de US4: T077–T081 en verde; los escenarios de T025 siguen coincidiendo con la línea base; actualizar con `-u` **solo** los snapshots de error del motor que cambian, revisando el diff. `typecheck`, `lint` y `npm test` en verde.
 
 **Checkpoint**: ningún grafo defectuoso tumba el servidor ni deja datos parciales.
 
@@ -500,24 +500,24 @@ cumple en Windows y Linux.
 
 ### Oleada 7.1: pruebas primero (todas en paralelo)
 
-- [ ] T086 [P] [US5] Crear `tests/unit/config.test.ts`: sin `DATABASE_URL` o sin `JWT_SECRET` → error "Missing required configuration: <VAR>" que no contiene ningún valor de entorno; el objeto exportado está congelado (`Object.isFrozen`).
-- [ ] T087 [P] [US5] Crear `tests/contract/startup.test.ts`: el proceso sin `JWT_SECRET` termina con código 1 y el mensaje esperado; `--port 4000` sin `PORT` escucha en 4000; `PORT` prevalece sobre `--port`.
-- [ ] T088 [P] [US5] Crear `tests/contract/logs.sentinel.test.ts`: un flujo completo (login, iniciar instancia con `businessData` centinela, completar tarea, decisión) **no** deja en `error.log`, `combined.log` ni la salida del proceso la contraseña, el token, el hash ni el valor centinela (SC-011, FR-016).
+- [X] T086 [P] [US5] Crear `tests/unit/config.test.ts`: sin `DATABASE_URL` o sin `JWT_SECRET` → error "Missing required configuration: <VAR>" que no contiene ningún valor de entorno; el objeto exportado está congelado (`Object.isFrozen`).
+- [X] T087 [P] [US5] Crear `tests/contract/startup.test.ts`: el proceso sin `JWT_SECRET` termina con código 1 y el mensaje esperado; `--port 4000` sin `PORT` escucha en 4000; `PORT` prevalece sobre `--port`.
+- [X] T088 [P] [US5] Crear `tests/contract/logs.sentinel.test.ts`: un flujo completo (login, iniciar instancia con `businessData` centinela, completar tarea, decisión) **no** deja en `error.log`, `combined.log` ni la salida del proceso la contraseña, el token, el hash ni el valor centinela (SC-011, FR-016).
 
 ### Oleada 7.2 (en paralelo)
 
-- [ ] T089 [P] [US5] Completar `src/config/index.ts`:
+- [X] T089 [P] [US5] Completar `src/config/index.ts`:
   - Esquema zod de la configuración: `DATABASE_URL` y `JWT_SECRET` obligatorios y no vacíos; `PORT` opcional.
   - Error con el nombre de la variable y sin valores.
   - `Object.freeze` y tipo exportado `AppConfig`.
   - Método `resolvePort(argv)` con la precedencia `PORT` → `--port` → 3000 (N-14).
   - Quitar `App.port` de `src/config/default.json` y de `custom-environment-variables.json` si deja de usarse.
   - Comprobar que ningún archivo fuera de `src/config/` lee `process.env` (`grep`).
-- [ ] T090 [P] [US5] Ajustar `src/server.ts`: usar `config.resolvePort(process.argv)`; ante un error de configuración o de conexión, `logger.error` con el mensaje (sin la URL) y `process.exit(1)`.
+- [X] T090 [P] [US5] Ajustar `src/server.ts`: usar `config.resolvePort(process.argv)`; ante un error de configuración o de conexión, `logger.error` con el mensaje (sin la URL) y `process.exit(1)`.
 
 ### Oleada 7.3
 
-- [ ] T091 [US5] Puerta de US5: T086–T088 en verde y ejecutar a mano [quickstart.md §5](./quickstart.md) (5.1–5.7) en Windows y en Linux, anotando los tiempos (SC-007).
+- [X] T091 [US5] Puerta de US5: T086–T088 en verde y ejecutar a mano [quickstart.md §5](./quickstart.md) (5.1–5.7) en Windows y en Linux, anotando los tiempos (SC-007).
 
 **Checkpoint**: arranque y operación predecibles en ambas plataformas.
 

@@ -28,6 +28,11 @@ export const metadataSchema = z.looseObject({
   status: z.enum(PROCESS_DEFINITION_STATUS).optional(),
 });
 
+// Validación del PATCH (FR-033): solo `status` se restringe a la unión; el resto del cuerpo se tolera como hoy.
+export const patchStatusSchema = z.looseObject({
+  status: z.enum(PROCESS_DEFINITION_STATUS).optional(),
+});
+
 export type IncomingElement = z.infer<typeof incomingElementSchema>;
 export type IncomingSequence = z.infer<typeof incomingSequenceSchema>;
 export type SaveProcessInput = z.infer<typeof saveProcessSchema>;

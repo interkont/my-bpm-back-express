@@ -82,9 +82,12 @@ exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definic
 
 exports[`processes contract DELETE [frozen] DELETE /processes/:id inexistente (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process definition not found.",
+  "status": 404,
 }
 `;
 
@@ -139,27 +142,28 @@ exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id actual
 
 exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id inexistente (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process definition not found.",
+  "status": 404,
 }
 `;
 
 exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status 'FOO' se persiste (hoy) 1`] = `
 {
   "body": {
-    "bpmnProcessId": "Process_VERSIONED",
-    "bpmnXml": "{"nodes":[],"edges":[]}",
-    "businessProcessKey": "VERSIONED",
-    "category": "SEED",
-    "createdAt": "<date>",
-    "description": "Seed VERSIONED v1",
-    "id": 7,
-    "name": "Versioned process",
-    "status": "FOO",
-    "version": 1,
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "status",
+        "msg": "Invalid option: expected one of "DRAFT"|"ACTIVE"|"INACTIVE"|"DEPRECATED"",
+      },
+    ],
+    "message": "Invalid input",
   },
-  "status": 200,
+  "status": 400,
   "text": undefined,
 }
 `;
@@ -174,7 +178,7 @@ exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status
     "description": "Seed VERSIONED v1",
     "id": 7,
     "name": "Versioned process",
-    "status": "FOO",
+    "status": "INACTIVE",
     "version": 1,
   },
 ]
@@ -182,9 +186,12 @@ exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status
 
 exports[`processes contract PATCH metadatos [frozen] PATCH /processes/:id status ACTIVE con otra ACTIVE para la clave (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "An active version already exists for this process (Version: 2, ID: 8). Please deactivate it before activating another one.",
+  "status": 409,
 }
 `;
 
@@ -292,7 +299,7 @@ exports[`processes contract PUT casos límite [frozen] POST /processes con id/ve
     "category": "TEST",
     "createdAt": "<date>",
     "description": "Descripción del proceso",
-    "id": 555,
+    "id": 10,
     "name": "Proceso nuevo",
     "status": "DRAFT",
     "version": 1,
@@ -310,7 +317,7 @@ exports[`processes contract PUT casos límite [frozen] POST /processes con id/ve
     "business_process_key": "MASS",
     "category": "TEST",
     "description": "Descripción del proceso",
-    "id": 555,
+    "id": 10,
     "name": "Proceso nuevo",
     "status": "DRAFT",
     "version": 1,
@@ -330,7 +337,7 @@ exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id
     "id": 9,
     "name": "Proceso nuevo",
     "status": "DRAFT",
-    "version": 42,
+    "version": 3,
   },
   "status": 200,
   "text": undefined,
@@ -340,7 +347,7 @@ exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id
 exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id/version/createdAt en el cuerpo (asignación masiva hoy): created_at 1`] = `
 [
   {
-    "created_at": "2020-02-02 00:00:00+00",
+    "created_at": "2026-01-01 00:08:00+00",
     "id": 9,
   },
 ]
@@ -379,7 +386,7 @@ exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id
     "id": 9,
     "name": "Proceso nuevo",
     "status": "DRAFT",
-    "version": 42,
+    "version": 3,
   },
 ]
 `;
@@ -387,88 +394,38 @@ exports[`processes contract PUT casos límite [frozen] PUT /processes/:id con id
 exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01) 1`] = `
 {
   "body": {
-    "bpmnProcessId": "Process_NEWPROC",
+    "code": "NOT_FOUND",
+    "message": "Process definition not found.",
+  },
+  "status": 404,
+  "text": undefined,
+}
+`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): defs 1`] = `[]`;
+
+exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): elements 1`] = `[]`;
+
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> nueva versión max + 1 (FR-028; antes violación de unicidad) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
     "bpmnXml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
-    "businessProcessKey": "NEWPROC",
+    "businessProcessKey": "VERSIONED",
     "category": "TEST",
     "createdAt": "<date>",
     "description": "Descripción del proceso",
-    "id": 10,
+    "id": 12,
     "name": "Proceso nuevo",
     "status": "DRAFT",
-    "version": 1,
+    "version": 4,
   },
   "status": 200,
   "text": undefined,
 }
 `;
 
-exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): defs 1`] = `
-[
-  {
-    "bpmn_process_id": "Process_NEWPROC",
-    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
-    "business_process_key": "NEWPROC",
-    "category": "TEST",
-    "description": "Descripción del proceso",
-    "id": 10,
-    "name": "Proceso nuevo",
-    "status": "DRAFT",
-    "version": 1,
-  },
-]
-`;
-
-exports[`processes contract PUT casos límite [frozen] PUT /processes/:id inexistente crea un proceso nuevo v1 (hoy, N-01): elements 1`] = `
-[
-  {
-    "actions": null,
-    "assigned_role_id": null,
-    "bpmn_element_id": "StartEvent_N",
-    "description": null,
-    "id": 36,
-    "name": "Inicio",
-    "process_def_id": 10,
-    "sla_definition": null,
-    "type": "START_EVENT",
-    "webhook_target": null,
-  },
-  {
-    "actions": null,
-    "assigned_role_id": 1,
-    "bpmn_element_id": "Task_N",
-    "description": null,
-    "id": 37,
-    "name": "Revisar",
-    "process_def_id": 10,
-    "sla_definition": null,
-    "type": "USER_TASK",
-    "webhook_target": null,
-  },
-  {
-    "actions": null,
-    "assigned_role_id": null,
-    "bpmn_element_id": "EndEvent_N",
-    "description": null,
-    "id": 38,
-    "name": "Fin",
-    "process_def_id": 10,
-    "sla_definition": null,
-    "type": "END_EVENT",
-    "webhook_target": null,
-  },
-]
-`;
-
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy) 1`] = `
-{
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
-}
-`;
-
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy): defs 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> nueva versión max + 1 (FR-028; antes violación de unicidad): defs 1`] = `
 [
   {
     "bpmn_process_id": "Process_VERSIONED",
@@ -503,10 +460,21 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id d
     "status": "DRAFT",
     "version": 3,
   },
+  {
+    "bpmn_process_id": "Process_VERSIONED",
+    "bpmn_xml": "{"nodes":[{"id":"StartEvent_N"}],"edges":[]}",
+    "business_process_key": "VERSIONED",
+    "category": "TEST",
+    "description": "Descripción del proceso",
+    "id": 12,
+    "name": "Proceso nuevo",
+    "status": "DRAFT",
+    "version": 4,
+  },
 ]
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy): elements 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> nueva versión max + 1 (FR-028; antes violación de unicidad): elements 1`] = `
 [
   {
     "actions": null,
@@ -530,6 +498,42 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id d
     "process_def_id": 11,
     "sla_definition": null,
     "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_N",
+    "description": null,
+    "id": 44,
+    "name": "Inicio",
+    "process_def_id": 12,
+    "sla_definition": null,
+    "type": "START_EVENT",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_N",
+    "description": null,
+    "id": 45,
+    "name": "Revisar",
+    "process_def_id": 12,
+    "sla_definition": null,
+    "type": "USER_TASK",
+    "webhook_target": null,
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_N",
+    "description": null,
+    "id": 46,
+    "name": "Fin",
+    "process_def_id": 12,
+    "sla_definition": null,
+    "type": "END_EVENT",
     "webhook_target": null,
   },
 ]
@@ -794,9 +798,12 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id s
 
 exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id DRAFT a ACTIVE con otra ACTIVE para la clave (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "An active version already exists for this process (Version: 2, ID: 8). Please deactivate it before activating another one.",
+  "status": 409,
 }
 `;
 
@@ -948,9 +955,12 @@ exports[`processes contract creación POST [frozen] POST /processes con status A
 
 exports[`processes contract creación POST [frozen] POST /processes con status ACTIVE y otra ACTIVE para la clave (hoy) 1`] = `
 {
-  "body": {},
-  "status": 500,
-  "text": "Something broke!",
+  "body": {
+    "code": "ACTIVE_VERSION_CONFLICT",
+    "message": "An active version already exists for this process (Version: 1, ID: 1). Please deactivate it before activating another one.",
+  },
+  "status": 409,
+  "text": undefined,
 }
 `;
 
@@ -1102,8 +1112,10 @@ exports[`processes contract creación POST [frozen] POST /processes sin diagramJ
 
 exports[`processes contract creación POST [frozen] POST /processes sin name (hoy error de validación) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
+  "keys": [
+    "message",
+  ],
+  "message": "Internal server error",
   "status": 500,
 }
 `;
@@ -1408,6 +1420,7 @@ exports[`processes contract lecturas [frozen] GET /processes/:id detalle con ele
 exports[`processes contract lecturas [frozen] GET /processes/:id inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Process definition not found",
@@ -1417,9 +1430,13 @@ exports[`processes contract lecturas [frozen] GET /processes/:id inexistente res
 
 exports[`processes contract lecturas [frozen] GET /processes/:id no numérico (hoy parseInt -> NaN) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
@@ -1461,9 +1478,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask de DRA
 
 exports[`processes contract lecturas [frozen] GET /processes/:id/save-ask inexistente (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process definition not found.",
+  "status": 404,
 }
 `;
 
@@ -1506,17 +1526,23 @@ exports[`processes contract lecturas [frozen] GET /processes/:id/start-form EXCL
 
 exports[`processes contract lecturas [frozen] GET /processes/:id/start-form inexistente (hoy error) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Start form definition not found for this process.",
+  "status": 404,
 }
 `;
 
 exports[`processes contract lecturas [frozen] GET /processes/:id/start-form sin START_EVENT (hoy error) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Start form definition not found for this process.",
+  "status": 404,
 }
 `;
 
@@ -1645,6 +1671,7 @@ exports[`processes contract lecturas [frozen] GET /processes/all como admin list
 exports[`processes contract lecturas [frozen] GET /processes/all como no admin responde error 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",

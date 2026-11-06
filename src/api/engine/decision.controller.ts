@@ -5,19 +5,17 @@ import type { DecideNextTaskInput } from './decision.schemas';
 
 export const decideNextTask = catchAsync<Record<string, string>, unknown, DecideNextTaskInput>(
   async (req, res) => {
-    const { businessProcessKey, currentBpmnElementId } = req.body;
+    // `validateBody` ya garantiza que los tres campos tienen valor.
+    const { businessProcessKey, currentBpmnElementId } = req.body as {
+      businessProcessKey: string;
+      currentBpmnElementId: string;
+    };
     // El cuerpo viene del JSON del cliente y se pasa tal cual: coincide con la forma de `DecisionContext`.
-    const contextData = req.body.contextData as DecisionContext | undefined;
+    const contextData = req.body.contextData as DecisionContext;
     // Obtenemos el userId del usuario autenticado (passport lo deja en req.user).
     // `protect` garantiza que `req.user` existe en esta ruta.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const userId = req.user!.id;
-
-    if (!businessProcessKey || !currentBpmnElementId || !contextData) {
-      return res.status(400).json({
-        error: 'businessProcessKey, currentBpmnElementId, and contextData are required.',
-      });
-    }
 
     const result = await decisionService.decideNextTask(
       businessProcessKey,

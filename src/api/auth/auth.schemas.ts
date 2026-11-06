@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Esquemas permisivos: en US2 solo aportan tipos (no se usan aún como validación).
+// Esquemas permisivos (FR-023): login exige email y password como string (vacio permitido).
 export const loginSchema = z.looseObject({
   email: z.string(),
   password: z.string(),

@@ -41,8 +41,7 @@ const fieldDefinitionAttributes = attrs<FieldDefinition>()('name', 'label', 'fie
 export const createProcessInstanceRecord = async (
   data: CreateProcessInstanceRecordInput & { startedByUserId: number },
 ): Promise<InstanceRowDto> => {
-  // Aserción: la entrada aún no se valida (US3); Sequelize/BD rechazan los faltantes
-  // igual que antes y las claves extra se ignoran (asignación masiva conservada).
+  // Aserción: el controller ya aplicó la lista blanca; Sequelize/BD rechazan los faltantes igual que antes.
   const instance = await ProcessInstance.create(data as CreationAttributes<ProcessInstance>);
   return toInstanceRow(instance);
 };
@@ -85,7 +84,6 @@ export const getProcessInstanceById = async (id: string): Promise<InstanceDetail
       {
         model: TaskInstance,
         as: 'taskInstances',
-        order: [['createdAt', 'ASC']],
         include: [
           { model: ProcessElement, as: 'processElement', attributes: processElementAttributes },
           { model: Role, as: 'assignedRole', attributes: roleNameAttributes },
@@ -94,6 +92,8 @@ export const getProcessInstanceById = async (id: string): Promise<InstanceDetail
         ],
       },
     ],
+    // Orden de nivel superior sobre la asociación (FR-030): un `order` dentro del include se ignora.
+    order: [[{ model: TaskInstance, as: 'taskInstances' }, 'createdAt', 'ASC']],
   });
 
   if (!instance) {
@@ -118,7 +118,7 @@ export const updateProcessInstance = async (
   id: string,
   data: UpdateProcessInstanceInput,
 ): Promise<[affectedCount: number]> => {
-  // Aserción: la entrada aún no se valida (US3); se conserva la asignación masiva.
+  // Aserción: el controller ya aplicó la lista blanca (FR-029).
   return ProcessInstance.update(data as Partial<CreationAttributes<ProcessInstance>>, {
     where: { id: parseInt(id, 10) },
   });

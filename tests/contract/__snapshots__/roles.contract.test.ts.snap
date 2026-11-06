@@ -22,6 +22,7 @@ exports[`roles (caracterización JS) GET /api/roles [frozen] lista roles 1`] = `
 exports[`roles (caracterización JS) GET /api/roles [frozen] no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -39,15 +40,20 @@ exports[`roles (caracterización JS) GET /api/roles [frozen] sin token responde 
 
 exports[`roles (caracterización JS) GET /api/roles/:id [frozen] id no numérico responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
 exports[`roles (caracterización JS) GET /api/roles/:id [frozen] inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Role not found",
@@ -84,6 +90,7 @@ exports[`roles (caracterización JS) GET /api/roles/:id [frozen] rol con users[]
 exports[`roles (caracterización JS) mutaciones [frozen] DELETE inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Role not found",
@@ -94,6 +101,7 @@ exports[`roles (caracterización JS) mutaciones [frozen] DELETE inexistente resp
 exports[`roles (caracterización JS) mutaciones [frozen] DELETE no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -104,6 +112,7 @@ exports[`roles (caracterización JS) mutaciones [frozen] DELETE no admin respond
 exports[`roles (caracterización JS) mutaciones [frozen] DELETE rol con usuarios responde 409 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Cannot delete role with associated users",
@@ -147,6 +156,7 @@ exports[`roles (caracterización JS) mutaciones [frozen] POST crea rol (201) 1`]
 exports[`roles (caracterización JS) mutaciones [frozen] POST no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",
@@ -156,17 +166,24 @@ exports[`roles (caracterización JS) mutaciones [frozen] POST no admin responde 
 
 exports[`roles (caracterización JS) mutaciones [frozen] POST nombre duplicado responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "The request conflicts with existing data.",
+  "status": 409,
 }
 `;
 
 exports[`roles (caracterización JS) mutaciones [frozen] POST sin name responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid input",
+  "status": 400,
 }
 `;
 
@@ -254,6 +271,7 @@ exports[`roles (caracterización JS) mutaciones [frozen] PUT con userIds reempla
 exports[`roles (caracterización JS) mutaciones [frozen] PUT inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Role not found",
@@ -264,6 +282,7 @@ exports[`roles (caracterización JS) mutaciones [frozen] PUT inexistente respond
 exports[`roles (caracterización JS) mutaciones [frozen] PUT no admin responde 403 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Forbidden: Requires admin privileges.",

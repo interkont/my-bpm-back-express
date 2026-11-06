@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// Esquemas permisivos (solo tipos en US2; aún no se usan para validar).
+// Objetos abiertos que solo rechazan lo que hoy ya falla (FR-023).
 // `name` y `description` ya son obligatorios en el modelo (allowNull: false).
 export const roleCreateSchema = z.looseObject({
   name: z.string(),

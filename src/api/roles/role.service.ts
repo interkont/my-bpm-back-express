@@ -1,19 +1,20 @@
 import type { Transaction } from 'sequelize';
 import { Role, User } from '../../models';
 import { sequelize } from '../../config/database';
-import { attrs } from '../../utils/pick';
+import { attrs, pick } from '../../utils/pick';
+import { conflict, notFound } from '../../domain/errors';
 import { toRoleDetailDto, toRoleDto, type RoleDetailDto, type RoleDto } from './role.mappers';
 import type { RoleCreateInput, RoleUpdateInput } from './role.schemas';
 
 export type { RoleCreateInput, RoleUpdateInput };
 
-const crearErrorConEstado = (message: string, statusCode: number): Error =>
-  Object.assign(new Error(message), { statusCode });
+// Lista blanca de escritura (data-model §9): `id` y el resto se ignoran.
+const ROLE_FIELDS = ['name', 'description'] as const;
 
 const memberAttrs = attrs<User>()('id', 'fullName', 'email', 'status');
 
 export const createRole = async (data: RoleCreateInput): Promise<RoleDto> => {
-  return toRoleDto(await Role.create(data));
+  return toRoleDto(await Role.create({ name: data.name, description: data.description }));
 };
 
 export const getAllRoles = async (): Promise<RoleDto[]> => {
@@ -38,15 +39,15 @@ export const updateRole = async (
   id: number,
   data: RoleUpdateInput,
 ): Promise<RoleDetailDto | null> => {
-  const { userIds, ...roleData } = data;
+  const { userIds } = data;
   const role = await Role.findByPk(id);
 
   if (!role) {
-    throw crearErrorConEstado('Role not found', 404);
+    throw notFound('Role not found');
   }
 
   // Actualizar datos básicos del rol
-  await role.update(roleData);
+  await role.update(pick(data, ROLE_FIELDS));
 
   // Si se proporciona userIds, sincronizar la lista de miembros
   if (userIds !== undefined) {
@@ -63,12 +64,12 @@ export const deleteRole = async (id: number): Promise<void> => {
     const role = await Role.findByPk(id, { transaction: t });
 
     if (!role) {
-      throw crearErrorConEstado('Role not found', 404);
+      throw notFound('Role not found');
     }
 
     const userCount = await role.countUsers({ transaction: t });
     if (userCount > 0) {
-      throw crearErrorConEstado('Cannot delete role with associated users', 409);
+      throw conflict('Cannot delete role with associated users');
     }
 
     await role.destroy({ transaction: t });

@@ -20,7 +20,7 @@ export type DecisionLogPlain = Pick<
   | 'errorMessage'
   | 'executedByUserId'
   | 'createdAt'
-> & { executedByUser?: Pick<User, 'id' | 'email'> };
+> & { executedByUser?: Pick<User, 'id' | 'fullName' | 'email'> };
 
 export interface DecisionLogDto {
   id: number;
@@ -31,7 +31,7 @@ export interface DecisionLogDto {
   errorMessage: string | null | undefined;
   executedByUserId: number;
   createdAt: Date;
-  executedByUser?: { id: number; email: string };
+  executedByUser?: { id: number; fullName: string; email: string };
 }
 
 export const toNextTask = (
@@ -43,7 +43,7 @@ export const toNextTask = (
   assignedRoleId: element.assignedRoleId,
 });
 
-// Todavía sin uso: `getDecisionLogs` sigue devolviendo los modelos tal cual y pide un `username` que no existe en `User` (se corrige en US4).
+// Proyección pública de un registro de decisión: del usuario expone `id`, `fullName` y `email` (FR-026).
 export const toDecisionLog = (log: DecisionLogPlain): DecisionLogDto => ({
   id: log.id,
   businessProcessKey: log.businessProcessKey,
@@ -56,6 +56,7 @@ export const toDecisionLog = (log: DecisionLogPlain): DecisionLogDto => ({
   ...(log.executedByUser && {
     executedByUser: {
       id: log.executedByUser.id,
+      fullName: log.executedByUser.fullName,
       email: log.executedByUser.email,
     },
   }),

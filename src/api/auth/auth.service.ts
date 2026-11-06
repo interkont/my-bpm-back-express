@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { User, Role, SystemRoleModule } from '../../models';
 import { config } from '../../config';
 import { attrs } from '../../utils/pick';
+import { invalidCredentials, invalidOldPassword, notFound, validation } from '../../domain/errors';
 import type { UpdateProfileInput } from './auth.schemas';
 import { toLoginResponse, toUserDto } from './auth.mappers';
 import type { LoginResponseDto, UserDto } from './auth.mappers';
@@ -13,22 +14,18 @@ interface UpdateProfileFields {
   passwordHash?: string;
 }
 
-interface ErrorWithStatus extends Error {
-  statusCode?: number;
-}
-
 export const login = async (email: string, password: string): Promise<LoginResponseDto> => {
   const user = await User.findOne({
     where: { email },
     include: [{ model: Role, as: 'roles' }],
   });
   if (!user) {
-    throw new Error('Invalid credentials');
+    throw invalidCredentials('Invalid credentials');
   }
 
   const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
   if (!isPasswordValid) {
-    throw new Error('Invalid credentials');
+    throw invalidCredentials('Invalid credentials');
   }
 
   // Obtener los módulos permitidos para el systemRole del usuario
@@ -56,9 +53,7 @@ export const login = async (email: string, password: string): Promise<LoginRespo
 export const updateProfile = async (userId: number, data: UpdateProfileInput): Promise<UserDto> => {
   const user = await User.findByPk(userId);
   if (!user) {
-    const error: ErrorWithStatus = new Error('User not found');
-    error.statusCode = 404;
-    throw error;
+    throw notFound('User not found');
   }
 
   const { fullName, email, oldPassword, newPassword } = data;
@@ -69,16 +64,15 @@ export const updateProfile = async (userId: number, data: UpdateProfileInput): P
 
   if (newPassword) {
     if (!oldPassword) {
-      const error: ErrorWithStatus = new Error('Old password is required to set a new password');
-      error.statusCode = 400; // Bad Request
-      throw error;
+      throw validation(
+        [{ field: 'oldPassword', msg: 'Old password is required to set a new password' }],
+        'Old password is required to set a new password',
+      );
     }
 
     const isPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
     if (!isPasswordValid) {
-      const error: ErrorWithStatus = new Error('Invalid old password');
-      error.statusCode = 401; // Unauthorized
-      throw error;
+      throw invalidOldPassword('Invalid old password');
     }
 
     updateData.passwordHash = await bcrypt.hash(newPassword, 10);

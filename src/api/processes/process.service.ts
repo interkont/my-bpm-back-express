@@ -15,7 +15,8 @@ import {
   ElementFormLink,
   FieldDefinition,
 } from '../../models';
-import { attrs } from '../../utils/pick';
+import { attrs, pick } from '../../utils/pick';
+import { activeVersionConflict, modelError, notFound } from '../../domain/errors';
 import { toFormField, type FormFieldDto } from '../../utils/formFields';
 import type {
   IncomingElement,
@@ -38,6 +39,40 @@ type ProcessDefinitionCreation = InferCreationAttributes<ProcessDefinition>;
 type ProcessElementCreation = InferCreationAttributes<ProcessElement>;
 type ProcessSequenceCreation = InferCreationAttributes<ProcessSequence>;
 type ElementFormLinkCreation = MakeNullishOptional<InferCreationAttributes<ElementFormLink>>;
+// Listas blancas de escritura (FR-029, data-model §9): id, version, createdAt y processDefId nunca se aplican desde el cuerpo.
+const DEFINITION_KEYS = [
+  'businessProcessKey',
+  'name',
+  'description',
+  'category',
+  'status',
+  'bpmnProcessId',
+] as const satisfies readonly (keyof ProcessDefinitionCreation)[];
+const ELEMENT_KEYS = [
+  'bpmnElementId',
+  'name',
+  'description',
+  'type',
+  'assignedRoleId',
+  'webhookTarget',
+  'slaDefinition',
+] as const satisfies readonly (keyof ProcessElementCreation)[];
+const SEQUENCE_KEYS = [
+  'sourceElementBpmnId',
+  'targetElementBpmnId',
+  'conditionExpression',
+] as const satisfies readonly (keyof ProcessSequenceCreation)[];
+
+// El cuerpo llega sin validar en profundidad (FR-023); `pick` descarta todo lo que no esté en la lista blanca.
+const pickDefinition = (data: SaveProcessInput): Partial<ProcessDefinitionCreation> => ({
+  ...pick(data as Partial<ProcessDefinitionCreation>, DEFINITION_KEYS),
+  bpmnXml: JSON.stringify(data.diagramJson),
+});
+const pickElement = (el: IncomingElement): Partial<ProcessElementCreation> =>
+  pick(el as Partial<ProcessElementCreation>, ELEMENT_KEYS);
+const pickSequence = (seq: IncomingSequence): Partial<ProcessSequenceCreation> =>
+  pick(seq as Partial<ProcessSequenceCreation>, SEQUENCE_KEYS);
+
 type FormLinkData = Pick<
   ElementFormLink,
   'fieldDefId' | 'displayOrder' | 'isRequired' | 'isReadonly' | 'contextualValidations'
@@ -70,7 +105,7 @@ async function validateSingleActiveVersion(
   const activeVersion = await ProcessDefinition.findOne({ where: whereClause, transaction: t });
 
   if (activeVersion) {
-    throw new Error(
+    throw activeVersionConflict(
       `An active version already exists for this process (Version: ${activeVersion.version}, ID: ${activeVersion.id}). Please deactivate it before activating another one.`,
     );
   }
@@ -94,12 +129,10 @@ async function syncElements(
   for (const incomingEl of incomingElements) {
     const existing = existingElementsMap.get(incomingEl.bpmnElementId);
     if (existing) {
-      // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
-      existing.set(incomingEl as Partial<InferAttributes<ProcessElement>>);
+      existing.set(pickElement(incomingEl));
       toUpdate.push(existing);
     } else {
-      // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
-      toCreate.push({ ...incomingEl, processDefId } as ProcessElementCreation);
+      toCreate.push({ ...pickElement(incomingEl), processDefId } as ProcessElementCreation);
     }
   }
 
@@ -123,9 +156,8 @@ async function syncSequences(
 ): Promise<void> {
   await ProcessSequence.destroy({ where: { processDefId }, transaction: t });
   if (incomingSequences && incomingSequences.length > 0) {
-    // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
     const sequencesToCreate = incomingSequences.map(
-      (seq) => ({ ...seq, processDefId }) as ProcessSequenceCreation,
+      (seq) => ({ ...pickSequence(seq), processDefId }) as ProcessSequenceCreation,
     );
     await ProcessSequence.bulkCreate(sequencesToCreate, { transaction: t });
   }
@@ -136,7 +168,7 @@ export const getSaveAnalysis = async (id: string): Promise<SaveAnalysisDto> => {
     attributes: attrs<ProcessDefinition>()('id', 'status'),
   });
   if (!definition) {
-    throw new Error('Process definition not found.');
+    throw notFound('Process definition not found.');
   }
 
   // El JS original pasa el id como string; Postgres lo coerciona (equivalencia 1:1).
@@ -151,10 +183,15 @@ export const saveProcessDefinition = async (
   id: string | undefined,
   data: SaveProcessInput,
 ): Promise<ProcessDefinitionRowDto> => {
-  const { elements = [], sequences = [], ...definitionData } = data;
+  const { elements = [], sequences = [] } = data;
+  const definitionData = pickDefinition(data);
 
   return sequelize.transaction(async (t) => {
     const definitionToUpdate = id ? await ProcessDefinition.findByPk(id, { transaction: t }) : null;
+    // N-01: un id inexistente en PUT es 404 y nunca cae en la rama de alta.
+    if (id && !definitionToUpdate) {
+      throw notFound('Process definition not found.');
+    }
     let mustCreateNewVersion = false;
 
     if (definitionToUpdate) {
@@ -170,28 +207,33 @@ export const saveProcessDefinition = async (
     }
 
     if (definitionToUpdate && mustCreateNewVersion) {
-      // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
+      // FR-028: la nueva versión es MAX(version) de la clave + 1, calculado dentro de la transacción.
+      const maxVersion = await ProcessDefinition.max<number, ProcessDefinition>('version', {
+        where: { businessProcessKey: definitionToUpdate.businessProcessKey },
+        transaction: t,
+      });
       const newDefinition = await ProcessDefinition.create(
         {
           ...definitionData,
           businessProcessKey: definitionToUpdate.businessProcessKey,
-          version: definitionToUpdate.version + 1,
+          version: maxVersion + 1,
           status: 'DRAFT',
-          bpmnXml: JSON.stringify(data.diagramJson),
         } as ProcessDefinitionCreation,
         { transaction: t },
       );
 
       const newProcessDefId = newDefinition.id;
 
-      // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
       const newElements = await ProcessElement.bulkCreate(
-        elements.map((el) => ({ ...el, processDefId: newProcessDefId }) as ProcessElementCreation),
+        elements.map(
+          (el) => ({ ...pickElement(el), processDefId: newProcessDefId }) as ProcessElementCreation,
+        ),
         { transaction: t, returning: true },
       );
       await ProcessSequence.bulkCreate(
         sequences.map(
-          (seq) => ({ ...seq, processDefId: newProcessDefId }) as ProcessSequenceCreation,
+          (seq) =>
+            ({ ...pickSequence(seq), processDefId: newProcessDefId }) as ProcessSequenceCreation,
         ),
         { transaction: t },
       );
@@ -239,10 +281,7 @@ export const saveProcessDefinition = async (
       return toDefinitionRow(newDefinition);
     } else {
       let processDefinition: ProcessDefinition;
-      const finalDefinitionData = {
-        ...definitionData,
-        bpmnXml: JSON.stringify(data.diagramJson),
-      };
+      const finalDefinitionData = definitionData;
 
       if (finalDefinitionData.status === 'ACTIVE') {
         // La clave llega sin validar; si falta, Sequelize rechaza el valor undefined igual que en el JS original.
@@ -255,14 +294,9 @@ export const saveProcessDefinition = async (
       }
 
       if (definitionToUpdate) {
-        // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
-        await definitionToUpdate.update(
-          finalDefinitionData as Partial<InferAttributes<ProcessDefinition>>,
-          { transaction: t },
-        );
+        await definitionToUpdate.update(finalDefinitionData, { transaction: t });
         processDefinition = definitionToUpdate;
       } else {
-        // Sequelize ignora claves que no son atributos; equivalencia 1:1, la lista blanca llega en US3 (FR-029).
         processDefinition = await ProcessDefinition.create(
           {
             ...finalDefinitionData,
@@ -294,24 +328,12 @@ export const updateProcessDefinitionMetadata = async (
   return sequelize.transaction(async (t) => {
     const definitionToActivate = await ProcessDefinition.findByPk(processDefId, { transaction: t });
     if (!definitionToActivate) {
-      throw new Error('Process definition not found.');
+      throw notFound('Process definition not found.');
     }
 
     if (data.status === 'ACTIVE' && definitionToActivate.status !== 'ACTIVE') {
       await validateSingleActiveVersion(processDefId, definitionToActivate.businessProcessKey, t);
-
-      const currentActive = await ProcessDefinition.findOne({
-        where: {
-          businessProcessKey: definitionToActivate.businessProcessKey,
-          status: 'ACTIVE',
-          id: { [Op.not]: processDefId },
-        },
-        transaction: t,
-      });
-
-      if (currentActive) {
-        await currentActive.update({ status: 'DEPRECATED' }, { transaction: t });
-      }
+      // validateSingleActiveVersion ya lanza si existe otra ACTIVE: no queda nada que pasar a DEPRECATED (AP-05).
     }
 
     const allowedUpdates: MetadataInput = {
@@ -337,7 +359,7 @@ export const updateProcessDefinitionMetadata = async (
         attributes: ['id'],
       });
       if (!definitionExists) {
-        throw new Error('Process definition not found.');
+        throw notFound('Process definition not found.');
       }
     }
 
@@ -387,7 +409,7 @@ export const deleteProcessDefinition = async (id: string): Promise<{ message: st
   return sequelize.transaction(async (t) => {
     const definition = await ProcessDefinition.findByPk(processDefId, { transaction: t });
     if (!definition) {
-      throw new Error('Process definition not found.');
+      throw notFound('Process definition not found.');
     }
 
     await ProcessSequence.destroy({ where: { processDefId }, transaction: t });
@@ -420,16 +442,18 @@ export const getStartForm = async (processDefId: string): Promise<StartFormDefin
   });
 
   if (!startEventElement) {
-    throw new Error('Start form definition not found for this process.');
+    throw notFound('Start form definition not found for this process.');
   }
 
   // elementFormLinks se pobla con el include de arriba (siempre es un arreglo, posiblemente vacío).
   const links = startEventElement.elementFormLinks ?? [];
-  const formFields = links.map((link) =>
-    // fieldDefinition se pobla con el include anidado; field_def_id es NOT NULL, por lo que siempre existe.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    toFormField(link.fieldDefinition!, link, null),
-  );
+  const formFields = links.map((link) => {
+    // FR-027: un vínculo que apunta a una FieldDefinition inexistente es un error del modelo (422).
+    if (!link.fieldDefinition) {
+      throw modelError(`Field definition ${link.fieldDefId} not found for start form link.`);
+    }
+    return toFormField(link.fieldDefinition, link, null);
+  });
 
   const formDefinition: StartFormDefinition = {
     // Se conserva `||` (no `??`): un nombre vacío cae al valor por defecto como en el JS original.

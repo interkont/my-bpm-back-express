@@ -2,15 +2,90 @@
 
 exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] admin result (users has no username column) 1`] = `
 {
-  "body": {},
-  "status": 500,
-  "text": "Something broke!",
+  "body": [
+    {
+      "businessProcessKey": "LINEAR",
+      "createdAt": "<date>",
+      "currentBpmnElementId": "Nope_Element",
+      "errorMessage": "Element with BPMN ID 'Nope_Element' not found in process 'LINEAR'.",
+      "executedByUser": {
+        "email": "approver@flowify.test",
+        "fullName": "Approver Test",
+        "id": 2,
+      },
+      "executedByUserId": 2,
+      "id": 3,
+      "requestPayload": {
+        "businessProcessKey": "LINEAR",
+        "contextData": {},
+        "currentBpmnElementId": "Nope_Element",
+      },
+      "responsePayload": null,
+    },
+    {
+      "businessProcessKey": "NOPE",
+      "createdAt": "<date>",
+      "currentBpmnElementId": "StartEvent_X",
+      "errorMessage": "Process with key 'NOPE' not found or is not active.",
+      "executedByUser": {
+        "email": "approver@flowify.test",
+        "fullName": "Approver Test",
+        "id": 2,
+      },
+      "executedByUserId": 2,
+      "id": 2,
+      "requestPayload": {
+        "businessProcessKey": "NOPE",
+        "contextData": {},
+        "currentBpmnElementId": "StartEvent_X",
+      },
+      "responsePayload": null,
+    },
+    {
+      "businessProcessKey": "EXCLUSIVE",
+      "createdAt": "<date>",
+      "currentBpmnElementId": "StartEvent_X",
+      "errorMessage": null,
+      "executedByUser": {
+        "email": "admin@flowify.test",
+        "fullName": "Admin Test",
+        "id": 1,
+      },
+      "executedByUserId": 1,
+      "id": 1,
+      "requestPayload": {
+        "businessProcessKey": "EXCLUSIVE",
+        "contextData": {
+          "instance": {
+            "businessData": {
+              "purchaseAmount": 2000,
+            },
+          },
+          "task": {},
+        },
+        "currentBpmnElementId": "StartEvent_X",
+      },
+      "responsePayload": {
+        "nextTasks": [
+          {
+            "assignedRoleId": 1,
+            "bpmnElementId": "Task_High",
+            "name": "High amount review",
+            "type": "USER_TASK",
+          },
+        ],
+      },
+    },
+  ],
+  "status": 200,
+  "text": undefined,
 }
 `;
 
 exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] non-admin -> 403 1`] = `
 {
   "body": {
+    "code": "FORBIDDEN",
     "message": "Forbidden: Requires admin privileges.",
   },
   "status": 403,
@@ -20,9 +95,12 @@ exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] no
 
 exports[`engine contract (JS baseline) GET /api/engine/decision-logs [frozen] unknown key error shape 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process with key 'NOPE' not found or is not active.",
+  "status": 404,
 }
 `;
 
@@ -60,7 +138,15 @@ exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (valida
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing businessProcessKey -> 400 { error } 1`] = `
 {
   "body": {
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "",
+        "msg": "Invalid input",
+      },
+    ],
     "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+    "message": "businessProcessKey, currentBpmnElementId, and contextData are required.",
   },
   "status": 400,
   "text": undefined,
@@ -70,7 +156,15 @@ exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (valida
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing contextData -> 400 { error } 1`] = `
 {
   "body": {
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "",
+        "msg": "Invalid input",
+      },
+    ],
     "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+    "message": "businessProcessKey, currentBpmnElementId, and contextData are required.",
   },
   "status": 400,
   "text": undefined,
@@ -80,7 +174,15 @@ exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (valida
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] missing currentBpmnElementId -> 400 { error } 1`] = `
 {
   "body": {
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "",
+        "msg": "Invalid input",
+      },
+    ],
     "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+    "message": "businessProcessKey, currentBpmnElementId, and contextData are required.",
   },
   "status": 400,
   "text": undefined,
@@ -90,7 +192,15 @@ exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (valida
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] no body at all -> 400 { error } 1`] = `
 {
   "body": {
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "",
+        "msg": "Invalid input",
+      },
+    ],
     "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+    "message": "businessProcessKey, currentBpmnElementId, and contextData are required.",
   },
   "status": 400,
   "text": undefined,
@@ -101,17 +211,23 @@ exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (valida
 
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] unknown element in a known process 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Element with BPMN ID 'Nope_Element' not found in process 'LINEAR'.",
+  "status": 404,
 }
 `;
 
 exports[`engine contract (JS baseline) POST /api/engine/decide-next-task (validation and failures) [frozen] unknown process key 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process with key 'NOPE' not found or is not active.",
+  "status": 404,
 }
 `;
 

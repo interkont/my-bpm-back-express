@@ -325,14 +325,15 @@ describe('processes contract', () => {
       expect(await defs("business_process_key = 'VERSIONED'")).toMatchSnapshot('defs');
     });
 
-    it('[frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> violación de unicidad (hoy)', async () => {
+    it('[frozen] PUT /processes/:id desde versión no última con instancias (v1 con v2 existente) -> nueva versión max + 1 (FR-028; antes violación de unicidad)', async () => {
       await query(
         `INSERT INTO process_instances (process_def_id, status, business_data, started_by_user_id) VALUES (7, 'RUNNING', '{}', 3)`,
       );
       const res = await api
         .put('/api/processes/7')
         .send(buildPayload({ businessProcessKey: 'VERSIONED', bpmnProcessId: 'Process_VERSIONED' }));
-      expectFrozenError(res);
+      // FR-028: hoy (JS) era una violación de unicidad; tras la corrección responde 200 con la versión max + 1.
+      expectFrozen(res);
       expect(await defs("business_process_key = 'VERSIONED'")).toMatchSnapshot('defs');
       expect(await elems('process_def_id > 9 AND process_def_id <> 10')).toMatchSnapshot('elements');
     });

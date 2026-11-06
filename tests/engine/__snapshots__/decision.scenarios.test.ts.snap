@@ -597,7 +597,15 @@ exports[`decision engine scenarios end event has no outgoing (empty nextTasks) 2
 exports[`decision engine scenarios missing contextData is rejected before logging 1`] = `
 {
   "body": {
+    "code": "VALIDATION_ERROR",
+    "details": [
+      {
+        "field": "",
+        "msg": "Invalid input",
+      },
+    ],
     "error": "businessProcessKey, currentBpmnElementId, and contextData are required.",
+    "message": "businessProcessKey, currentBpmnElementId, and contextData are required.",
   },
   "status": 400,
   "text": undefined,
@@ -606,9 +614,12 @@ exports[`decision engine scenarios missing contextData is rejected before loggin
 
 exports[`decision engine scenarios unknown element (error stored in log) 1`] = `
 {
-  "body": {},
-  "status": 500,
-  "text": "Something broke!",
+  "body": {
+    "code": "NOT_FOUND",
+    "message": "Element with BPMN ID 'Nope' not found in process 'LINEAR'.",
+  },
+  "status": 404,
+  "text": undefined,
 }
 `;
 
@@ -636,9 +647,12 @@ exports[`decision engine scenarios unknown element (error stored in log) 2`] = `
 
 exports[`decision engine scenarios unknown process key (error stored in log) 1`] = `
 {
-  "body": {},
-  "status": 500,
-  "text": "Something broke!",
+  "body": {
+    "code": "NOT_FOUND",
+    "message": "Process with key 'NOPE' not found or is not active.",
+  },
+  "status": 404,
+  "text": undefined,
 }
 `;
 

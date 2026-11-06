@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as instanceController from './processInstance.controller';
 import { protect } from '../middlewares/auth.middleware';
+import { idParam } from '../middlewares/validate.middleware';
 
 export const processInstanceRouter = Router();
 
@@ -17,6 +18,7 @@ processInstanceRouter.post('/record', instanceController.createProcessInstanceRe
 
 processInstanceRouter
   .route('/:id')
+  .all(idParam) // hoy un id no numérico da 500 (parseInt -> NaN)
   .get(instanceController.getProcessInstanceById)
   .put(instanceController.updateProcessInstance)
   .delete(instanceController.deleteProcessInstance);

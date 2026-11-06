@@ -60,7 +60,7 @@ exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances
 exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances/:id con id y processDefId en el cuerpo (asignación masiva hoy) 1`] = `
 {
   "body": [
-    1,
+    0,
   ],
   "status": 200,
   "text": undefined,
@@ -76,8 +76,8 @@ exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances
     },
     "description": "Instancia LINEAR completada",
     "has_end_time": true,
-    "id": 600,
-    "process_def_id": 8,
+    "id": 2,
+    "process_def_id": 1,
     "started_by_user_id": 3,
     "status": "COMPLETED",
   },
@@ -122,9 +122,12 @@ exports[`process-instances contract PUT y DELETE [frozen] PUT /process-instances
 
 exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave AUTO falla y revierte la transacción (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Unsupported element type: AUTO_TASK",
+  "status": 422,
 }
 `;
 
@@ -160,9 +163,12 @@ exports[`process-instances contract inicio con el motor [frozen] POST /process-i
 
 exports[`process-instances contract inicio con el motor [frozen] POST /process-instances con clave inexistente (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Process with key 'NOPE' not found or is not active.",
+  "status": 404,
 }
 `;
 
@@ -171,7 +177,7 @@ exports[`process-instances contract inicio con el motor [frozen] POST /process-i
   "body": {
     "message": "Process instance started successfully.",
     "processInstanceId": 6,
-    "status": "RUNNING",
+    "status": "COMPLETED",
   },
   "status": 201,
   "text": undefined,
@@ -264,8 +270,10 @@ exports[`process-instances contract inicio con el motor [frozen] POST /process-i
 
 exports[`process-instances contract inicio con el motor [frozen] POST /process-instances sin businessProcessKey (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
+  "keys": [
+    "message",
+  ],
+  "message": "Internal server error",
   "status": 500,
 }
 `;
@@ -392,6 +400,7 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances lis
 exports[`process-instances contract lecturas [frozen] GET /process-instances/:id inexistente responde 404 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Process instance not found",
@@ -539,29 +548,6 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
         "createdAt": "<date>",
         "dueDate": null,
         "elementDefId": 2,
-        "id": 4,
-        "processElement": {
-          "bpmnElementId": "Task_L",
-          "name": "Linear task",
-        },
-        "processInstanceId": 4,
-        "status": "PENDING",
-      },
-      {
-        "assignedRole": {
-          "name": "Aprobador",
-        },
-        "assignedToRoleId": 1,
-        "assignedToUserId": null,
-        "assignedUser": null,
-        "comments": null,
-        "completedByUser": null,
-        "completedByUserId": null,
-        "completionPayload": null,
-        "completionTime": null,
-        "createdAt": "<date>",
-        "dueDate": null,
-        "elementDefId": 2,
         "id": 5,
         "processElement": {
           "bpmnElementId": "Task_L",
@@ -586,6 +572,29 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
         "dueDate": null,
         "elementDefId": 2,
         "id": 6,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 4,
+        "status": "PENDING",
+      },
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 4,
         "processElement": {
           "bpmnElementId": "Task_L",
           "name": "Linear task",
@@ -660,9 +669,13 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
 
 exports[`process-instances contract lecturas [frozen] GET /process-instances/:id no numérico (hoy parseInt -> NaN) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
@@ -672,7 +685,7 @@ exports[`process-instances contract registro directo /record [frozen] POST /proc
     "businessData": {},
     "description": null,
     "endTime": null,
-    "id": 500,
+    "id": 6,
     "processDefId": 1,
     "startTime": "<date>",
     "startedByUserId": 3,
@@ -700,7 +713,7 @@ exports[`process-instances contract registro directo /record [frozen] POST /proc
     "business_data": {},
     "description": null,
     "has_end_time": false,
-    "id": 500,
+    "id": 6,
     "process_def_id": 1,
     "started_by_user_id": 3,
     "status": "COMPLETED",
@@ -747,8 +760,10 @@ exports[`process-instances contract registro directo /record [frozen] POST /proc
 
 exports[`process-instances contract registro directo /record [frozen] POST /process-instances/record sin processDefId (hoy error genérico) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
+  "keys": [
+    "message",
+  ],
+  "message": "Internal server error",
   "status": 500,
 }
 `;

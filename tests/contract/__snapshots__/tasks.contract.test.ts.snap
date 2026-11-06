@@ -15,7 +15,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] id with n
           "isReadonly": false,
           "isRequired": false,
         },
-        "value": null,
+        "value": false,
       },
       {
         "fieldType": "TEXT",
@@ -25,7 +25,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] id with n
           "isReadonly": true,
           "isRequired": false,
         },
-        "value": null,
+        "value": "",
       },
     ],
     "taskName": "Linear task",
@@ -37,9 +37,13 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] id with n
 
 exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] non-numeric task id 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
@@ -58,7 +62,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] pending t
           "isReadonly": false,
           "isRequired": false,
         },
-        "value": null,
+        "value": false,
       },
       {
         "fieldType": "TEXT",
@@ -68,7 +72,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] pending t
           "isReadonly": true,
           "isRequired": false,
         },
-        "value": null,
+        "value": "",
       },
     ],
     "taskName": "Linear task",
@@ -93,7 +97,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] task of a
           "isReadonly": false,
           "isRequired": false,
         },
-        "value": null,
+        "value": false,
       },
       {
         "fieldType": "TEXT",
@@ -103,7 +107,7 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] task of a
           "isReadonly": true,
           "isRequired": false,
         },
-        "value": null,
+        "value": "",
       },
     ],
     "taskName": "Linear task",
@@ -129,9 +133,12 @@ exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] task with
 
 exports[`tasks contract (JS baseline) GET /api/tasks/:id/form [frozen] unknown task id 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Task not found",
+  "status": 404,
 }
 `;
 
@@ -218,7 +225,9 @@ exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] token wit
 exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] token without roleIds is rejected with 401 { error } 1`] = `
 {
   "body": {
+    "code": "MISSING_AUTH_DATA",
     "error": "User authentication data is missing.",
+    "message": "User authentication data is missing.",
   },
   "status": 401,
   "text": undefined,
@@ -227,9 +236,12 @@ exports[`tasks contract (JS baseline) GET /api/tasks/my-tasks [frozen] token wit
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] already COMPLETED task 2 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Task not found, not pending, or not authorized.",
+  "status": 404,
 }
 `;
 
@@ -275,17 +287,24 @@ exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths,
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] non-numeric id yields NaN 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid id parameter",
+  "status": 400,
 }
 `;
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] requester is not authorized for a role-1 task 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Task not found, not pending, or not authorized.",
+  "status": 404,
 }
 `;
 
@@ -304,8 +323,10 @@ exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths,
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] token without roleIds on complete 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
+  "keys": [
+    "message",
+  ],
+  "message": "Internal server error",
   "status": 500,
 }
 `;
@@ -325,9 +346,12 @@ exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths,
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (error paths, no state change) [frozen] unknown task id 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Task not found, not pending, or not authorized.",
+  "status": 404,
 }
 `;
 
@@ -409,9 +433,12 @@ exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy
 
 exports[`tasks contract (JS baseline) POST /api/tasks/:id/complete (task 1 happy path) [frozen] completing the same task again fails 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Task not found, not pending, or not authorized.",
+  "status": 404,
 }
 `;
 

@@ -222,9 +222,12 @@ exports[`engine execution scenarios AUTO: start fails and the transaction rolls 
 {
   "completes": [],
   "start": {
-    "body": {},
-    "status": 500,
-    "text": "Something broke!",
+    "body": {
+      "code": "PROCESS_MODEL_ERROR",
+      "message": "Unsupported element type: AUTO_TASK",
+    },
+    "status": 422,
+    "text": undefined,
   },
   "timeline": [
     {
@@ -243,7 +246,7 @@ exports[`engine execution scenarios END_AT_START: instance completes at start 1`
     "body": {
       "message": "Process instance started successfully.",
       "processInstanceId": 5,
-      "status": "RUNNING",
+      "status": "COMPLETED",
     },
     "status": 201,
     "text": undefined,

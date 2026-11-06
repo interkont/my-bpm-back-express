@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
-// Cuerpo de POST /engine/decide-next-task. Permisivo y solo de tipo: la regla 400 vigente se
-// mantiene en el controller hasta US4; la validación en runtime no se cablea todavía.
+// Mensaje 400 vigente (FR-025): se conserva literal y bajo la clave `error`.
+export const DECIDE_NEXT_TASK_REQUIRED_MESSAGE =
+  'businessProcessKey, currentBpmnElementId, and contextData are required.';
+
+// Cuerpo de POST /engine/decide-next-task. Los tres campos deben tener valor verdadero, igual que
+// la comprobación manual que existía en el controller.
 export const decideNextTaskSchema = z
   .object({
     businessProcessKey: z.string().optional(),
@@ -14,6 +18,9 @@ export const decideNextTaskSchema = z
       .catchall(z.json())
       .optional(),
   })
-  .catchall(z.json());
+  .catchall(z.json())
+  .refine((body) =>
+    Boolean(body.businessProcessKey && body.currentBpmnElementId && body.contextData),
+  );
 
 export type DecideNextTaskInput = z.infer<typeof decideNextTaskSchema>;

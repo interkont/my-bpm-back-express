@@ -1,13 +1,16 @@
+import type { ParamsDictionary } from 'express-serve-static-core';
 import * as processService from './process.service';
 import type { MetadataInput, SaveProcessInput } from './process.schemas';
 import { catchAsync } from '../../utils/catchAsync';
+import { notFound } from '../../domain/errors';
 
-interface IdParams {
+// Extiende ParamsDictionary para encajar con los validadores de id genéricos de las rutas.
+interface IdParams extends ParamsDictionary {
   id: string;
 }
 
 // En POST / no hay :id (creación); en PUT /:id sí.
-interface OptionalIdParams {
+interface OptionalIdParams extends Partial<ParamsDictionary> {
   id?: string;
 }
 
@@ -47,7 +50,7 @@ export const getProcessDefinitionById = catchAsync<IdParams>(async (req, res) =>
   const { id } = req.params;
   const processDefinition = await processService.getProcessDefinitionById(id);
   if (!processDefinition) {
-    return res.status(404).json({ message: 'Process definition not found' });
+    throw notFound('Process definition not found');
   }
   res.status(200).json(processDefinition);
 });

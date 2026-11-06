@@ -6,12 +6,27 @@ import {
   DecisionLog,
   User,
 } from '../../models';
+import { modelError, notFound } from '../../domain/errors';
+import { attrs } from '../../utils/pick';
 import { isElementType } from '../../domain/constants';
 import type { BusinessData, JsonObject, JsonValue } from '../../domain/types';
 import { buildEvaluationContext, chooseExclusiveRoute, type EvaluationContext } from './context';
-import { buildGraph, outgoingOf, type ElementNode, type ProcessGraph } from './graph';
+import {
+  buildGraph,
+  outgoingOf,
+  type ElementNode,
+  type ProcessGraph,
+  type SequenceEdge,
+} from './graph';
+import { enterNode, resolveTarget, type TraversalPath } from './traversal';
 import { NODE_SEMANTICS } from './semantics';
-import { toNextTask, type NextTaskDto } from './decision.mappers';
+import {
+  toDecisionLog,
+  toNextTask,
+  type DecisionLogDto,
+  type NextTaskDto,
+} from './decision.mappers';
+import { logger } from '../../utils/logger';
 
 // Contexto que envía el cliente: la instancia (con su `businessData`) y la tarea actual.
 export type DecisionContext = {
@@ -27,30 +42,33 @@ export type DecisionResponse = {
 
 /**
  * Elementos destino de una lista de aristas, como los devolvía `findAll ... IN (...)`: sin
- * duplicados, ignorando destinos inexistentes y en orden de `id` de elemento (orden de inserción).
+ * duplicados y en orden de `id` de elemento (orden de inserción). Un destino inexistente en una
+ * arista recorrida es un error de modelado (FR-027).
  */
-const targetsOf = (graph: ProcessGraph, edges: readonly { target: string }[]): ElementNode[] => {
-  const unique = new Set(edges.map((edge) => edge.target));
-  const found: ElementNode[] = [];
-  for (const bpmnId of unique) {
-    const node = graph.elements.get(bpmnId);
-    if (node) found.push(node);
+const targetsOf = (graph: ProcessGraph, edges: readonly SequenceEdge[]): ElementNode[] => {
+  const byBpmnId = new Map<string, ElementNode>();
+  for (const edge of edges) {
+    if (!byBpmnId.has(edge.target)) byBpmnId.set(edge.target, resolveTarget(graph, edge));
   }
-  return found.sort((a, b) => a.id - b.id);
+  return [...byBpmnId.values()].sort((a, b) => a.id - b.id);
 };
 
 /**
  * Recorre el grafo (puro, ya cargado) para encontrar las siguientes tareas o eventos de fin.
+ * `path` son los ancestros del camino actual: revisitar uno es un ciclo sin elementos bloqueantes.
  */
 const findNextBlockingElements = (
   element: ElementNode,
   graph: ProcessGraph,
   evaluationContext: EvaluationContext,
+  parentPath: TraversalPath,
 ): ElementNode[] => {
+  const path = enterNode(parentPath, element);
+
   // Tipo ajeno a `ELEMENT_TYPE` (dato corrupto): como antes, sin salidas es callejón y con salidas falla.
   if (!isElementType(element.type)) {
     if (outgoingOf(graph, element.bpmnElementId).length === 0) return [];
-    throw new Error(`Unsupported element type for decision traversal: ${String(element.type)}`);
+    throw modelError(`Unsupported element type for decision traversal: ${String(element.type)}`);
   }
 
   const behavior = NODE_SEMANTICS[element.type].decision;
@@ -60,7 +78,7 @@ const findNextBlockingElements = (
     case 'FOLLOW_ALL': {
       const outgoing = outgoingOf(graph, element.bpmnElementId);
       return targetsOf(graph, outgoing).flatMap((next) =>
-        findNextBlockingElements(next, graph, evaluationContext),
+        findNextBlockingElements(next, graph, evaluationContext, path),
       );
     }
     case 'EXCLUSIVE': {
@@ -68,12 +86,11 @@ const findNextBlockingElements = (
       if (outgoing.length === 0) return []; // Callejón sin salida
       const chosen = chooseExclusiveRoute(outgoing, evaluationContext);
       if (!chosen) {
-        throw new Error(
+        throw modelError(
           `No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${element.bpmnElementId}.`,
         );
       }
-      const next = graph.elements.get(chosen.target);
-      return next ? findNextBlockingElements(next, graph, evaluationContext) : [];
+      return findNextBlockingElements(resolveTarget(graph, chosen), graph, evaluationContext, path);
     }
   }
 };
@@ -107,7 +124,7 @@ export const decideNextTask = async (
       order: [['version', 'DESC']],
     });
     if (!processDefinition) {
-      throw new Error(`Process with key '${businessProcessKey}' not found or is not active.`);
+      throw notFound(`Process with key '${businessProcessKey}' not found or is not active.`);
     }
 
     // 2. Cargar elementos y secuencias una sola vez y construir el grafo.
@@ -120,7 +137,7 @@ export const decideNextTask = async (
     // 3. Encontrar el elemento de partida.
     const startElement = graph.elements.get(currentBpmnElementId);
     if (!startElement) {
-      throw new Error(
+      throw notFound(
         `Element with BPMN ID '${currentBpmnElementId}' not found in process '${businessProcessKey}'.`,
       );
     }
@@ -143,8 +160,9 @@ export const decideNextTask = async (
     );
 
     // 5. Búsqueda DESDE LOS SIGUIENTES elementos.
+    const startPath = enterNode([], startElement);
     const blockingElements = targetsOf(graph, initialOutgoing).flatMap((nextEl) =>
-      findNextBlockingElements(nextEl, graph, evaluationContext),
+      findNextBlockingElements(nextEl, graph, evaluationContext, startPath),
     );
 
     // 6. Formatear la respuesta para el cliente.
@@ -156,23 +174,30 @@ export const decideNextTask = async (
 
     return response;
   } catch (error) {
-    // Actualizar el log con el mensaje de error
-    await log.update({ errorMessage: error instanceof Error ? error.message : String(error) });
-    // Relanzar el error para que el controlador lo maneje
+    // El fallo al registrar el error no debe tapar el error original (N-09).
+    try {
+      await log.update({ errorMessage: error instanceof Error ? error.message : String(error) });
+    } catch (updateError) {
+      logger.error('No se pudo registrar el error en decision_logs', {
+        message: updateError instanceof Error ? updateError.message : String(updateError),
+      });
+    }
+    // Relanzar siempre el error original para que el middleware de errores lo formatee
     throw error;
   }
 };
 
-export const getDecisionLogs = async (): Promise<DecisionLog[]> => {
+export const getDecisionLogs = async (): Promise<DecisionLogDto[]> => {
   // Opcional: Implementar filtros si es necesario en el futuro
-  return DecisionLog.findAll({
+  const logs = await DecisionLog.findAll({
     order: [['createdAt', 'DESC']],
     include: [
       {
         model: User,
         as: 'executedByUser',
-        attributes: ['id', 'username', 'email'],
+        attributes: attrs<User>()('id', 'fullName', 'email'),
       },
     ],
   });
+  return logs.map(toDecisionLog);
 };

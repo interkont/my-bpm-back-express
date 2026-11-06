@@ -1,3 +1,4 @@
+import { missingAuthData } from '../../domain/errors';
 import { catchAsync } from '../../utils/catchAsync';
 import { completeTask as completeTaskInEngine } from '../engine/execution.service';
 import type { CompleteTaskInput } from './task.schemas';
@@ -13,7 +14,7 @@ export const getMyTasks = catchAsync(async (req, res) => {
   const { id: userId, roleIds } = req.user!;
 
   if (!userId || !roleIds) {
-    return res.status(401).json({ error: 'User authentication data is missing.' });
+    throw missingAuthData('User authentication data is missing.');
   }
 
   const tasks = await taskService.getMyTasks(userId, roleIds);

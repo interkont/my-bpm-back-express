@@ -1,18 +1,41 @@
 import bcrypt from 'bcryptjs';
 import { User, Role } from '../../models';
-import { attrs } from '../../utils/pick';
+import { attrs, pick } from '../../utils/pick';
+import { notFound } from '../../domain/errors';
+import type { SystemRole } from '../../domain/constants';
 import { toUserWithRolesDto, type UserWithRolesDto } from './user.mappers';
 import type { CreateUserInput, UpdateUserInput } from './user.schemas';
 
 const BCRYPT_ROUNDS = 10;
 
+// Lista blanca de escritura (data-model §9). `password` y `roleIds` se tratan aparte.
+const USER_FIELDS = ['fullName', 'email', 'systemRole', 'status'] as const;
+
+// La columna es VARCHAR libre: el tipo `SystemRole` es solo documental (FR-023).
+const writableFields = (input: CreateUserInput | UpdateUserInput) => {
+  const { systemRole, ...rest } = pick(input, USER_FIELDS);
+  return systemRole === undefined ? rest : { ...rest, systemRole: systemRole as SystemRole };
+};
+
+const optionalFields = (input: CreateUserInput) => {
+  const { systemRole, status } = pick(input, ['systemRole', 'status'] as const);
+  return {
+    ...(status === undefined ? {} : { status }),
+    ...(systemRole === undefined ? {} : { systemRole: systemRole as SystemRole }),
+  };
+};
+
 const userAttrs = attrs<User>()('id', 'fullName', 'email', 'status', 'systemRole', 'createdAt');
 
 export const createUser = async (input: CreateUserInput): Promise<UserWithRolesDto | null> => {
-  const { password, roleIds, ...userData } = input;
-  // Si falta la contraseña bcrypt lanza y el endpoint responde 500 (comportamiento actual).
+  const { password, roleIds } = input;
   const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
-  const user = await User.create({ ...userData, passwordHash });
+  const user = await User.create({
+    fullName: input.fullName,
+    email: input.email,
+    ...optionalFields(input),
+    passwordHash,
+  });
 
   if (roleIds && roleIds.length > 0) {
     await user.setRoles(roleIds);
@@ -57,11 +80,12 @@ export const updateUser = async (
   id: number,
   data: UpdateUserInput,
 ): Promise<UserWithRolesDto | null> => {
-  const { roleIds, password, ...updateData } = data;
+  const { roleIds, password } = data;
+  const updateData = writableFields(data);
   const user = await User.findByPk(id);
 
   if (!user) {
-    throw new Error('User not found');
+    throw notFound('User not found');
   }
 
   const fields = password

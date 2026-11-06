@@ -24,7 +24,7 @@ const freePort = (): Promise<number> =>
     });
   });
 
-export const startServer = async (): Promise<RunningServer> => {
+const startOnce = async (): Promise<RunningServer> => {
   const target = process.env.CHARACTERIZATION_TARGET ?? 'ts';
   // CHARACTERIZATION_ENTRY permite a cada carril paralelo usar su propia build (p. ej. .build/<carril>/server.js).
   const entry =
@@ -82,4 +82,18 @@ export const startServer = async (): Promise<RunningServer> => {
       await exited;
     },
   };
+};
+
+// El puerto se elige y se libera antes de que el hijo lo ocupe (y el servidor escucha en `::`), así
+// que otro proceso puede tomarlo entre medias. Ante EADDRINUSE se reintenta con un puerto nuevo.
+export const startServer = async (): Promise<RunningServer> => {
+  const attempts = 3;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await startOnce();
+    } catch (error) {
+      const busy = error instanceof Error && error.message.includes('EADDRINUSE');
+      if (!busy || attempt >= attempts) throw error;
+    }
+  }
 };

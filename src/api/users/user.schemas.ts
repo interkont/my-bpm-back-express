@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { SYSTEM_ROLE } from '../../domain/constants';
 
-// Esquemas permisivos (objetos abiertos, sin restricciones nuevas): en US2 solo aportan tipos.
+// Objetos abiertos que solo rechazan lo que hoy ya falla (FR-023).
+// `status` y `systemRole` son texto libre: la columna es VARCHAR sin restricción.
 export const createUserSchema = z.looseObject({
   fullName: z.string(),
   email: z.string(),
   password: z.string(),
   status: z.string().optional(),
-  systemRole: z.enum(SYSTEM_ROLE).optional(),
+  systemRole: z.string().optional(),
   roleIds: z.array(z.number()).optional(),
 });
 export type CreateUserInput = z.infer<typeof createUserSchema>;
@@ -16,7 +16,7 @@ export const updateUserSchema = z.looseObject({
   fullName: z.string().optional(),
   email: z.string().optional(),
   status: z.string().optional(),
-  systemRole: z.enum(SYSTEM_ROLE).optional(),
+  systemRole: z.string().optional(),
   password: z.string().optional(),
   roleIds: z.array(z.number()).optional(),
 });

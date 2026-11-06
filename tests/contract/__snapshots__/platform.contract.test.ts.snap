@@ -27,6 +27,7 @@ exports[`platform contract (JS baseline) [frozen] GET /index.html serves the sam
 exports[`platform contract (JS baseline) [frozen] admin route as USER -> 403 body 1`] = `
 {
   "body": {
+    "code": "FORBIDDEN",
     "message": "Forbidden: Requires admin privileges.",
   },
   "status": 403,
@@ -36,17 +37,20 @@ exports[`platform contract (JS baseline) [frozen] admin route as USER -> 403 bod
 
 exports[`platform contract (JS baseline) [frozen] body larger than 100kb on POST /api/auth/login 1`] = `
 {
-  "contentType": "text/html; charset=utf-8",
+  "contentType": "application/json; charset=utf-8",
   "status": 500,
-  "text": "Something broke!",
+  "text": "{"message":"Internal server error"}",
 }
 `;
 
 exports[`platform contract (JS baseline) [frozen] error responses keep the plain-text shape 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Malformed JSON body",
+  "status": 400,
 }
 `;
 
@@ -60,9 +64,9 @@ exports[`platform contract (JS baseline) [frozen] expired token -> 401 1`] = `
 
 exports[`platform contract (JS baseline) [frozen] malformed JSON body on POST /api/auth/login -> 500 text 1`] = `
 {
-  "contentType": "text/html; charset=utf-8",
-  "status": 500,
-  "text": "Something broke!",
+  "contentType": "application/json; charset=utf-8",
+  "status": 400,
+  "text": "{"message":"Malformed JSON body","code":"MALFORMED_JSON"}",
 }
 `;
 

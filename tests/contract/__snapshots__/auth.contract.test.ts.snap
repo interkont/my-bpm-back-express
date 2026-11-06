@@ -2,9 +2,12 @@
 
 exports[`auth (caracterización JS) POST /api/auth/login [frozen] email desconocido responde 500 (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Invalid credentials",
+  "status": 401,
 }
 `;
 
@@ -80,25 +83,36 @@ exports[`auth (caracterización JS) POST /api/auth/login [frozen] login requeste
 
 exports[`auth (caracterización JS) POST /api/auth/login [frozen] password incorrecta responde 500 (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Invalid credentials",
+  "status": 401,
 }
 `;
 
 exports[`auth (caracterización JS) POST /api/auth/login [frozen] sin email responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid input",
+  "status": 400,
 }
 `;
 
 exports[`auth (caracterización JS) POST /api/auth/login [frozen] sin password responde (hoy) 1`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "details",
+    "message",
+  ],
+  "message": "Invalid input",
+  "status": 400,
 }
 `;
 
@@ -206,15 +220,20 @@ exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambio de pas
 
 exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] cambio de password OK y login con la nueva funciona 3`] = `
 {
-  "keys": [],
-  "message": "Something broke!",
-  "status": 500,
+  "keys": [
+    "code",
+    "message",
+  ],
+  "message": "Invalid credentials",
+  "status": 401,
 }
 `;
 
 exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] newPassword sin oldPassword responde 400 (hoy) 1`] = `
 {
   "keys": [
+    "code",
+    "details",
     "message",
   ],
   "message": "Old password is required to set a new password",
@@ -225,10 +244,11 @@ exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] newPassword s
 exports[`auth (caracterización JS) PUT /api/auth/profile [frozen] oldPassword incorrecta responde 401 (hoy) 1`] = `
 {
   "keys": [
+    "code",
     "message",
   ],
   "message": "Invalid old password",
-  "status": 401,
+  "status": 400,
 }
 `;
 

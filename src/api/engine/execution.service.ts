@@ -12,9 +12,11 @@ import {
 } from '../../models';
 import type { BusinessData, JsonValue } from '../../domain/types';
 import { logger } from '../../utils/logger';
+import { modelError, notFound } from '../../domain/errors';
 import { buildGraph, outgoingOf, type ElementNode, type ProcessGraph } from './graph';
 import { buildEvaluationContext, chooseExclusiveRoute } from './context';
 import { NODE_SEMANTICS } from './semantics';
+import { enterNode, resolveTarget, type TraversalPath } from './traversal';
 
 // Datos que el cliente envía al completar una tarea.
 export type CompletionData = {
@@ -57,20 +59,16 @@ const createTaskInstance = async (
   );
 };
 
-// Resuelve el destino de una arista; si no existe en el grafo falla (se tipará como error de dominio en US4).
-const targetOf = (graph: ProcessGraph, target: string): ElementNode => {
-  const node = graph.elements.get(target);
-  if (!node) throw new Error(`Process modelling error: Element not found: ${target}`);
-  return node;
-};
-
 const processElement = async (
   graph: ProcessGraph,
   node: ElementNode,
+  path: TraversalPath,
   processInstance: ProcessInstance,
   t: Transaction,
   taskContext: TaskContext = {},
 ): Promise<void> => {
+  // Camino de ancestros de esta rama: cada rama del fork recibe su propia copia (los diamantes no son ciclos).
+  const here = enterNode(path, node);
   logger.debug(`[Engine] Processing element: ${node.bpmnElementId} | Type: ${node.type}`);
   const behavior = NODE_SEMANTICS[node.type].execution;
   switch (behavior.kind) {
@@ -79,7 +77,14 @@ const processElement = async (
       logger.debug(`[Engine] | Found ${edges.length} outgoing sequence(s). Following all.`);
       // Secuencial y en orden de arista (reemplaza Promise.all dentro de una sola transacción).
       for (const edge of edges) {
-        await processElement(graph, targetOf(graph, edge.target), processInstance, t, taskContext);
+        await processElement(
+          graph,
+          resolveTarget(graph, edge),
+          here,
+          processInstance,
+          t,
+          taskContext,
+        );
       }
       break;
     }
@@ -92,12 +97,19 @@ const processElement = async (
       const context = buildEvaluationContext(businessData, instanceData, taskContext);
       const chosen = chooseExclusiveRoute(outgoingOf(graph, node.bpmnElementId), context);
       if (!chosen) {
-        throw new Error(
+        throw modelError(
           `No valid outgoing sequence found for EXCLUSIVE_GATEWAY ${node.bpmnElementId}.`,
         );
       }
       logger.debug(`[Engine] | Chosen route: -> ${chosen.target}`);
-      await processElement(graph, targetOf(graph, chosen.target), processInstance, t, taskContext);
+      await processElement(
+        graph,
+        resolveTarget(graph, chosen),
+        here,
+        processInstance,
+        t,
+        taskContext,
+      );
       break;
     }
     case 'COMPLETE_INSTANCE': {
@@ -111,7 +123,7 @@ const processElement = async (
       break;
     }
     case 'UNSUPPORTED':
-      throw new Error(`Unsupported element type: ${node.type}`);
+      throw modelError(`Unsupported element type: ${node.type}`);
   }
 };
 
@@ -129,7 +141,7 @@ export const startProcess = async (
       transaction: t,
     });
     if (!processDefinition)
-      throw new Error(`Process with key '${businessProcessKey}' not found or is not active.`);
+      throw notFound(`Process with key '${businessProcessKey}' not found or is not active.`);
     const processInstance = await ProcessInstance.create(
       {
         processDefId: processDefinition.id,
@@ -146,9 +158,12 @@ export const startProcess = async (
       where: { processDefId: processDefinition.id, type: 'START_EVENT' },
       transaction: t,
     });
-    if (!startEvent) throw new Error('Process is invalid: No START_EVENT found.');
-    await processElement(graph, targetOf(graph, startEvent.bpmnElementId), processInstance, t, {});
-    return processInstance;
+    const startNode = startEvent && graph.elements.get(startEvent.bpmnElementId);
+    if (!startNode) throw modelError('Process is invalid: No START_EVENT found.');
+    await processElement(graph, startNode, [], processInstance, t, {});
+    // Se recarga dentro de la transacción para devolver el estado real (p. ej. COMPLETED si el fin está tras el inicio, FR-032).
+    const reloaded = await ProcessInstance.findByPk(processInstance.id, { transaction: t });
+    return reloaded ?? processInstance;
   });
 };
 
@@ -173,10 +188,13 @@ export const completeTask = async (
       ],
       transaction: t,
     });
-    if (!task) throw new Error('Task not found, not pending, or not authorized.');
-    // Ambas asociaciones se cargan con el `include` de arriba, por lo que nunca son undefined.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const taskElement = task.processElement!;
+    if (!task) throw notFound('Task not found, not pending, or not authorized.');
+    // El elemento puede haber desaparecido del modelo (tarea huérfana): error de modelado, no 500.
+    const taskElement = task.processElement;
+    if (!taskElement) {
+      throw modelError(`Process modelling error: element ${task.elementDefId} no longer exists.`);
+    }
+    // La instancia se carga con el `include` de arriba (FK obligatoria).
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const taskProcessInstance = task.processInstance!;
     await TaskInstance.update(
@@ -216,15 +234,17 @@ export const completeTask = async (
     // Una sola secuencia de salida por tarea: la primera por id (las aristas ya vienen ordenadas).
     const outgoingSequence = outgoingOf(graph, taskElement.bpmnElementId)[0];
     if (!outgoingSequence) {
-      throw new Error(
+      throw modelError(
         `Process modelling error: No outgoing sequence for ${taskElement.bpmnElementId}`,
       );
     }
 
     const nextElement = graph.elements.get(outgoingSequence.target);
     if (!nextElement) {
-      throw new Error(`Process modelling error: Next element not found.`);
+      throw modelError(`Process modelling error: Next element not found.`);
     }
+    // La tarea completada es el ancestro inicial del camino de esta continuación.
+    const path: TraversalPath = [taskElement.bpmnElementId];
 
     // La instancia se acaba de actualizar en esta misma transacción, por lo que existe.
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -254,10 +274,10 @@ export const completeTask = async (
       );
       if (completedTaskCountForJoin === incomingSequences.length) {
         logger.debug(`[Engine] | All parallel tasks complete. Continuing from gateway.`);
-        await processElement(graph, nextElement, reloadedInstance, t, taskContext);
+        await processElement(graph, nextElement, path, reloadedInstance, t, taskContext);
       }
     } else {
-      await processElement(graph, nextElement, reloadedInstance, t, taskContext);
+      await processElement(graph, nextElement, path, reloadedInstance, t, taskContext);
     }
 
     return { message: 'Task completed successfully.' };

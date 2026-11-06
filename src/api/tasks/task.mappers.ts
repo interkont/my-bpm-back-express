@@ -8,6 +8,7 @@ import type {
   TaskInstance,
   User,
 } from '../../models';
+import { modelError } from '../../domain/errors';
 import { toFormField, type FormFieldDto } from '../../utils/formFields';
 
 // Formas planas (`get({ plain: true })`) con solo los atributos que se proyectan en el servicio.
@@ -67,18 +68,19 @@ export const toInboxItem = (task: InboxTaskPlain): InboxItemDto => ({
 export const toTaskForm = (task: TaskFormPlain): TaskFormDto => {
   const businessData = task.processInstance?.businessData ?? {};
 
-  // Los includes del servicio garantizan processElement y elementFormLinks; si faltaran,
-  // el JS original lanzaba un TypeError (500) y aquí ocurre igual.
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const processElement = task.processElement!;
+  // Un elemento o enlace de formulario ausente es un modelo de proceso roto (FR-027).
+  const processElement = task.processElement;
+  if (!processElement?.elementFormLinks) {
+    throw modelError('Task element or form links not found');
+  }
 
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const fields = processElement.elementFormLinks!.map((link) => {
-    // El include anidado garantiza fieldDefinition (FK obligatoria); mismo fallo que el JS si faltara.
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const fieldDefinition = link.fieldDefinition!;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- `||` del JS: valores falsy (0, '', false) deben dar null (se corrige en US3, FR-031)
-    const value: JsonValue | null = businessData[fieldDefinition.name] || null;
+  const fields = processElement.elementFormLinks.map((link) => {
+    const fieldDefinition = link.fieldDefinition;
+    if (!fieldDefinition) {
+      throw modelError('Form field definition not found');
+    }
+    // FR-031: 0, false y "" se muestran tal cual; solo un dato ausente da null.
+    const value: JsonValue | null = businessData[fieldDefinition.name] ?? null;
     return toFormField(fieldDefinition, link, value);
   });
 

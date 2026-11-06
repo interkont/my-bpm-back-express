@@ -8,6 +8,7 @@ import {
   TaskInstance,
   User,
 } from '../../models';
+import { notFound } from '../../domain/errors';
 import { attrs } from '../../utils/pick';
 import {
   toInboxItem,
@@ -94,7 +95,7 @@ export const getTaskForm = async (taskId: string): Promise<TaskFormDto> => {
   });
 
   if (!taskInstance) {
-    throw new Error('Task not found');
+    throw notFound('Task not found');
   }
 
   // El `as` es seguro: los includes anidados de arriba coinciden con TaskFormPlain.
