@@ -217,34 +217,34 @@ versión JS sigue siendo aceptado (US1-4).
 
 ### Oleada 3.1
 
-- [ ] T027 [US1] Crear `src/config/index.ts` (primer import: `./env`) con el mismo contenido que hoy (`App`, `db.databaseUrl`), **más** `jwt.secret` leído de `JWT_SECRET` vía `custom-environment-variables.json` (EXC-12; todavía sin validar). Crear también `src/config/database.ts` (mismo `new Sequelize(url, { dialect: 'postgres', logging: false })`, sin el import de logger sin uso). Escribir `{}` en `src/config/production.json`. Borrar `src/config/index.js` y `src/config/database.js`.
+- [X] T027 [US1] Crear `src/config/index.ts` (primer import: `./env`) con el mismo contenido que hoy (`App`, `db.databaseUrl`), **más** `jwt.secret` leído de `JWT_SECRET` vía `custom-environment-variables.json` (EXC-12; todavía sin validar). Crear también `src/config/database.ts` (mismo `new Sequelize(url, { dialect: 'postgres', logging: false })`, sin el import de logger sin uso). Escribir `{}` en `src/config/production.json`. Borrar `src/config/index.js` y `src/config/database.js`.
 
 ### Oleada 3.2 (modelos en paralelo, tras T027)
 
 Restricciones citadas literalmente de [data-model.md §3](./data-model.md). Mismo `tableName`, `field`,
 `timestamps`, `indexes` y `unique` que el `.js` (research R-16).
 
-- [ ] T028 [P] [US1] Portar los modelos de seguridad a `src/models/{user,role,userRole,system-role-module}.model.ts`:
+- [X] T028 [P] [US1] Portar los modelos de seguridad a `src/models/{user,role,userRole,system-role-module}.model.ts`:
   - `User`: "`id: CO<number>`, `fullName: string`, `email: string`, `passwordHash: string`, `status: CO<string>`, `systemRole: CO<SystemRole>`, `createdAt: CO<Date>`".
   - `Role`: "`id: CO<number>`, `name: string`, `description: string`".
   - `UserRole`: "`userId: number`, `roleId: number`, `created_at: CO<Date>`" con "`timestamps: true` (`createdAt: 'created_at'`, `updatedAt: false`)".
   - `SystemRoleModule`: "`id: CO<number>`, `systemRole: SystemRole`, `moduleName: string`".
-- [ ] T029 [P] [US1] Portar los modelos de definición a `src/models/{process-definition,process-element,process-sequence,field-definition,element-form-link}.model.ts`:
+- [X] T029 [P] [US1] Portar los modelos de definición a `src/models/{process-definition,process-element,process-sequence,field-definition,element-form-link}.model.ts`:
   - `ProcessDefinition`: "`id: CO<number>`, `businessProcessKey: string`, `name: string`, `description: string?`, `version: number`, `category: string?`, `status: CO<ProcessDefinitionStatus>`, `bpmnProcessId: string`, `bpmnXml: string?`, `createdAt: CO<Date>`" con UNIQUE(`businessProcessKey`, `version`).
   - `ProcessElement`: "`id: CO<number>`, `processDefId: number`, `bpmnElementId: string`, `name: string?`, `description: string?`, `type: ElementType`, `assignedRoleId: number?`, `webhookTarget: string?`, `slaDefinition: JsonValue?`" (**sin** `actions` ni `case_assignment_config`, EXC-10).
   - `ProcessSequence`: "`id: CO<number>`, `processDefId: number`, `sourceElementBpmnId: string`, `targetElementBpmnId: string`, `conditionExpression: string?`".
   - `FieldDefinition`: "`id: CO<number>`, `name: string`, `label: string`, `fieldType: string`, `validations: JsonObject?`".
   - `ElementFormLink`: "`id: CO<number>`, `elementId: number`, `fieldDefId: number`, `displayOrder: number`, `isRequired: CO<boolean>`, `isReadonly: CO<boolean>`, `contextualValidations: JsonObject?`".
-- [ ] T030 [P] [US1] Portar los modelos de ejecución a `src/models/{process-instance,task-instance,document-instance,case-assignment,decision-log}.model.ts`:
+- [X] T030 [P] [US1] Portar los modelos de ejecución a `src/models/{process-instance,task-instance,document-instance,case-assignment,decision-log}.model.ts`:
   - `ProcessInstance`: "`id: CO<number>`, `processDefId: number`, `description: string?`, `status: ProcessInstanceStatus`, `businessData: BusinessData?`, `startedByUserId: number`, `startTime: CO<Date>`, `endTime: Date?`".
   - `TaskInstance`: "`id: CO<number>`, `processInstanceId: number`, `elementDefId: number`, `status: TaskStatus`, `comments: string?`, `assignedToRoleId: number?`, `assignedToUserId: number?`, `dueDate: Date?`, `createdAt: CO<Date>`, `completedByUserId: number?`, `completionTime: Date?`, `completionPayload: JsonValue?`".
   - `DocumentInstance` y `CaseAssignment`: tal como están hoy.
   - `DecisionLog`: "`id: CO<number>`, `businessProcessKey: string`, `currentBpmnElementId: string`, `requestPayload: JsonValue`, `responsePayload: JsonValue?`, `errorMessage: string?`, `executedByUserId: number`, `createdAt: CO<Date>`".
-- [ ] T031 [P] [US1] Portar `src/utils/expressionEngine.ts`. Mantener sin cambios `if (!expression) return false`, `!!new Parser().evaluate(expression, context)` y `catch → false`. Sustituir los `console.*` por `logger.debug` (expresión y resultado) y `logger.warn` (expresión y mensaje de error), **sin** el contexto (R-C). Borrar `src/utils/expressionEngine.js`, `src/utils/catchAsync.js` y `src/utils/logger.js` (sustituidos por T018 y T020).
+- [X] T031 [P] [US1] Portar `src/utils/expressionEngine.ts`. Mantener sin cambios `if (!expression) return false`, `!!new Parser().evaluate(expression, context)` y `catch → false`. Sustituir los `console.*` por `logger.debug` (expresión y resultado) y `logger.warn` (expresión y mensaje de error), **sin** el contexto (R-C). Borrar `src/utils/expressionEngine.js`, `src/utils/catchAsync.js` y `src/utils/logger.js` (sustituidos por T018 y T020).
 
 ### Oleada 3.3 (tras T028–T030)
 
-- [ ] T032 [US1] Crear `src/models/index.ts` con las 30 asociaciones de `src/models/index.js`, idénticas (`foreignKey`, `as`, `onDelete`, `through`, `otherKey`), y la exportación nombrada de los 14 modelos y `sequelize`. Declarar en cada clase sus asociaciones `NonAttribute`. Borrar los 15 `.js` de `src/models/`.
+- [X] T032 [US1] Crear `src/models/index.ts` con las 30 asociaciones de `src/models/index.js`, idénticas (`foreignKey`, `as`, `onDelete`, `through`, `otherKey`), y la exportación nombrada de los 14 modelos y `sequelize`. Declarar en cada clase sus asociaciones `NonAttribute`. Borrar los 15 `.js` de `src/models/`.
 
 ### Oleada 3.4 (todas en paralelo, tras T032)
 

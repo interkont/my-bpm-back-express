@@ -1,53 +1,104 @@
-const sequelize = require('../config/database');
-const Role = require('./role.model');
-const User = require('./user.model');
-const UserRole = require('./userRole.model');
-const ProcessDefinition = require('./process-definition.model');
-const ProcessElement = require('./process-element.model');
-const ProcessSequence = require('./process-sequence.model');
-const FieldDefinition = require('./field-definition.model');
-const ElementFormLink = require('./element-form-link.model');
-const ProcessInstance = require('./process-instance.model');
-const TaskInstance = require('./task-instance.model');
-const DocumentInstance = require('./document-instance.model');
-const CaseAssignment = require('./case-assignment.model');
-const DecisionLog = require('./decision-log.model');
-const SystemRoleModule = require('./system-role-module.model'); // Importar nuevo modelo
+import { sequelize } from '../config/database';
+import { Role } from './role.model';
+import { User } from './user.model';
+import { UserRole } from './userRole.model';
+import { ProcessDefinition } from './process-definition.model';
+import { ProcessElement } from './process-element.model';
+import { ProcessSequence } from './process-sequence.model';
+import { FieldDefinition } from './field-definition.model';
+import { ElementFormLink } from './element-form-link.model';
+import { ProcessInstance } from './process-instance.model';
+import { TaskInstance } from './task-instance.model';
+import { DocumentInstance } from './document-instance.model';
+import { CaseAssignment } from './case-assignment.model';
+import { DecisionLog } from './decision-log.model';
+import { SystemRoleModule } from './system-role-module.model';
 
-// Definición de relaciones
-ProcessDefinition.hasMany(ProcessElement, { foreignKey: 'processDefId', as: 'processElements', onDelete: 'CASCADE' });
-ProcessElement.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition', onDelete: 'CASCADE' });
+// Asociaciones: idénticas a las de src/models/index.js previo (foreignKey, as, onDelete, through).
+ProcessDefinition.hasMany(ProcessElement, {
+  foreignKey: 'processDefId',
+  as: 'processElements',
+  onDelete: 'CASCADE',
+});
+ProcessElement.belongsTo(ProcessDefinition, {
+  foreignKey: 'processDefId',
+  as: 'processDefinition',
+  onDelete: 'CASCADE',
+});
 
-ProcessDefinition.hasMany(ProcessSequence, { foreignKey: 'processDefId', as: 'processSequences', onDelete: 'CASCADE' });
-ProcessSequence.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition', onDelete: 'CASCADE' });
+ProcessDefinition.hasMany(ProcessSequence, {
+  foreignKey: 'processDefId',
+  as: 'processSequences',
+  onDelete: 'CASCADE',
+});
+ProcessSequence.belongsTo(ProcessDefinition, {
+  foreignKey: 'processDefId',
+  as: 'processDefinition',
+  onDelete: 'CASCADE',
+});
 
-ProcessElement.hasMany(ElementFormLink, { foreignKey: 'elementId', as: 'elementFormLinks', onDelete: 'CASCADE' });
-ElementFormLink.belongsTo(ProcessElement, { foreignKey: 'elementId', as: 'processElement', onDelete: 'CASCADE' });
+ProcessElement.hasMany(ElementFormLink, {
+  foreignKey: 'elementId',
+  as: 'elementFormLinks',
+  onDelete: 'CASCADE',
+});
+ElementFormLink.belongsTo(ProcessElement, {
+  foreignKey: 'elementId',
+  as: 'processElement',
+  onDelete: 'CASCADE',
+});
 
-ProcessInstance.hasMany(TaskInstance, { foreignKey: 'processInstanceId', as: 'taskInstances', onDelete: 'CASCADE' });
-TaskInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+ProcessInstance.hasMany(TaskInstance, {
+  foreignKey: 'processInstanceId',
+  as: 'taskInstances',
+  onDelete: 'CASCADE',
+});
+TaskInstance.belongsTo(ProcessInstance, {
+  foreignKey: 'processInstanceId',
+  as: 'processInstance',
+  onDelete: 'CASCADE',
+});
 
-ProcessInstance.hasMany(DocumentInstance, { foreignKey: 'processInstanceId', as: 'documentInstances', onDelete: 'CASCADE' });
-DocumentInstance.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+ProcessInstance.hasMany(DocumentInstance, {
+  foreignKey: 'processInstanceId',
+  as: 'documentInstances',
+  onDelete: 'CASCADE',
+});
+DocumentInstance.belongsTo(ProcessInstance, {
+  foreignKey: 'processInstanceId',
+  as: 'processInstance',
+  onDelete: 'CASCADE',
+});
 
-ProcessInstance.hasMany(CaseAssignment, { foreignKey: 'processInstanceId', as: 'caseAssignments', onDelete: 'CASCADE' });
-CaseAssignment.belongsTo(ProcessInstance, { foreignKey: 'processInstanceId', as: 'processInstance', onDelete: 'CASCADE' });
+ProcessInstance.hasMany(CaseAssignment, {
+  foreignKey: 'processInstanceId',
+  as: 'caseAssignments',
+  onDelete: 'CASCADE',
+});
+CaseAssignment.belongsTo(ProcessInstance, {
+  foreignKey: 'processInstanceId',
+  as: 'processInstance',
+  onDelete: 'CASCADE',
+});
 
 User.belongsToMany(Role, {
   through: UserRole,
   foreignKey: 'userId',
   otherKey: 'roleId',
-  as: 'roles'
+  as: 'roles',
 });
 Role.belongsToMany(User, {
   through: UserRole,
   foreignKey: 'roleId',
   otherKey: 'userId',
-  as: 'users'
+  as: 'users',
 });
 
 ProcessDefinition.hasMany(ProcessInstance, { foreignKey: 'processDefId', as: 'processInstances' });
-ProcessInstance.belongsTo(ProcessDefinition, { foreignKey: 'processDefId', as: 'processDefinition' });
+ProcessInstance.belongsTo(ProcessDefinition, {
+  foreignKey: 'processDefId',
+  as: 'processDefinition',
+});
 
 ProcessElement.hasMany(TaskInstance, { foreignKey: 'elementDefId', as: 'taskInstances' });
 TaskInstance.belongsTo(ProcessElement, { foreignKey: 'elementDefId', as: 'processElement' });
@@ -89,7 +140,7 @@ CaseAssignment.belongsTo(Role, { foreignKey: 'roleId', as: 'role' });
 TaskInstance.hasMany(DocumentInstance, { foreignKey: 'taskInstanceId', as: 'documentInstances' });
 DocumentInstance.belongsTo(TaskInstance, { foreignKey: 'taskInstanceId', as: 'taskInstance' });
 
-const db = {
+export {
   sequelize,
   Role,
   User,
@@ -104,7 +155,5 @@ const db = {
   DocumentInstance,
   CaseAssignment,
   DecisionLog,
-  SystemRoleModule, // Exportar nuevo modelo
+  SystemRoleModule,
 };
-
-module.exports = db;

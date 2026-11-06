@@ -1,8 +1,32 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+import {
+  DataTypes,
+  Model,
+  type CreationOptional,
+  type InferAttributes,
+  type InferCreationAttributes,
+  type NonAttribute,
+} from 'sequelize';
+import { sequelize } from '../config/database';
+import type { JsonValue } from '../domain/types';
+import type { User } from './user.model';
 
-const DecisionLog = sequelize.define(
-  'DecisionLog',
+export class DecisionLog extends Model<
+  InferAttributes<DecisionLog>,
+  InferCreationAttributes<DecisionLog>
+> {
+  declare id: CreationOptional<number>;
+  declare businessProcessKey: string;
+  declare currentBpmnElementId: string;
+  declare requestPayload: JsonValue;
+  declare responsePayload: CreationOptional<JsonValue | null>;
+  declare errorMessage: CreationOptional<string | null>;
+  declare executedByUserId: number;
+  declare createdAt: CreationOptional<Date>;
+
+  declare executedByUser?: NonAttribute<User>;
+}
+
+DecisionLog.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -44,9 +68,9 @@ const DecisionLog = sequelize.define(
     },
   },
   {
+    sequelize,
+    modelName: 'DecisionLog',
     tableName: 'decision_logs',
     timestamps: false,
-  }
+  },
 );
-
-module.exports = DecisionLog;

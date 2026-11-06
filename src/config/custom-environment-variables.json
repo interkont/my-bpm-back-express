@@ -4,5 +4,8 @@
   },
   "db": {
     "databaseUrl": "DATABASE_URL"
+  },
+  "jwt": {
+    "secret": "JWT_SECRET"
   }
 }
