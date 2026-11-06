@@ -56,8 +56,8 @@ aplicación**.
 
 ### Oleada 1.1 (secuencial)
 
-- [ ] T001 Crear la rama `001-typescript-migration` desde `main` en el repositorio `my-bpm-back-express` y commitear en ella la constitución 2.0.0 (`.specify/memory/constitution.md`) y `specs/001-typescript-migration/`.
-- [ ] T002 Actualizar `package.json` (solo altas y scripts nuevos; **no** cambiar todavía `start:dev`/`start:prod`):
+- [X] T001 Crear la rama `001-typescript-migration` desde `main` en el repositorio `my-bpm-back-express` y commitear en ella la constitución 2.0.0 (`.specify/memory/constitution.md`) y `specs/001-typescript-migration/`.
+- [X] T002 Actualizar `package.json` (solo altas y scripts nuevos; **no** cambiar todavía `start:dev`/`start:prod`):
   - `dependencies`: añadir `zod@^4.6`; fijar `"expr-eval": "2.0.2"` sin `^` (FR-042).
   - `devDependencies`: `typescript@~5.9.2`, `tsx@^4.23`, `ts-jest@^29.4`, `@types/jest@^29.5`, `@types/express@^4.17`, `@types/passport`, `@types/passport-jwt`, `@types/jsonwebtoken`, `@types/bcryptjs@^2.4`, `@types/cors`, `@types/config`, `@types/supertest`, `eslint@^9.39`, `typescript-eslint@^8.72`, `eslint-plugin-import-x@^4.17`, `eslint-config-prettier@^10.1`, `prettier@^3.9`, `cross-env@^10.1` (research R-17).
   - Scripts nuevos: `build`, `typecheck`, `lint`, `format`, `test:baseline`, `db:test:up` y `db:test:down`, según [contracts/runtime.md](./contracts/runtime.md).
@@ -65,36 +65,36 @@ aplicación**.
 
 ### Oleada 1.2 (todas en paralelo, tras T002)
 
-- [ ] T003 [P] Crear `tsconfig.json` (src + tests, `noEmit`) y `tsconfig.build.json` (solo `src`, `outDir: dist`, `rootDir: src`):
+- [X] T003 [P] Crear `tsconfig.json` (src + tests, `noEmit`) y `tsconfig.build.json` (solo `src`, `outDir: dist`, `rootDir: src`):
   - `strict`, `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes: false`.
   - `target: ES2022`, `module: node16`, `moduleResolution: node16`.
   - `esModuleInterop`, `resolveJsonModule`, `sourceMap`.
   - Excluir `src/**/*.js` mientras dure la convivencia (research R-02).
-- [ ] T004 [P] Crear `eslint.config.mjs` (configuración plana: `typescript-eslint` `strictTypeChecked`, `import-x`, `eslint-config-prettier`), con las reglas de research R-06:
+- [X] T004 [P] Crear `eslint.config.mjs` (configuración plana: `typescript-eslint` `strictTypeChecked`, `import-x`, `eslint-config-prettier`), con las reglas de research R-06:
   - `no-explicit-any`, `no-unsafe-*`, `no-floating-promises`, `no-misused-promises`, `switch-exhaustiveness-check`, `prefer-nullish-coalescing`, `consistent-type-imports`.
   - `ban-ts-comment` con `ts-expect-error: allow-with-description`.
   - `no-restricted-syntax` sobre `TSEnumDeclaration`, `no-console`, `eqeqeq`, `import-x/no-cycle`.
   - `no-restricted-imports` por glob de capa (`**/*.controller.ts` no importa `models`/`sequelize`/`bcryptjs`; `src/domain/**` no importa `src/`; `src/api/engine/{graph,semantics,context}.ts` no importa `models`/`sequelize`).
   - Ignorar `dist/` y `src/**/*.js`.
   - Crear también `.prettierrc` (2 espacios, comillas simples, punto y coma, `printWidth` 100) y `.prettierignore`.
-- [ ] T005 [P] Crear `jest.config.ts`:
+- [X] T005 [P] Crear `jest.config.js` (CommonJS: un `jest.config.ts` exigiría `ts-node`):
   - Proyectos `unit` (`tests/unit/**/*.test.ts`), `contract` (`tests/contract/**/*.test.ts`) y `engine` (`tests/engine/**/*.test.ts`).
   - Transformador `ts-jest` con `isolatedModules: true`.
   - `globalSetup`/`globalTeardown` en `tests/setup/` para `contract` y `engine`; `snapshotSerializers` con `tests/setup/normalize.ts`; `testTimeout` 30000 (research R-05, R-08).
-- [ ] T006 [P] Ejecutar en solo lectura `SHOW server_version` contra la base de demo (`DATABASE_URL` de `.env`, sin imprimir la URL). Con esa versión, crear `docker-compose.test.yml`:
+- [X] T006 [P] Ejecutar en solo lectura `SHOW server_version` contra la base de demo (`DATABASE_URL` de `.env`, sin imprimir la URL). Con esa versión, crear `docker-compose.test.yml`:
   - Servicio `postgres-test` con imagen `postgres:<misma mayor>` y puerto local `55432`.
   - Base, usuario y clave **de prueba**, explícitos en el compose (no son secretos).
   - `healthcheck` con `pg_isready`.
   - Volumen efímero (research R-07).
-- [ ] T007 [P] Generar `db/migrations/000_baseline.sql` con `pg_dump --schema-only --no-owner --no-privileges` contra la base de demo (solo lectura):
+- [X] T007 [P] Generar `db/migrations/000_baseline.sql` con `pg_dump --schema-only --no-owner --no-privileges` contra la base de demo (solo lectura):
   - Hacerlo idempotente con `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT EXISTS`.
   - Añadir una cabecera que diga "solo documentación y base de pruebas; MUST NOT aplicarse a la base de demo".
   - Añadir la sección de rollback comentada (`DROP TABLE … CASCADE` en orden inverso).
   - Verificar que incluye `process_elements.actions`, `process_elements.case_assignment_config`, las 3 FKs reales y el CHECK de `users.system_role` ([data-model.md §1](./data-model.md)).
-- [ ] T008 [P] Extraer en solo lectura `SELECT DISTINCT condition_expression FROM process_sequences WHERE condition_expression IS NOT NULL` y crear `tests/fixtures/expressions.json` con pares `{ expression, context, label }`:
+- [X] T008 [P] Extraer en solo lectura `SELECT DISTINCT condition_expression FROM process_sequences WHERE condition_expression IS NOT NULL` y crear `tests/fixtures/expressions.json` con pares `{ expression, context, label }`:
   - Para cada expresión, como mínimo: valor por encima y por debajo del umbral, acción en mayúsculas y en minúsculas, variable ausente y contexto vacío.
   - Añadir los casos sintéticos `""` y `null` (expresión vacía → `false`) (research R-08).
-- [ ] T009 [P] Añadir `dist/` y `coverage/` a `.gitignore`. Borrar `src/index.ts` (resto de plantilla, A-01).
+- [X] T009 [P] Añadir `dist/` y `coverage/` a `.gitignore`. Borrar `src/index.ts` (resto de plantilla, A-01).
 
 **Checkpoint**: `npm run typecheck` y `npm run lint` se ejecutan (aún sin archivos TS de aplicación);
 `npm run db:test:up` deja el contenedor `healthy`.

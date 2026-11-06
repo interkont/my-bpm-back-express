@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+package-lock.json
+*.log
+specs/
+.specify/
+resources/
+public/
+db/migrations/*.sql
+tests/**/__snapshots__/
+blueprint.md

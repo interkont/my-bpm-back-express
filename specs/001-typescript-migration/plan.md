@@ -154,7 +154,7 @@ tests/
 ├── contract/                      # 32 endpoints (frozen + corrected) + __snapshots__/
 └── engine/                        # escenarios de grafo end-to-end
 
-tsconfig.json · tsconfig.build.json · eslint.config.mjs · .prettierrc · jest.config.ts
+tsconfig.json · tsconfig.build.json · eslint.config.mjs · .prettierrc · jest.config.js
 ```
 
 Se **eliminan**: los 48 `.js` de `src/`, `src/index.ts` (plantilla), `nodemon.json` y los metadatos de

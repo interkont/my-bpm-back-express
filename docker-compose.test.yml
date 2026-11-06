@@ -1,0 +1,18 @@
+# Postgres de pruebas (research R-07). Misma versión mayor que la base de demo (17).
+# Credenciales exclusivas de pruebas: no son secretos.
+services:
+  postgres-test:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: flowify_test
+      POSTGRES_USER: flowify_test
+      POSTGRES_PASSWORD: flowify_test
+    ports:
+      - '55432:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U flowify_test -d flowify_test']
+      interval: 2s
+      timeout: 3s
+      retries: 30
