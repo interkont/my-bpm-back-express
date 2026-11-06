@@ -1,5 +1,5 @@
 // Proyectos de Jest (research R-05, R-08). ts-jest solo transpila: el chequeo de tipos lo hace `npm run typecheck`.
-const transform = { '^.+\.ts$': ['ts-jest', { isolatedModules: true, diagnostics: false }] };
+const transform = { '\\.ts$': ['ts-jest', { diagnostics: false }] };
 
 const base = {
   testEnvironment: 'node',

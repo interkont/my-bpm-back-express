@@ -114,11 +114,11 @@ esté hecha.
 
 **Bloque A: arnés**
 
-- [ ] T010 [P] Crear `tests/setup/global-setup.ts` y `tests/setup/global-teardown.ts`:
+- [X] T010 [P] Crear `tests/setup/global-setup.ts` y `tests/setup/global-teardown.ts`:
   - Leer `TEST_DATABASE_URL` (por defecto, el Postgres de `docker-compose.test.yml`).
   - **Abortar** si coincide con `DATABASE_URL` (R-F, research R-07).
   - Aplicar `db/migrations/000_baseline.sql` con `pg`.
-- [ ] T011 [P] Crear `tests/fixtures/seed.sql` determinista:
+- [X] T011 [P] Crear `tests/fixtures/seed.sql` determinista:
   - Usuarios: 1 `ADMIN` y 2 `USER` con contraseñas conocidas (hash bcrypt de 10 rondas precalculado), `UserRole` asignados y `system_role_modules` de ambos roles.
   - 2 roles y `field_definitions` con `validations`.
   - Definiciones de proceso para los escenarios de research R-08:
@@ -130,19 +130,19 @@ esté hecha.
     - Versiones `DRAFT`, `ACTIVE` e `INACTIVE` de una misma key.
   - `element_form_links` con `contextualValidations`.
   - Una instancia con `businessData` que contenga `0`, `false` y `""` (para FR-031).
-- [ ] T012 [P] Crear `tests/setup/db.ts` con `resetDatabase()`: `TRUNCATE … RESTART IDENTITY CASCADE` de las 14 tablas y carga de `tests/fixtures/seed.sql`; y `loadSql(path)` para fixtures extra.
-- [ ] T013 [P] Crear `tests/setup/server-harness.ts`:
+- [X] T012 [P] Crear `tests/setup/db.ts` con `resetDatabase()`: `TRUNCATE … RESTART IDENTITY CASCADE` de las 14 tablas y carga de `tests/fixtures/seed.sql`; y `loadSql(path)` para fixtures extra.
+- [X] T013 [P] Crear `tests/setup/server-harness.ts`:
   - `startServer()` lanza un proceso hijo según `CHARACTERIZATION_TARGET`: `js` → `node src/app.js`; `ts` (por defecto) → `node dist/server.js`.
   - Usa un `PORT` libre, `DATABASE_URL=TEST_DATABASE_URL` y un `JWT_SECRET` de prueba fijo.
   - Espera a "Server is running" y devuelve `baseUrl`; `stopServer()`.
-- [ ] T014 [P] Crear `tests/setup/normalize.ts` (serializador de snapshots: ids renumerados por orden de aparición, fechas ISO → `<date>`, `token` → `<jwt>`, orden de claves ignorado y de arrays respetado) y `tests/setup/http.ts`:
+- [X] T014 [P] Crear `tests/setup/normalize.ts` (serializador de snapshots: ids renumerados por orden de aparición, fechas ISO → `<date>`, `token` → `<jwt>`, orden de claves ignorado y de arrays respetado) y `tests/setup/http.ts`:
   - `loginAs(role)` devuelve el token.
   - `expectFrozen(res)`: snapshot de estado + cuerpo.
   - `expectFrozenError(res)`: snapshot de estado + `message` y comprobación de que no falta ninguna clave del snapshot (research R-12).
 
 **Bloque B: módulos TS hoja (nuevos archivos; el código JS no los usa todavía)**
 
-- [ ] T015 [P] Crear `src/domain/constants.ts` con tuplas `as const` y uniones derivadas ([data-model.md §2](./data-model.md)):
+- [X] T015 [P] Crear `src/domain/constants.ts` con tuplas `as const` y uniones derivadas ([data-model.md §2](./data-model.md)):
   - `PROCESS_DEFINITION_STATUS` = "`DRAFT`, `ACTIVE`, `INACTIVE`, `DEPRECATED`".
   - `PROCESS_INSTANCE_STATUS` = "`RUNNING`, `COMPLETED`".
   - `TASK_STATUS` = "`PENDING`, `COMPLETED`".
@@ -150,22 +150,22 @@ esté hecha.
   - `SYSTEM_ROLE` = "`ADMIN`, `USER`".
   - `USER_STATUS` = "`ACTIVE`"; `SAVE_ACTION` = "`UPDATE_IN_PLACE`, `CREATE_NEW_VERSION`"; `DOCUMENT_STATUS` = "`ACTIVE`".
   - Guardas `isElementType(value)` e `isProcessDefinitionStatus(value)`.
-- [ ] T016 [P] Crear `src/domain/types.ts` con `JsonPrimitive`, `JsonValue`, `JsonObject` y `BusinessData = JsonObject`, y `AuthUser` = `{ id: number; fullName: string; email: string; status: string; createdAt: Date; systemRole: SystemRole; roleIds?: number[] }` (**sin `passwordHash`**, [data-model.md §4](./data-model.md)).
-- [ ] T017 [P] Crear `src/domain/errors.ts`:
+- [X] T016 [P] Crear `src/domain/types.ts` con `JsonPrimitive`, `JsonValue`, `JsonObject` y `BusinessData = JsonObject`, y `AuthUser` = `{ id: number; fullName: string; email: string; status: string; createdAt: Date; systemRole: SystemRole; roleIds?: number[] }` (**sin `passwordHash`**, [data-model.md §4](./data-model.md)).
+- [X] T017 [P] Crear `src/domain/errors.ts`:
   - `AppError extends Error` con `statusCode: 400 | 401 | 403 | 404 | 409 | 422`, `code: ErrorCode`, `details?: unknown` y `legacyErrorKey?: boolean`.
   - `ErrorCode` = `VALIDATION_ERROR | MALFORMED_JSON | INVALID_CREDENTIALS | INVALID_OLD_PASSWORD | MISSING_AUTH_DATA | FORBIDDEN | NOT_FOUND | CONFLICT | ACTIVE_VERSION_CONFLICT | PROCESS_MODEL_ERROR`.
   - Funciones `validation()`, `invalidCredentials()`, `notFound()`, `conflict()`, `activeVersionConflict()`, `forbidden()`, `missingAuthData()`, `invalidOldPassword()`, `modelError()` ([data-model.md §5](./data-model.md)).
-- [ ] T018 [P] Crear `src/utils/catchAsync.ts` tipado (genéricos `P`, `ResB`, `ReqB`), equivalente a `src/utils/catchAsync.js` (no borrar el `.js` todavía: lo usa el código JS).
-- [ ] T019 [P] Crear `src/utils/pick.ts`:
+- [X] T018 [P] Crear `src/utils/catchAsync.ts` tipado (genéricos `P`, `ResB`, `ReqB`), equivalente a `src/utils/catchAsync.js` (no borrar el `.js` todavía: lo usa el código JS).
+- [X] T019 [P] Crear `src/utils/pick.ts`:
   - `pick<T, K extends keyof T>(obj, keys: readonly K[])`: solo copia claves presentes y no `undefined`, para conservar la semántica de `set`/`create` de Sequelize.
   - `attrs<M extends Model>()(...keys: (keyof Attributes<M>)[])`: proyecciones `attributes` verificadas por el compilador (US2-3).
-- [ ] T020 [P] Crear `src/utils/logger.ts` como único logger winston (research R-14):
+- [X] T020 [P] Crear `src/utils/logger.ts` como único logger winston (research R-14):
   - Consola `colorize` + `simple`, nivel `debug` (no producción) o `info` (producción).
   - `File error.log` (nivel `error`, JSON) y `File combined.log` (nivel `info`, JSON).
   - Leer el nivel desde el `NODE_ENV` que fija `src/config/env.ts`.
-- [ ] T021 [P] Crear `src/types/express.d.ts` (*module augmentation*: `Express.User extends AuthUser`). Verificar que `node_modules/expr-eval/parser.d.ts` tipa `Parser#evaluate(expr: string, values?: object)`; si no lo hace, crear `src/types/expr-eval.d.ts` mínimo.
-- [ ] T022 [P] Crear `src/config/env.ts` (research R-03): `dotenv.config()` y `process.env.NODE_CONFIG_DIR ??= path.resolve(__dirname, '../../src/config')`. Sin exports de valor y sin otros imports.
-- [ ] T023 [P] Crear `tests/unit/foundation.test.ts`: `pick` (omite `undefined` y claves no listadas), `AppError` y sus funciones (estado y `code`), `catchAsync` (propaga el rechazo a `next`), guardas de `constants`.
+- [X] T021 [P] Crear `src/types/express.d.ts` (*module augmentation*: `Express.User extends AuthUser`). Verificar que `node_modules/expr-eval/parser.d.ts` tipa `Parser#evaluate(expr: string, values?: object)`; si no lo hace, crear `src/types/expr-eval.d.ts` mínimo.
+- [X] T022 [P] Crear `src/config/env.ts` (research R-03): `dotenv.config()` y `process.env.NODE_CONFIG_DIR ??= path.resolve(__dirname, '../../src/config')`. Sin exports de valor y sin otros imports.
+- [X] T023 [P] Crear `tests/unit/foundation.test.ts`: `pick` (omite `undefined` y claves no listadas), `AppError` y sus funciones (estado y `code`), `catchAsync` (propaga el rechazo a `next`), guardas de `constants`.
 
 ### Oleada 2.2 (suites de caracterización en paralelo, tras T010–T014)
 

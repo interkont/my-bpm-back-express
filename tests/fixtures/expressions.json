@@ -3,31 +3,109 @@
   { "label": "null-expression", "expression": null, "context": { "purchaseAmount": 5000 } },
   { "label": "literal-true", "expression": "true", "context": {} },
 
-  { "label": "gt1000-above", "expression": "purchaseAmount > 1000", "context": { "purchaseAmount": 1001 } },
-  { "label": "gt1000-equal", "expression": "purchaseAmount > 1000", "context": { "purchaseAmount": 1000 } },
-  { "label": "gt1000-below", "expression": "purchaseAmount > 1000", "context": { "purchaseAmount": 10 } },
-  { "label": "gt1000-string-number", "expression": "purchaseAmount > 1000", "context": { "purchaseAmount": "1500" } },
+  {
+    "label": "gt1000-above",
+    "expression": "purchaseAmount > 1000",
+    "context": { "purchaseAmount": 1001 }
+  },
+  {
+    "label": "gt1000-equal",
+    "expression": "purchaseAmount > 1000",
+    "context": { "purchaseAmount": 1000 }
+  },
+  {
+    "label": "gt1000-below",
+    "expression": "purchaseAmount > 1000",
+    "context": { "purchaseAmount": 10 }
+  },
+  {
+    "label": "gt1000-string-number",
+    "expression": "purchaseAmount > 1000",
+    "context": { "purchaseAmount": "1500" }
+  },
   { "label": "gt1000-missing", "expression": "purchaseAmount > 1000", "context": {} },
 
-  { "label": "gt1500-above", "expression": "purchaseAmount > 1500", "context": { "purchaseAmount": 1501 } },
-  { "label": "gt1500-below", "expression": "purchaseAmount > 1500", "context": { "purchaseAmount": 1500 } },
-  { "label": "gt1500-missing", "expression": "purchaseAmount > 1500", "context": { "instance": { "id": 1 } } },
+  {
+    "label": "gt1500-above",
+    "expression": "purchaseAmount > 1500",
+    "context": { "purchaseAmount": 1501 }
+  },
+  {
+    "label": "gt1500-below",
+    "expression": "purchaseAmount > 1500",
+    "context": { "purchaseAmount": 1500 }
+  },
+  {
+    "label": "gt1500-missing",
+    "expression": "purchaseAmount > 1500",
+    "context": { "instance": { "id": 1 } }
+  },
 
-  { "label": "task-APROBAR-upper", "expression": "task.action == 'APROBAR'", "context": { "task": { "action": "APROBAR" } } },
-  { "label": "task-APROBAR-capitalized", "expression": "task.action == 'APROBAR'", "context": { "task": { "action": "Aprobar" } } },
+  {
+    "label": "task-APROBAR-upper",
+    "expression": "task.action == 'APROBAR'",
+    "context": { "task": { "action": "APROBAR" } }
+  },
+  {
+    "label": "task-APROBAR-capitalized",
+    "expression": "task.action == 'APROBAR'",
+    "context": { "task": { "action": "Aprobar" } }
+  },
   { "label": "task-APROBAR-missing-task", "expression": "task.action == 'APROBAR'", "context": {} },
-  { "label": "task-APROBAR-empty-task", "expression": "task.action == 'APROBAR'", "context": { "task": {} } },
+  {
+    "label": "task-APROBAR-empty-task",
+    "expression": "task.action == 'APROBAR'",
+    "context": { "task": {} }
+  },
 
-  { "label": "task-RECHAZAR-upper", "expression": "task.action == 'RECHAZAR'", "context": { "task": { "action": "RECHAZAR" } } },
-  { "label": "task-RECHAZAR-other", "expression": "task.action == 'RECHAZAR'", "context": { "task": { "action": "APROBAR" } } },
+  {
+    "label": "task-RECHAZAR-upper",
+    "expression": "task.action == 'RECHAZAR'",
+    "context": { "task": { "action": "RECHAZAR" } }
+  },
+  {
+    "label": "task-RECHAZAR-other",
+    "expression": "task.action == 'RECHAZAR'",
+    "context": { "task": { "action": "APROBAR" } }
+  },
 
-  { "label": "task-approve-dq", "expression": "task.action == \"approve\"", "context": { "task": { "action": "approve" } } },
-  { "label": "task-approve-dq-upper", "expression": "task.action == \"approve\"", "context": { "task": { "action": "APPROVE" } } },
+  {
+    "label": "task-approve-dq",
+    "expression": "task.action == \"approve\"",
+    "context": { "task": { "action": "approve" } }
+  },
+  {
+    "label": "task-approve-dq-upper",
+    "expression": "task.action == \"approve\"",
+    "context": { "task": { "action": "APPROVE" } }
+  },
 
-  { "label": "root-action-in-task", "expression": "action== 'Aprobar'", "context": { "task": { "action": "Aprobar" } } },
-  { "label": "root-action-in-businessData", "expression": "action== 'Aprobar'", "context": { "action": "Aprobar" } },
+  {
+    "label": "root-action-in-task",
+    "expression": "action== 'Aprobar'",
+    "context": { "task": { "action": "Aprobar" } }
+  },
+  {
+    "label": "root-action-in-businessData",
+    "expression": "action== 'Aprobar'",
+    "context": { "action": "Aprobar" }
+  },
   { "label": "root-action-missing", "expression": "action== 'Aprobar'", "context": {} },
 
   { "label": "syntax-error", "expression": "purchaseAmount >", "context": { "purchaseAmount": 1 } },
-  { "label": "full-context", "expression": "purchaseAmount > 1000", "context": { "purchaseAmount": 2000, "instance": { "id": 7, "status": "RUNNING", "businessData": { "purchaseAmount": 2000 } }, "task": { "bpmnElementId": "Task_1", "action": "APROBAR", "formData": {}, "comments": null, "completedBy": { "id": 1, "roleIds": [1] } } } }
+  {
+    "label": "full-context",
+    "expression": "purchaseAmount > 1000",
+    "context": {
+      "purchaseAmount": 2000,
+      "instance": { "id": 7, "status": "RUNNING", "businessData": { "purchaseAmount": 2000 } },
+      "task": {
+        "bpmnElementId": "Task_1",
+        "action": "APROBAR",
+        "formData": {},
+        "comments": null,
+        "completedBy": { "id": 1, "roleIds": [1] }
+      }
+    }
+  }
 ]
