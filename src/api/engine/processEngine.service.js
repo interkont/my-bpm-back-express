@@ -5,27 +5,49 @@ const {
   ProcessElement,
   ProcessSequence,
   TaskInstance,
+  CaseAssignment, // Importar el nuevo modelo
 } = require('../../models');
 const { evaluateExpression } = require('../../utils/expressionEngine');
 const { Op } = require('sequelize');
 
-// --- createTaskInstance (MODIFICADO para Sequelize) ---
+// --- createTaskInstance (MODIFICADO para Case Assignment) ---
 const createTaskInstance = async (elementDefinition, processInstance, t) => {
   console.log(
     `[Engine] > Creating USER_TASK for element: ${elementDefinition.name} (${elementDefinition.bpmnElementId})`
   );
+
+  // Lógica de Case Assignment
+  let assignedUserId = null;
+  if (elementDefinition.assignedRoleId) {
+    const caseAssignment = await CaseAssignment.findOne({
+      where: {
+        processInstanceId: processInstance.id,
+        roleId: elementDefinition.assignedRoleId,
+      },
+      transaction: t,
+    });
+
+    if (caseAssignment) {
+      assignedUserId = caseAssignment.assignedUserId;
+      console.log(
+        `[Engine] | Case Assignment found: Assigning task to User ID ${assignedUserId} for Role ID ${elementDefinition.assignedRoleId}.`
+      );
+    }
+  }
+
   return TaskInstance.create(
     {
       processInstanceId: processInstance.id,
       elementDefId: elementDefinition.id,
       status: 'PENDING',
       assignedToRoleId: elementDefinition.assignedRoleId,
+      assignedToUserId: assignedUserId, // Asignar el usuario específico si se encontró
     },
     { transaction: t }
   );
 };
 
-// --- processElement (MODIFICADO para Sequelize) ---
+// --- processElement (Sin cambios) ---
 const processElement = async (
   elementToProcess,
   processInstance,
@@ -133,7 +155,7 @@ const processElement = async (
   }
 };
 
-// --- startProcess (MODIFICADO para Sequelize) ---
+// --- startProcess (Sin cambios) ---
 const startProcess = async (
   businessProcessKey,
   startedByUserId,
@@ -175,10 +197,12 @@ const startProcess = async (
   });
 };
 
-// --- completeTask (MODIFICADO para Sequelize) ---
+// --- completeTask (Sin cambios en la lógica principal, pero necesita el modelo para include) ---
 const completeTask = async (taskId, completionData, userId, roleIds) => {
   console.log(`[Engine] Completing task ID: ${taskId}`);
   return sequelize.transaction(async (t) => {
+    // La lógica de autorización en `where` ya maneja `assignedToUserId` y `assignedToRoleId`.
+    // Por lo tanto, no se requieren cambios aquí.
     const task = await TaskInstance.findOne({
       where: {
         id: taskId,
@@ -193,6 +217,19 @@ const completeTask = async (taskId, completionData, userId, roleIds) => {
     });
     if (!task)
       throw new Error('Task not found, not pending, or not authorized.');
+    
+    // --- Lógica para GUARDAR las asignaciones de caso ---
+    if (completionData.caseAssignments && completionData.caseAssignments.length > 0) {
+      console.log(`[Engine] | Saving case assignments for instance ID: ${task.processInstanceId}`);
+      for (const assignment of completionData.caseAssignments) {
+        await CaseAssignment.upsert({
+          processInstanceId: task.processInstanceId,
+          roleId: assignment.roleId,
+          assignedUserId: assignment.userId,
+        }, { transaction: t });
+      }
+    }
+
     await TaskInstance.update(
       {
         status: 'COMPLETED',
@@ -211,7 +248,6 @@ const completeTask = async (taskId, completionData, userId, roleIds) => {
       { businessData: updatedBusinessData },
       { where: { id: task.processInstanceId }, transaction: t }
     );
-    // Recargamos la instancia para obtener los datos actualizados
     const updatedProcessInstance = await ProcessInstance.findByPk(
       task.processInstanceId,
       { transaction: t }
@@ -264,19 +300,6 @@ const completeTask = async (taskId, completionData, userId, roleIds) => {
       const sourceElementBpmnIds = incomingSequences.map(
         (seq) => seq.sourceElementBpmnId
       );
-      const completedTasksCount = await TaskInstance.count({
-        where: {
-          processInstanceId: task.processInstanceId,
-          status: 'COMPLETED',
-          // Sequelize no soporta un where en un include para count,
-          // así que necesitamos un join manual o una subconsulta si es necesario.
-          // Por ahora, asumimos que podemos consultar por el `elementDefId` directamente
-          // si tenemos esa relación bien establecida.
-          // Una forma más simple es obtener los Ids de los elementos de proceso
-          // y luego usarlos en la consulta.
-        },
-        // Esta es una limitación en Sequelize. Vamos a hacerlo en dos pasos:
-      });
       
       const sourceElements = await ProcessElement.findAll({
         where: { bpmnElementId: { [Op.in]: sourceElementBpmnIds }, processDefId: joinGateway.processDefId },

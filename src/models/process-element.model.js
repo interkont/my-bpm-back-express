@@ -41,6 +41,16 @@ const ProcessElement = sequelize.define(
       type: DataTypes.JSONB,
       field: 'sla_definition',
     },
+    actions: {
+      type: DataTypes.JSONB,
+      allowNull: true, // Permitir que sea nulo para elementos que no son USER_TASK
+    },
+    // NUEVO CAMPO PARA CASE ASSIGNMENT
+    caseAssignmentConfig: {
+      type: DataTypes.JSONB,
+      allowNull: true, // Será nulo para tareas que no lo usan
+      field: 'case_assignment_config',
+    },
   },
   {
     tableName: 'process_elements',
