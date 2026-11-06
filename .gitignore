@@ -25,3 +25,6 @@ yarn-error.log*
 
 # Test coverage
 coverage/
+
+# Builds por carril (implementación paralela)
+.build/

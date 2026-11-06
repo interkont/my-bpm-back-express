@@ -297,7 +297,7 @@ export const saveProcessDefinition = async (
           {
             ...finalDefinitionData,
             version: 1,
-            // Se conserva `||` (no `??`): una cadena vac�a cae a DRAFT como en el JS original.
+            // Se conserva `||` (no `??`): una cadena vacía cae a DRAFT como en el JS original.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             status: finalDefinitionData.status || 'DRAFT',
           } as ProcessDefinitionCreation,
@@ -491,7 +491,7 @@ export const getStartForm = async (processDefId: string): Promise<StartFormDefin
   });
 
   const formDefinition: StartFormDefinition = {
-    // Se conserva `||` (no `??`): un nombre vac�o cae al valor por defecto como en el JS original.
+    // Se conserva `||` (no `??`): un nombre vacío cae al valor por defecto como en el JS original.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     taskName: startEventElement.name || 'Iniciar Proceso',
     fields: formFields,

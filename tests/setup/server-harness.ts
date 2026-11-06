@@ -26,7 +26,9 @@ const freePort = (): Promise<number> =>
 
 export const startServer = async (): Promise<RunningServer> => {
   const target = process.env.CHARACTERIZATION_TARGET ?? 'ts';
-  const entry = target === 'js' ? 'src/app.js' : 'dist/server.js';
+  // CHARACTERIZATION_ENTRY permite a cada carril paralelo usar su propia build (p. ej. .build/<carril>/server.js).
+  const entry =
+    target === 'js' ? 'src/app.js' : (process.env.CHARACTERIZATION_ENTRY ?? 'dist/server.js');
   const port = await freePort();
 
   // Se sobrescribe todo lo relevante: dotenv no pisa variables ya definidas
