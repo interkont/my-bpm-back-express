@@ -36,16 +36,20 @@ CaseAssignment.init(
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'process_instance_id',
+      references: { model: 'process_instances', key: 'id' },
+      onDelete: 'CASCADE',
     },
     roleId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'role_id',
+      references: { model: 'roles', key: 'id' },
     },
     assignedUserId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'assigned_user_id',
+      references: { model: 'users', key: 'id' },
     },
   },
   {

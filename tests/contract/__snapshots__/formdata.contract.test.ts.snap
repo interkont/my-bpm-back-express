@@ -1,0 +1,2066 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] DELETE /api/fields/:id sin vínculos -> 204 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] DELETE /api/fields/:id sin vínculos -> 204 2`] = `
+[
+  {
+    "field_type": "NUMBER",
+    "id": 1,
+    "label": "Monto de compra",
+    "name": "purchaseAmount",
+    "validations": {
+      "min": 0,
+    },
+  },
+  {
+    "field_type": "TEXT",
+    "id": 2,
+    "label": "Justificacion",
+    "name": "justification",
+    "validations": {
+      "maxLength": 500,
+    },
+  },
+  {
+    "field_type": "BOOLEAN",
+    "id": 3,
+    "label": "Aprobado",
+    "name": "approved",
+    "validations": null,
+  },
+  {
+    "field_type": "TEXT",
+    "id": 4,
+    "label": "Notas actualizadas",
+    "name": "notes",
+    "validations": null,
+  },
+  {
+    "field_type": "SELECT",
+    "id": 200,
+    "label": "Color",
+    "name": "color",
+    "validations": {
+      "options": [
+        {
+          "label": "Rojo",
+          "value": "red",
+        },
+        {
+          "label": "Azul",
+          "value": "blue",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 202,
+    "label": "Prioridad",
+    "name": "priority",
+    "validations": {
+      "options": [
+        {
+          "label": "Alta",
+          "value": "high",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] GET /api/fields lista (ordenada por id en el test) 1`] = `
+{
+  "body": [
+    {
+      "fieldType": "NUMBER",
+      "id": 1,
+      "label": "Monto de compra",
+      "name": "purchaseAmount",
+      "validations": {
+        "min": 0,
+      },
+    },
+    {
+      "fieldType": "TEXT",
+      "id": 2,
+      "label": "Justificacion",
+      "name": "justification",
+      "validations": {
+        "maxLength": 500,
+      },
+    },
+    {
+      "fieldType": "BOOLEAN",
+      "id": 3,
+      "label": "Aprobado",
+      "name": "approved",
+      "validations": null,
+    },
+    {
+      "fieldType": "TEXT",
+      "id": 4,
+      "label": "Notas",
+      "name": "notes",
+      "validations": null,
+    },
+    {
+      "fieldType": "SELECT",
+      "id": 200,
+      "label": "Color",
+      "name": "color",
+      "validations": {
+        "options": [
+          {
+            "label": "Rojo",
+            "value": "red",
+          },
+          {
+            "label": "Azul",
+            "value": "blue",
+          },
+        ],
+      },
+    },
+    {
+      "fieldType": "SELECT",
+      "id": 201,
+      "label": "Talla",
+      "name": "size",
+      "validations": {
+        "options": [
+          {
+            "label": "Pequena",
+            "value": "S",
+          },
+          {
+            "label": "Mediana",
+            "value": "M",
+          },
+        ],
+      },
+    },
+    {
+      "fieldType": "SELECT",
+      "id": 202,
+      "label": "Prioridad",
+      "name": "priority",
+      "validations": {
+        "options": [
+          {
+            "label": "Alta",
+            "value": "high",
+          },
+        ],
+      },
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] GET /api/fields/:id 1`] = `
+{
+  "body": {
+    "fieldType": "SELECT",
+    "id": 200,
+    "label": "Color",
+    "name": "color",
+    "validations": {
+      "options": [
+        {
+          "label": "Rojo",
+          "value": "red",
+        },
+        {
+          "label": "Azul",
+          "value": "blue",
+        },
+      ],
+    },
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] GET /api/fields/:id inexistente -> 404 1`] = `
+{
+  "body": {
+    "code": "NOT_FOUND",
+    "message": "Field definition not found",
+  },
+  "status": 404,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] GET /api/fields/types devuelve el catálogo estático 1`] = `
+{
+  "body": [
+    {
+      "description": "Para entradas de texto cortas.",
+      "label": "Campo de Texto",
+      "scaffold": {
+        "maxLength": 100,
+      },
+      "type": "TEXT",
+    },
+    {
+      "description": "Para entradas de texto largas.",
+      "label": "Área de Texto",
+      "scaffold": {
+        "maxLength": 500,
+      },
+      "type": "TEXTAREA",
+    },
+    {
+      "description": "Para valores numéricos.",
+      "label": "Número",
+      "scaffold": {
+        "maxValue": 1000,
+        "minValue": 0,
+      },
+      "type": "NUMBER",
+    },
+    {
+      "description": "Para seleccionar una opción de una lista.",
+      "label": "Selector (Dropdown)",
+      "scaffold": {
+        "options": [
+          {
+            "label": "Etiqueta de Opción 1",
+            "value": "valor1",
+          },
+        ],
+      },
+      "type": "SELECT",
+    },
+    {
+      "description": "Define la estructura de una lista de datos.",
+      "label": "Grilla de Datos",
+      "scaffold": {
+        "columns": [
+          {
+            "label": "Columna de Ejemplo",
+            "name": "columnaEjemplo",
+            "scaffold": {
+              "options": [
+                {
+                  "label": "Opción A",
+                  "value": "A",
+                },
+              ],
+            },
+            "type": "SELECT",
+          },
+        ],
+        "dataSource": "",
+      },
+      "type": "GRID",
+    },
+    {
+      "description": "Para subir un archivo.",
+      "label": "Archivo",
+      "scaffold": {
+        "allowedFormats": ".pdf,.docx,.jpg",
+        "maxSizeMB": 5,
+      },
+      "type": "FILE",
+    },
+    {
+      "description": "Para seleccionar una fecha.",
+      "label": "Fecha",
+      "scaffold": {},
+      "type": "DATE",
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] POST /api/fields crea (201) 1`] = `
+{
+  "body": {
+    "fieldType": "SELECT",
+    "id": 202,
+    "label": "Prioridad",
+    "name": "priority",
+    "validations": {
+      "options": [
+        {
+          "label": "Alta",
+          "value": "high",
+        },
+      ],
+    },
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] POST /api/fields crea (201) 2`] = `
+[
+  {
+    "field_type": "NUMBER",
+    "id": 1,
+    "label": "Monto de compra",
+    "name": "purchaseAmount",
+    "validations": {
+      "min": 0,
+    },
+  },
+  {
+    "field_type": "TEXT",
+    "id": 2,
+    "label": "Justificacion",
+    "name": "justification",
+    "validations": {
+      "maxLength": 500,
+    },
+  },
+  {
+    "field_type": "BOOLEAN",
+    "id": 3,
+    "label": "Aprobado",
+    "name": "approved",
+    "validations": null,
+  },
+  {
+    "field_type": "TEXT",
+    "id": 4,
+    "label": "Notas",
+    "name": "notes",
+    "validations": null,
+  },
+  {
+    "field_type": "SELECT",
+    "id": 200,
+    "label": "Color",
+    "name": "color",
+    "validations": {
+      "options": [
+        {
+          "label": "Rojo",
+          "value": "red",
+        },
+        {
+          "label": "Azul",
+          "value": "blue",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 201,
+    "label": "Talla",
+    "name": "size",
+    "validations": {
+      "options": [
+        {
+          "label": "Pequena",
+          "value": "S",
+        },
+        {
+          "label": "Mediana",
+          "value": "M",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 202,
+    "label": "Prioridad",
+    "name": "priority",
+    "validations": {
+      "options": [
+        {
+          "label": "Alta",
+          "value": "high",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] PUT /api/fields/:id actualiza (200) 1`] = `
+{
+  "body": {
+    "fieldType": "TEXT",
+    "id": 4,
+    "label": "Notas actualizadas",
+    "name": "notes",
+    "validations": null,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/fields (admin) [frozen] PUT /api/fields/:id actualiza (200) 2`] = `
+[
+  {
+    "field_type": "NUMBER",
+    "id": 1,
+    "label": "Monto de compra",
+    "name": "purchaseAmount",
+    "validations": {
+      "min": 0,
+    },
+  },
+  {
+    "field_type": "TEXT",
+    "id": 2,
+    "label": "Justificacion",
+    "name": "justification",
+    "validations": {
+      "maxLength": 500,
+    },
+  },
+  {
+    "field_type": "BOOLEAN",
+    "id": 3,
+    "label": "Aprobado",
+    "name": "approved",
+    "validations": null,
+  },
+  {
+    "field_type": "TEXT",
+    "id": 4,
+    "label": "Notas actualizadas",
+    "name": "notes",
+    "validations": null,
+  },
+  {
+    "field_type": "SELECT",
+    "id": 200,
+    "label": "Color",
+    "name": "color",
+    "validations": {
+      "options": [
+        {
+          "label": "Rojo",
+          "value": "red",
+        },
+        {
+          "label": "Azul",
+          "value": "blue",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 201,
+    "label": "Talla",
+    "name": "size",
+    "validations": {
+      "options": [
+        {
+          "label": "Pequena",
+          "value": "S",
+        },
+        {
+          "label": "Mediana",
+          "value": "M",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 202,
+    "label": "Prioridad",
+    "name": "priority",
+    "validations": {
+      "options": [
+        {
+          "label": "Alta",
+          "value": "high",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] DELETE /:linkId elimina el vínculo (204) 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] DELETE /:linkId elimina el vínculo (204) 2`] = `[]`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] GET de elemento sin vínculos -> [] 1`] = `
+{
+  "body": [],
+  "status": 200,
+  "text": "[]",
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] GET lista los vínculos con fieldDefinition ordenados por displayOrder 1`] = `
+{
+  "body": [
+    {
+      "contextualValidations": null,
+      "displayOrder": 1,
+      "elementId": 201,
+      "fieldDefId": 200,
+      "fieldDefinition": {
+        "fieldType": "SELECT",
+        "id": 200,
+        "label": "Color",
+        "name": "color",
+        "validations": {
+          "options": [
+            {
+              "label": "Rojo",
+              "value": "red",
+            },
+            {
+              "label": "Azul",
+              "value": "blue",
+            },
+          ],
+        },
+      },
+      "id": 200,
+      "isReadonly": false,
+      "isRequired": true,
+    },
+    {
+      "contextualValidations": {
+        "note": "ctx",
+      },
+      "displayOrder": 2,
+      "elementId": 201,
+      "fieldDefId": 201,
+      "fieldDefinition": {
+        "fieldType": "SELECT",
+        "id": 201,
+        "label": "Talla",
+        "name": "size",
+        "validations": {
+          "options": [
+            {
+              "label": "Pequena",
+              "value": "S",
+            },
+            {
+              "label": "Mediana",
+              "value": "M",
+            },
+          ],
+        },
+      },
+      "id": 201,
+      "isReadonly": false,
+      "isRequired": false,
+    },
+    {
+      "contextualValidations": null,
+      "displayOrder": 3,
+      "elementId": 201,
+      "fieldDefId": 4,
+      "fieldDefinition": {
+        "fieldType": "TEXT",
+        "id": 4,
+        "label": "Notas",
+        "name": "notes",
+        "validations": null,
+      },
+      "id": 202,
+      "isReadonly": true,
+      "isRequired": false,
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] POST agrega un vínculo (201) 1`] = `
+{
+  "body": {
+    "contextualValidations": {
+      "min": 5,
+    },
+    "displayOrder": 1,
+    "elementId": 202,
+    "fieldDefId": 1,
+    "id": 203,
+    "isReadonly": false,
+    "isRequired": true,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] POST agrega un vínculo (201) 2`] = `
+[
+  {
+    "contextual_validations": {
+      "min": 5,
+    },
+    "display_order": 1,
+    "element_id": 202,
+    "field_def_id": 1,
+    "id": 203,
+    "is_readonly": false,
+    "is_required": true,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT /:linkId actualiza un vínculo (200) 1`] = `
+{
+  "body": {
+    "contextualValidations": {
+      "min": 5,
+    },
+    "displayOrder": 7,
+    "elementId": 202,
+    "fieldDefId": 1,
+    "id": 203,
+    "isReadonly": true,
+    "isRequired": true,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT /:linkId actualiza un vínculo (200) 2`] = `
+[
+  {
+    "contextual_validations": {
+      "min": 5,
+    },
+    "display_order": 7,
+    "element_id": 202,
+    "field_def_id": 1,
+    "id": 203,
+    "is_readonly": true,
+    "is_required": true,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT bulk con [] elimina todos los vínculos 1`] = `
+{
+  "body": [],
+  "status": 200,
+  "text": "[]",
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT bulk con [] elimina todos los vínculos 2`] = `[]`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT bulk crea, actualiza y elimina para igualar el payload 1`] = `
+{
+  "body": [
+    {
+      "contextualValidations": null,
+      "displayOrder": 1,
+      "elementId": 201,
+      "fieldDefId": 1,
+      "fieldDefinition": {
+        "fieldType": "NUMBER",
+        "id": 1,
+        "label": "Monto de compra",
+        "name": "purchaseAmount",
+        "validations": {
+          "min": 0,
+        },
+      },
+      "id": 204,
+      "isReadonly": false,
+      "isRequired": true,
+    },
+    {
+      "contextualValidations": null,
+      "displayOrder": 2,
+      "elementId": 201,
+      "fieldDefId": 200,
+      "fieldDefinition": {
+        "fieldType": "SELECT",
+        "id": 200,
+        "label": "Color",
+        "name": "color",
+        "validations": {
+          "options": [
+            {
+              "label": "Rojo",
+              "value": "red",
+            },
+            {
+              "label": "Azul",
+              "value": "blue",
+            },
+          ],
+        },
+      },
+      "id": 200,
+      "isReadonly": true,
+      "isRequired": false,
+    },
+  ],
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) /api/formdata-elements/:elementId/form-fields [frozen] PUT bulk crea, actualiza y elimina para igualar el payload 2`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 2,
+    "element_id": 201,
+    "field_def_id": 200,
+    "id": 200,
+    "is_readonly": true,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 201,
+    "field_def_id": 1,
+    "id": 204,
+    "is_readonly": false,
+    "is_required": true,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) GET /api/processes/:id con formFields, actions y caseAssignmentConfig [frozen] proceso CASEFLOW (201) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_CASEFLOW",
+    "businessProcessKey": "CASEFLOW",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "Fixture de asignacion de casos",
+    "diagramJson": {
+      "edges": [],
+      "nodes": [],
+    },
+    "elements": [
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "Start_CF",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 200,
+        "name": "Start",
+        "processDefId": 201,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "actions": [
+          "approve",
+          "reject",
+        ],
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_CF_A",
+        "caseAssignmentConfig": {
+          "assignableRoles": [
+            1,
+            2,
+          ],
+          "isCaseAssignment": true,
+        },
+        "description": null,
+        "formFields": [
+          {
+            "contextualValidations": null,
+            "displayOrder": 1,
+            "fieldDefId": 200,
+            "fieldDefinition": {
+              "fieldType": "SELECT",
+              "id": 200,
+              "label": "Color",
+              "name": "color",
+              "validations": {
+                "options": [
+                  {
+                    "label": "Rojo",
+                    "value": "red",
+                  },
+                  {
+                    "label": "Azul",
+                    "value": "blue",
+                  },
+                ],
+              },
+            },
+            "id": 200,
+            "isReadonly": false,
+            "isRequired": true,
+          },
+          {
+            "contextualValidations": {
+              "note": "ctx",
+            },
+            "displayOrder": 2,
+            "fieldDefId": 201,
+            "fieldDefinition": {
+              "fieldType": "SELECT",
+              "id": 201,
+              "label": "Talla",
+              "name": "size",
+              "validations": {
+                "options": [
+                  {
+                    "label": "Pequena",
+                    "value": "S",
+                  },
+                  {
+                    "label": "Mediana",
+                    "value": "M",
+                  },
+                ],
+              },
+            },
+            "id": 201,
+            "isReadonly": false,
+            "isRequired": false,
+          },
+          {
+            "contextualValidations": null,
+            "displayOrder": 3,
+            "fieldDefId": 4,
+            "fieldDefinition": {
+              "fieldType": "TEXT",
+              "id": 4,
+              "label": "Notas",
+              "name": "notes",
+              "validations": null,
+            },
+            "id": 202,
+            "isReadonly": true,
+            "isRequired": false,
+          },
+        ],
+        "id": 201,
+        "name": "Case task A",
+        "processDefId": 201,
+        "slaDefinition": null,
+        "type": "USER_TASK",
+        "webhookTarget": null,
+      },
+      {
+        "actions": null,
+        "assignedRoleId": 2,
+        "bpmnElementId": "Task_CF_B",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 202,
+        "name": "Case task B",
+        "processDefId": 201,
+        "slaDefinition": null,
+        "type": "USER_TASK",
+        "webhookTarget": null,
+      },
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "End_CF",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 203,
+        "name": "End",
+        "processDefId": 201,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 201,
+    "name": "Case flow process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 200,
+        "processDefId": 201,
+        "sourceElementBpmnId": "Start_CF",
+        "targetElementBpmnId": "Task_CF_A",
+      },
+      {
+        "conditionExpression": null,
+        "id": 201,
+        "processDefId": 201,
+        "sourceElementBpmnId": "Task_CF_A",
+        "targetElementBpmnId": "Task_CF_B",
+      },
+      {
+        "conditionExpression": null,
+        "id": 202,
+        "processDefId": 201,
+        "sourceElementBpmnId": "Task_CF_B",
+        "targetElementBpmnId": "End_CF",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+}
+`;
+
+exports[`formdata contract (JS baseline) GET /api/processes/:id con formFields, actions y caseAssignmentConfig [frozen] proceso seed LINEAR (1) con formFields y sin actions 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_LINEAR",
+    "businessProcessKey": "LINEAR",
+    "category": "SEED",
+    "createdAt": "<date>",
+    "description": "Seed LINEAR v1",
+    "diagramJson": {
+      "edges": [],
+      "nodes": [],
+    },
+    "elements": [
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_L",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 1,
+        "name": "Start",
+        "processDefId": 1,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "actions": null,
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_L",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [
+          {
+            "contextualValidations": null,
+            "displayOrder": 1,
+            "fieldDefId": 3,
+            "fieldDefinition": {
+              "fieldType": "BOOLEAN",
+              "id": 3,
+              "label": "Aprobado",
+              "name": "approved",
+              "validations": null,
+            },
+            "id": 3,
+            "isReadonly": false,
+            "isRequired": false,
+          },
+          {
+            "contextualValidations": null,
+            "displayOrder": 2,
+            "fieldDefId": 4,
+            "fieldDefinition": {
+              "fieldType": "TEXT",
+              "id": 4,
+              "label": "Notas",
+              "name": "notes",
+              "validations": null,
+            },
+            "id": 4,
+            "isReadonly": true,
+            "isRequired": false,
+          },
+        ],
+        "id": 2,
+        "name": "Linear task",
+        "processDefId": 1,
+        "slaDefinition": null,
+        "type": "USER_TASK",
+        "webhookTarget": null,
+      },
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_L",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 3,
+        "name": "End",
+        "processDefId": 1,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 1,
+    "name": "Linear process",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 1,
+        "processDefId": 1,
+        "sourceElementBpmnId": "StartEvent_L",
+        "targetElementBpmnId": "Task_L",
+      },
+      {
+        "conditionExpression": null,
+        "id": 2,
+        "processDefId": 1,
+        "sourceElementBpmnId": "Task_L",
+        "targetElementBpmnId": "EndEvent_L",
+      },
+    ],
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  "status": 200,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos DELETE [frozen] DELETE /api/processes/:id borra primero los vínculos (204) 1`] = `
+{
+  "body": {},
+  "status": 204,
+  "text": "",
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos DELETE [frozen] DELETE /api/processes/:id borra primero los vínculos (204) 2`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 2,
+    "field_def_id": 3,
+    "id": 3,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 2,
+    "element_id": 2,
+    "field_def_id": 4,
+    "id": 4,
+    "is_readonly": true,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 201,
+    "field_def_id": 200,
+    "id": 200,
+    "is_readonly": false,
+    "is_required": true,
+  },
+  {
+    "contextual_validations": {
+      "note": "ctx",
+    },
+    "display_order": 2,
+    "element_id": 201,
+    "field_def_id": 201,
+    "id": 201,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 3,
+    "element_id": 201,
+    "field_def_id": 4,
+    "id": 202,
+    "is_readonly": true,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos DELETE [frozen] DELETE /api/processes/:id borra primero los vínculos (204) 3`] = `[]`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos creación POST [frozen] POST /api/processes crea con vínculos desde formFields (201) 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_BRANDNEW",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "BRANDNEW",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "desc",
+    "id": 202,
+    "name": "FormFields proceso",
+    "status": "DRAFT",
+    "version": 1,
+  },
+  "status": 201,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos creación POST [frozen] POST /api/processes crea con vínculos desde formFields (201) 2`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_V",
+    "case_assignment_config": null,
+    "id": 204,
+    "name": "Start",
+    "type": "START_EVENT",
+  },
+  {
+    "actions": [
+      "approve",
+      "reject",
+    ],
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_V",
+    "case_assignment_config": {
+      "assignableRoles": [
+        1,
+      ],
+      "isCaseAssignment": true,
+    },
+    "id": 205,
+    "name": "Versioned task",
+    "type": "USER_TASK",
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_V",
+    "case_assignment_config": null,
+    "id": 206,
+    "name": "End",
+    "type": "END_EVENT",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos creación POST [frozen] POST /api/processes crea con vínculos desde formFields (201) 3`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 205,
+    "field_def_id": 3,
+    "id": 203,
+    "is_readonly": false,
+    "is_required": true,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] GET /api/processes/9 refleja los vínculos y las acciones guardadas 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "businessProcessKey": "VERSIONED",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "desc",
+    "diagramJson": {
+      "edges": [],
+      "nodes": [],
+    },
+    "elements": [
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "StartEvent_V",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 33,
+        "name": "Start",
+        "processDefId": 9,
+        "slaDefinition": null,
+        "type": "START_EVENT",
+        "webhookTarget": null,
+      },
+      {
+        "actions": [
+          "approve",
+          "reject",
+        ],
+        "assignedRoleId": 1,
+        "bpmnElementId": "Task_V",
+        "caseAssignmentConfig": {
+          "assignableRoles": [
+            1,
+          ],
+          "isCaseAssignment": true,
+        },
+        "description": null,
+        "formFields": [
+          {
+            "contextualValidations": null,
+            "displayOrder": 5,
+            "fieldDefId": 1,
+            "fieldDefinition": {
+              "fieldType": "NUMBER",
+              "id": 1,
+              "label": "Monto de compra",
+              "name": "purchaseAmount",
+              "validations": {
+                "min": 0,
+              },
+            },
+            "id": 203,
+            "isReadonly": true,
+            "isRequired": false,
+          },
+          {
+            "contextualValidations": null,
+            "displayOrder": 6,
+            "fieldDefId": 3,
+            "fieldDefinition": {
+              "fieldType": "BOOLEAN",
+              "id": 3,
+              "label": "Aprobado",
+              "name": "approved",
+              "validations": null,
+            },
+            "id": 205,
+            "isReadonly": false,
+            "isRequired": true,
+          },
+        ],
+        "id": 34,
+        "name": "Versioned task",
+        "processDefId": 9,
+        "slaDefinition": null,
+        "type": "USER_TASK",
+        "webhookTarget": null,
+      },
+      {
+        "actions": null,
+        "assignedRoleId": null,
+        "bpmnElementId": "EndEvent_V",
+        "caseAssignmentConfig": null,
+        "description": null,
+        "formFields": [],
+        "id": 35,
+        "name": "End",
+        "processDefId": 9,
+        "slaDefinition": null,
+        "type": "END_EVENT",
+        "webhookTarget": null,
+      },
+    ],
+    "id": 9,
+    "name": "FormFields proceso",
+    "sequences": [
+      {
+        "conditionExpression": null,
+        "id": 205,
+        "processDefId": 9,
+        "sourceElementBpmnId": "StartEvent_V",
+        "targetElementBpmnId": "Task_V",
+      },
+      {
+        "conditionExpression": null,
+        "id": 206,
+        "processDefId": 9,
+        "sourceElementBpmnId": "Task_V",
+        "targetElementBpmnId": "EndEvent_V",
+      },
+    ],
+    "status": "DRAFT",
+    "version": 3,
+  },
+  "status": 200,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] primer PUT crea los vínculos desde el payload y persiste actions 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "desc",
+    "id": 9,
+    "name": "FormFields proceso",
+    "status": "DRAFT",
+    "version": 3,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] primer PUT crea los vínculos desde el payload y persiste actions 2`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_V",
+    "case_assignment_config": null,
+    "id": 33,
+    "name": "Start",
+    "type": "START_EVENT",
+  },
+  {
+    "actions": [
+      "approve",
+      "reject",
+    ],
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_V",
+    "case_assignment_config": {
+      "assignableRoles": [
+        1,
+      ],
+      "isCaseAssignment": true,
+    },
+    "id": 34,
+    "name": "Versioned task",
+    "type": "USER_TASK",
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_V",
+    "case_assignment_config": null,
+    "id": 35,
+    "name": "End",
+    "type": "END_EVENT",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] primer PUT crea los vínculos desde el payload y persiste actions 3`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 34,
+    "field_def_id": 1,
+    "id": 203,
+    "is_readonly": false,
+    "is_required": true,
+  },
+  {
+    "contextual_validations": {
+      "maxLength": 10,
+    },
+    "display_order": 2,
+    "element_id": 34,
+    "field_def_id": 2,
+    "id": 204,
+    "is_readonly": true,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] segundo PUT con ids sincroniza: actualiza uno, borra otro y crea uno 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_VERSIONED",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "VERSIONED",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "desc",
+    "id": 9,
+    "name": "FormFields proceso",
+    "status": "DRAFT",
+    "version": 3,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos guardado en sitio (DRAFT sin instancias, def 9) [frozen] segundo PUT con ids sincroniza: actualiza uno, borra otro y crea uno 2`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 5,
+    "element_id": 34,
+    "field_def_id": 1,
+    "id": 203,
+    "is_readonly": true,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 6,
+    "element_id": 34,
+    "field_def_id": 3,
+    "id": 205,
+    "is_readonly": false,
+    "is_required": true,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos nueva versión (def 1 ACTIVE) [frozen] PUT sobre ACTIVE crea la versión +1 con vínculos solo desde el payload 1`] = `
+{
+  "body": {
+    "bpmnProcessId": "Process_LINEAR",
+    "bpmnXml": "{"nodes":[],"edges":[]}",
+    "businessProcessKey": "LINEAR",
+    "category": "FORMDATA",
+    "createdAt": "<date>",
+    "description": "desc",
+    "id": 202,
+    "name": "FormFields proceso",
+    "status": "DRAFT",
+    "version": 2,
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos nueva versión (def 1 ACTIVE) [frozen] PUT sobre ACTIVE crea la versión +1 con vínculos solo desde el payload 2`] = `
+[
+  {
+    "business_process_key": "LINEAR",
+    "id": 1,
+    "status": "ACTIVE",
+    "version": 1,
+  },
+  {
+    "business_process_key": "LINEAR",
+    "id": 202,
+    "status": "DRAFT",
+    "version": 2,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos nueva versión (def 1 ACTIVE) [frozen] PUT sobre ACTIVE crea la versión +1 con vínculos solo desde el payload 3`] = `
+[
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "StartEvent_V",
+    "case_assignment_config": null,
+    "id": 204,
+    "name": "Start",
+    "type": "START_EVENT",
+  },
+  {
+    "actions": [
+      "approve",
+      "reject",
+    ],
+    "assigned_role_id": 1,
+    "bpmn_element_id": "Task_V",
+    "case_assignment_config": {
+      "assignableRoles": [
+        1,
+      ],
+      "isCaseAssignment": true,
+    },
+    "id": 205,
+    "name": "Versioned task",
+    "type": "USER_TASK",
+  },
+  {
+    "actions": null,
+    "assigned_role_id": null,
+    "bpmn_element_id": "EndEvent_V",
+    "case_assignment_config": null,
+    "id": 206,
+    "name": "End",
+    "type": "END_EVENT",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) PUT/POST/DELETE /api/processes con formFields como vínculos nueva versión (def 1 ACTIVE) [frozen] PUT sobre ACTIVE crea la versión +1 con vínculos solo desde el payload 4`] = `
+[
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 2,
+    "field_def_id": 3,
+    "id": 3,
+    "is_readonly": false,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 2,
+    "element_id": 2,
+    "field_def_id": 4,
+    "id": 4,
+    "is_readonly": true,
+    "is_required": false,
+  },
+  {
+    "contextual_validations": null,
+    "display_order": 1,
+    "element_id": 205,
+    "field_def_id": 4,
+    "id": 203,
+    "is_readonly": false,
+    "is_required": false,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) acceso a /api/fields [frozen] GET /api/fields con usuario no admin -> 403 1`] = `
+{
+  "body": {
+    "code": "FORBIDDEN",
+    "message": "Forbidden: Requires admin privileges.",
+  },
+  "status": 403,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) acceso a /api/fields [frozen] GET /api/fields sin token -> 401 1`] = `
+{
+  "body": {},
+  "status": 401,
+  "text": "Unauthorized",
+}
+`;
+
+exports[`formdata contract (JS baseline) acceso a /api/fields [frozen] POST /api/fields con usuario no admin -> 403 y sin cambios 1`] = `
+{
+  "body": {
+    "code": "FORBIDDEN",
+    "message": "Forbidden: Requires admin privileges.",
+  },
+  "status": 403,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) acceso a /api/fields [frozen] POST /api/fields con usuario no admin -> 403 y sin cambios 2`] = `
+[
+  {
+    "field_type": "NUMBER",
+    "id": 1,
+    "label": "Monto de compra",
+    "name": "purchaseAmount",
+    "validations": {
+      "min": 0,
+    },
+  },
+  {
+    "field_type": "TEXT",
+    "id": 2,
+    "label": "Justificacion",
+    "name": "justification",
+    "validations": {
+      "maxLength": 500,
+    },
+  },
+  {
+    "field_type": "BOOLEAN",
+    "id": 3,
+    "label": "Aprobado",
+    "name": "approved",
+    "validations": null,
+  },
+  {
+    "field_type": "TEXT",
+    "id": 4,
+    "label": "Notas",
+    "name": "notes",
+    "validations": null,
+  },
+  {
+    "field_type": "SELECT",
+    "id": 200,
+    "label": "Color",
+    "name": "color",
+    "validations": {
+      "options": [
+        {
+          "label": "Rojo",
+          "value": "red",
+        },
+        {
+          "label": "Azul",
+          "value": "blue",
+        },
+      ],
+    },
+  },
+  {
+    "field_type": "SELECT",
+    "id": 201,
+    "label": "Talla",
+    "name": "size",
+    "validations": {
+      "options": [
+        {
+          "label": "Pequena",
+          "value": "S",
+        },
+        {
+          "label": "Mediana",
+          "value": "M",
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar con caseAssignments inserta la fila y la tarea siguiente nace asignada al usuario 1`] = `
+{
+  "body": {
+    "message": "Task completed successfully.",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar con caseAssignments inserta la fila y la tarea siguiente nace asignada al usuario 2`] = `
+[
+  {
+    "assigned_user_id": 3,
+    "id": 1,
+    "process_instance_id": 200,
+    "role_id": 2,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar con caseAssignments inserta la fila y la tarea siguiente nace asignada al usuario 3`] = `
+[
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 201,
+    "id": 200,
+    "status": "COMPLETED",
+  },
+  {
+    "assigned_to_role_id": 2,
+    "assigned_to_user_id": 3,
+    "element_def_id": 202,
+    "id": 202,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar sin caseAssignments deja la tarea siguiente sin usuario 1`] = `
+{
+  "body": {
+    "message": "Task completed successfully.",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar sin caseAssignments deja la tarea siguiente sin usuario 2`] = `[]`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] completar sin caseAssignments deja la tarea siguiente sin usuario 3`] = `
+[
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 201,
+    "id": 200,
+    "status": "COMPLETED",
+  },
+  {
+    "assigned_to_role_id": 2,
+    "assigned_to_user_id": null,
+    "element_def_id": 202,
+    "id": 202,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] la tarea sin acciones ni configuración devuelve actions por defecto y sin caseAssignmentData 1`] = `
+{
+  "body": {
+    "actions": [
+      "complete",
+    ],
+    "fields": [],
+    "taskName": "Case task B",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] una asignación previa del mismo rol se reemplaza (upsert) 1`] = `
+{
+  "body": {
+    "message": "Task completed successfully.",
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] una asignación previa del mismo rol se reemplaza (upsert) 2`] = `
+[
+  {
+    "assigned_user_id": 3,
+    "id": 1,
+    "process_instance_id": 200,
+    "role_id": 2,
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) asignación de casos [frozen] una asignación previa del mismo rol se reemplaza (upsert) 3`] = `
+[
+  {
+    "assigned_to_role_id": 1,
+    "assigned_to_user_id": null,
+    "element_def_id": 201,
+    "id": 200,
+    "status": "COMPLETED",
+  },
+  {
+    "assigned_to_role_id": 2,
+    "assigned_to_user_id": 3,
+    "element_def_id": 202,
+    "id": 202,
+    "status": "PENDING",
+  },
+]
+`;
+
+exports[`formdata contract (JS baseline) enriquecimiento de valores SELECT [frozen] GET /api/process-instances/:id con claves desconocidas -> UNKNOWN 1`] = `
+{
+  "body": {
+    "businessData": {
+      "approved": false,
+      "extraKey": "x",
+      "notes": "",
+      "purchaseAmount": 0,
+    },
+    "businessDataFields": [
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {},
+        "value": "",
+      },
+      {
+        "fieldType": "BOOLEAN",
+        "label": "Aprobado",
+        "name": "approved",
+        "validations": {},
+        "value": false,
+      },
+      {
+        "fieldType": "UNKNOWN",
+        "label": "extraKey",
+        "name": "extraKey",
+        "value": "x",
+      },
+      {
+        "fieldType": "NUMBER",
+        "label": "Monto de compra",
+        "name": "purchaseAmount",
+        "validations": {
+          "min": 0,
+        },
+        "value": 0,
+      },
+    ],
+    "description": "Instancia LINEAR en curso (valores falsy)",
+    "endTime": null,
+    "id": 1,
+    "processDefId": 1,
+    "processDefinition": {
+      "bpmnProcessId": "Process_LINEAR",
+      "businessProcessKey": "LINEAR",
+      "category": "SEED",
+      "description": "Seed LINEAR v1",
+      "id": 1,
+      "name": "Linear process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    "startTime": "<date>",
+    "startedByUser": {
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+    },
+    "startedByUserId": 3,
+    "status": "RUNNING",
+    "taskInstances": [
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 2,
+        "id": 1,
+        "processElement": {
+          "bpmnElementId": "Task_L",
+          "name": "Linear task",
+        },
+        "processInstanceId": 1,
+        "status": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) enriquecimiento de valores SELECT [frozen] GET /api/process-instances/:id incluye validations y enriquece SELECT 1`] = `
+{
+  "body": {
+    "businessData": {
+      "color": "red",
+      "notes": "hi",
+      "size": "XL",
+    },
+    "businessDataFields": [
+      {
+        "fieldType": "SELECT",
+        "label": "Talla",
+        "name": "size",
+        "validations": {
+          "options": [
+            {
+              "label": "Pequena",
+              "value": "S",
+            },
+            {
+              "label": "Mediana",
+              "value": "M",
+            },
+          ],
+        },
+        "value": "XL",
+      },
+      {
+        "fieldType": "SELECT",
+        "label": "Color",
+        "name": "color",
+        "validations": {
+          "options": [
+            {
+              "label": "Rojo",
+              "value": "red",
+            },
+            {
+              "label": "Azul",
+              "value": "blue",
+            },
+          ],
+        },
+        "value": {
+          "label": "Rojo",
+          "value": "red",
+        },
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {},
+        "value": "hi",
+      },
+    ],
+    "description": "Instancia CASEFLOW A",
+    "endTime": null,
+    "id": 200,
+    "processDefId": 201,
+    "processDefinition": {
+      "bpmnProcessId": "Process_CASEFLOW",
+      "businessProcessKey": "CASEFLOW",
+      "category": "FORMDATA",
+      "description": "Fixture de asignacion de casos",
+      "id": 201,
+      "name": "Case flow process",
+      "status": "ACTIVE",
+      "version": 1,
+    },
+    "startTime": "<date>",
+    "startedByUser": {
+      "email": "requester@flowify.test",
+      "fullName": "Requester Test",
+      "id": 3,
+    },
+    "startedByUserId": 3,
+    "status": "RUNNING",
+    "taskInstances": [
+      {
+        "assignedRole": {
+          "name": "Aprobador",
+        },
+        "assignedToRoleId": 1,
+        "assignedToUserId": null,
+        "assignedUser": null,
+        "comments": null,
+        "completedByUser": null,
+        "completedByUserId": null,
+        "completionPayload": null,
+        "completionTime": null,
+        "createdAt": "<date>",
+        "dueDate": null,
+        "elementDefId": 201,
+        "id": 200,
+        "processElement": {
+          "bpmnElementId": "Task_CF_A",
+          "name": "Case task A",
+        },
+        "processInstanceId": 200,
+        "status": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+  "text": undefined,
+}
+`;
+
+exports[`formdata contract (JS baseline) enriquecimiento de valores SELECT [frozen] GET /api/tasks/:id/form sustituye el valor SELECT por la opción completa 1`] = `
+{
+  "body": {
+    "actions": [
+      "approve",
+      "reject",
+    ],
+    "caseAssignmentData": {
+      "assignableRoles": [
+        {
+          "roleId": 1,
+          "roleName": "Aprobador",
+          "users": [
+            {
+              "userEmail": "admin@flowify.test",
+              "userId": 1,
+              "userName": "Admin Test",
+            },
+            {
+              "userEmail": "approver@flowify.test",
+              "userId": 2,
+              "userName": "Approver Test",
+            },
+          ],
+        },
+        {
+          "roleId": 2,
+          "roleName": "Solicitante",
+          "users": [
+            {
+              "userEmail": "requester@flowify.test",
+              "userId": 3,
+              "userName": "Requester Test",
+            },
+          ],
+        },
+      ],
+    },
+    "fields": [
+      {
+        "fieldType": "SELECT",
+        "label": "Color",
+        "name": "color",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": true,
+          "options": [
+            {
+              "label": "Rojo",
+              "value": "red",
+            },
+            {
+              "label": "Azul",
+              "value": "blue",
+            },
+          ],
+        },
+        "value": {
+          "label": "Rojo",
+          "value": "red",
+        },
+      },
+      {
+        "fieldType": "SELECT",
+        "label": "Talla",
+        "name": "size",
+        "validations": {
+          "isReadonly": false,
+          "isRequired": false,
+          "note": "ctx",
+          "options": [
+            {
+              "label": "Pequena",
+              "value": "S",
+            },
+            {
+              "label": "Mediana",
+              "value": "M",
+            },
+          ],
+        },
+        "value": "XL",
+      },
+      {
+        "fieldType": "TEXT",
+        "label": "Notas",
+        "name": "notes",
+        "validations": {
+          "isReadonly": true,
+          "isRequired": false,
+        },
+        "value": "hi",
+      },
+    ],
+    "taskName": "Case task A",
+  },
+  "status": 200,
+}
+`;

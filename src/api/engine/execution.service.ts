@@ -9,6 +9,7 @@ import {
   ProcessElement,
   ProcessSequence,
   TaskInstance,
+  CaseAssignment,
 } from '../../models';
 import type { BusinessData, JsonValue } from '../../domain/types';
 import { logger } from '../../utils/logger';
@@ -24,6 +25,8 @@ export type CompletionData = {
   action?: string;
   formData?: BusinessData;
   comments?: string;
+  // Validado en la ruta (completeTaskBodySchema): rol → usuario asignado en esta instancia.
+  caseAssignments?: { roleId: number | string; userId: number | string }[] | null;
 };
 
 // Contexto de la tarea que se agrega a la evaluación de condiciones (`task`).
@@ -48,12 +51,29 @@ const createTaskInstance = async (
   t: Transaction,
 ): Promise<TaskInstance> => {
   logger.debug(`[Engine] > Creating USER_TASK for element: ${element.bpmnElementId}`);
+
+  // Asignación de casos: si la instancia ya fijó un usuario para el rol de la tarea, se le asigna.
+  let assignedToUserId: number | null = null;
+  if (element.assignedRoleId) {
+    const caseAssignment = await CaseAssignment.findOne({
+      where: { processInstanceId: processInstance.id, roleId: element.assignedRoleId },
+      transaction: t,
+    });
+    if (caseAssignment) {
+      assignedToUserId = caseAssignment.assignedUserId;
+      logger.debug(
+        `[Engine] | Case Assignment found: Assigning task to User ID ${assignedToUserId} for Role ID ${element.assignedRoleId}.`,
+      );
+    }
+  }
+
   return TaskInstance.create(
     {
       processInstanceId: processInstance.id,
       elementDefId: element.id,
       status: 'PENDING',
       assignedToRoleId: element.assignedRoleId,
+      assignedToUserId,
     },
     { transaction: t },
   );
@@ -197,6 +217,24 @@ export const completeTask = async (
     // La instancia se carga con el `include` de arriba (FK obligatoria).
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const taskProcessInstance = task.processInstance!;
+
+    // Se guardan antes de avanzar para que las tareas que se creen a continuación ya las usen.
+    const caseAssignments = completionData.caseAssignments ?? [];
+    if (caseAssignments.length > 0) {
+      logger.debug(`[Engine] | Saving case assignments for instance ID: ${task.processInstanceId}`);
+      for (const assignment of caseAssignments) {
+        await CaseAssignment.upsert(
+          {
+            processInstanceId: task.processInstanceId,
+            // La ruta solo admite enteros o enteros como texto; Postgres convierte el texto.
+            roleId: Number(assignment.roleId),
+            assignedUserId: Number(assignment.userId),
+          },
+          { transaction: t },
+        );
+      }
+    }
+
     await TaskInstance.update(
       {
         status: 'COMPLETED',

@@ -39,8 +39,9 @@ const nombreTabla = (modelo: ModelStatic<Model>): string => {
   return typeof tabla === 'string' ? tabla : tabla.tableName;
 };
 
-// Tablas/columnas presentes en la BD y ausentes en los modelos (EXC-10)
-const FALTANTES_ESPERADAS = ['process_elements.actions', 'process_elements.case_assignment_config'];
+// Tablas/columnas presentes en la BD y ausentes en los modelos. EXC-10 (actions y
+// case_assignment_config) quedó cerrada al incorporar api-formdata: ya no falta ninguna.
+const FALTANTES_ESPERADAS: string[] = [];
 
 describe('contrato de esquema: modelos vs information_schema', () => {
   let modelos: ModelStatic<Model>[];
@@ -100,7 +101,7 @@ describe('contrato de esquema: modelos vs information_schema', () => {
     expect(problemas).toEqual([]);
   });
 
-  it('las únicas columnas de BD sin modelo son las de EXC-10', () => {
+  it('todas las columnas de BD tienen modelo (EXC-10 cerrada)', () => {
     const mapeadas = new Set<string>();
     const tablas = new Set<string>();
     for (const modelo of modelos) {

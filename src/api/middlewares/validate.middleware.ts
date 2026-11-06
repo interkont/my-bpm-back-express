@@ -46,6 +46,23 @@ export const idParam: RequestHandler = (req, _res, next): void => {
   next(invalidId());
 };
 
+/** Parámetros de ruta estrictamente numéricos con otro nombre que `:id` (p. ej. `:elementId`). */
+export const numericParams =
+  (...names: string[]): RequestHandler =>
+  (req, _res, next): void => {
+    const invalid = names.filter((name) => !/^\d+$/.test(req.params[name] ?? ''));
+    if (invalid.length === 0) {
+      next();
+      return;
+    }
+    next(
+      validation(
+        invalid.map((field) => ({ field, msg: `${field} must be a positive integer` })),
+        'Invalid id parameter',
+      ),
+    );
+  };
+
 /** `:id` con la semántica de `parseInt` (`"12abc"` → 12): solo rechaza lo que da NaN (R-13). */
 export const parseIntIdParam: RequestHandler = (req, _res, next): void => {
   if (!Number.isNaN(parseInt(req.params.id ?? '', 10))) {

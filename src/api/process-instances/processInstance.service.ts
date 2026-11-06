@@ -36,7 +36,13 @@ const userSummaryAttributes = attrs<User>()('id', 'fullName', 'email');
 const processElementAttributes = attrs<ProcessElement>()('name', 'bpmnElementId');
 const roleNameAttributes = attrs<Role>()('name');
 const userNameAttributes = attrs<User>()('fullName');
-const fieldDefinitionAttributes = attrs<FieldDefinition>()('name', 'label', 'fieldType');
+// El enriquecimiento necesita las validaciones (opciones de SELECT, columnas de GRID).
+const fieldDefinitionAttributes = attrs<FieldDefinition>()(
+  'name',
+  'label',
+  'fieldType',
+  'validations',
+);
 
 export const createProcessInstanceRecord = async (
   data: CreateProcessInstanceRecordInput & { startedByUserId: number },

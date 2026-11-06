@@ -5,7 +5,6 @@ import {
   type Transaction,
   type WhereOptions,
 } from 'sequelize';
-import type { MakeNullishOptional } from 'sequelize/types/utils';
 import {
   sequelize,
   ProcessDefinition,
@@ -18,6 +17,7 @@ import {
 import { attrs, pick } from '../../utils/pick';
 import { activeVersionConflict, modelError, notFound } from '../../domain/errors';
 import { toFormField, type FormFieldDto } from '../../utils/formFields';
+import { syncFormFields } from '../formdata-elements/element-form.service';
 import type {
   IncomingElement,
   IncomingSequence,
@@ -38,7 +38,6 @@ import {
 type ProcessDefinitionCreation = InferCreationAttributes<ProcessDefinition>;
 type ProcessElementCreation = InferCreationAttributes<ProcessElement>;
 type ProcessSequenceCreation = InferCreationAttributes<ProcessSequence>;
-type ElementFormLinkCreation = MakeNullishOptional<InferCreationAttributes<ElementFormLink>>;
 // Listas blancas de escritura (FR-029, data-model §9): id, version, createdAt y processDefId nunca se aplican desde el cuerpo.
 const DEFINITION_KEYS = [
   'businessProcessKey',
@@ -56,6 +55,8 @@ const ELEMENT_KEYS = [
   'assignedRoleId',
   'webhookTarget',
   'slaDefinition',
+  'actions',
+  'caseAssignmentConfig',
 ] as const satisfies readonly (keyof ProcessElementCreation)[];
 const SEQUENCE_KEYS = [
   'sourceElementBpmnId',
@@ -72,11 +73,6 @@ const pickElement = (el: IncomingElement): Partial<ProcessElementCreation> =>
   pick(el as Partial<ProcessElementCreation>, ELEMENT_KEYS);
 const pickSequence = (seq: IncomingSequence): Partial<ProcessSequenceCreation> =>
   pick(seq as Partial<ProcessSequenceCreation>, SEQUENCE_KEYS);
-
-type FormLinkData = Pick<
-  ElementFormLink,
-  'fieldDefId' | 'displayOrder' | 'isRequired' | 'isReadonly' | 'contextualValidations'
->;
 
 export interface StartFormDefinition {
   taskName: string;
@@ -147,6 +143,23 @@ async function syncElements(
     await element.save({ transaction: t });
   }
   await ProcessElement.destroy({ where: { id: toDeleteIds }, transaction: t });
+}
+
+/**
+ * Sincroniza los campos de formulario de cada elemento que trae `formFields` en el payload
+ * (`elementIds`: bpmnElementId → id del elemento guardado). Sin `formFields`, no se tocan.
+ */
+async function syncElementFormFields(
+  elementIds: ReadonlyMap<string, number>,
+  incomingElements: IncomingElement[],
+  t: Transaction,
+): Promise<void> {
+  for (const incomingEl of incomingElements) {
+    const elementId = elementIds.get(incomingEl.bpmnElementId);
+    if (incomingEl.formFields && elementId !== undefined) {
+      await syncFormFields(elementId, incomingEl.formFields, t);
+    }
+  }
 }
 
 async function syncSequences(
@@ -238,45 +251,12 @@ export const saveProcessDefinition = async (
         { transaction: t },
       );
 
-      const oldElementsWithForms = await ProcessElement.findAll({
-        where: { processDefId: definitionToUpdate.id },
-        include: [{ model: ElementFormLink, as: 'elementFormLinks' }],
-        transaction: t,
-      });
-
-      const formLinksMap = new Map<string, FormLinkData[]>();
-      oldElementsWithForms.forEach((oldEl) => {
-        if (oldEl.elementFormLinks && oldEl.elementFormLinks.length > 0) {
-          formLinksMap.set(
-            oldEl.bpmnElementId,
-            oldEl.elementFormLinks.map((link) => ({
-              fieldDefId: link.fieldDefId,
-              displayOrder: link.displayOrder,
-              isRequired: link.isRequired,
-              isReadonly: link.isReadonly,
-              contextualValidations: link.contextualValidations,
-            })),
-          );
-        }
-      });
-
-      const newFormLinksToCreate: ElementFormLinkCreation[] = [];
-      const newElementsMap = new Map<string, number>(
-        newElements.map((el) => [el.bpmnElementId, el.id]),
+      // Los campos de la nueva versión salen del payload (el modelador envía la lista completa).
+      await syncElementFormFields(
+        new Map(newElements.map((el) => [el.bpmnElementId, el.id])),
+        elements,
+        t,
       );
-
-      for (const [bpmnId, links] of formLinksMap.entries()) {
-        const newElementId = newElementsMap.get(bpmnId);
-        if (newElementId) {
-          links.forEach((linkData) => {
-            newFormLinksToCreate.push({ ...linkData, elementId: newElementId });
-          });
-        }
-      }
-
-      if (newFormLinksToCreate.length > 0) {
-        await ElementFormLink.bulkCreate(newFormLinksToCreate, { transaction: t });
-      }
 
       return toDefinitionRow(newDefinition);
     } else {
@@ -313,6 +293,17 @@ export const saveProcessDefinition = async (
 
       await syncElements(processDefId, elements, t);
       await syncSequences(processDefId, sequences, t);
+
+      const savedElements = await ProcessElement.findAll({
+        where: { processDefId },
+        attributes: attrs<ProcessElement>()('id', 'bpmnElementId'),
+        transaction: t,
+      });
+      await syncElementFormFields(
+        new Map(savedElements.map((el) => [el.bpmnElementId, el.id])),
+        elements,
+        t,
+      );
 
       return toDefinitionRow(processDefinition);
     }
@@ -396,8 +387,28 @@ export const getProcessDefinitionById = async (
 ): Promise<ProcessDefinitionDetailDto | null> => {
   const processDefinition = await ProcessDefinition.findByPk(parseInt(id, 10), {
     include: [
-      { model: ProcessElement, as: 'processElements' },
       { model: ProcessSequence, as: 'processSequences' },
+      {
+        model: ProcessElement,
+        as: 'processElements',
+        include: [
+          {
+            model: ElementFormLink,
+            as: 'elementFormLinks',
+            // La definición completa del campo acompaña a cada vínculo.
+            include: [{ model: FieldDefinition, as: 'fieldDefinition' }],
+          },
+        ],
+      },
+    ],
+    order: [
+      [{ model: ProcessElement, as: 'processElements' }, 'id', 'ASC'],
+      [
+        { model: ProcessElement, as: 'processElements' },
+        { model: ElementFormLink, as: 'elementFormLinks' },
+        'displayOrder',
+        'ASC',
+      ],
     ],
   });
 
@@ -413,6 +424,18 @@ export const deleteProcessDefinition = async (id: string): Promise<{ message: st
     }
 
     await ProcessSequence.destroy({ where: { processDefId }, transaction: t });
+    // Los vínculos de formulario se borran antes que sus elementos.
+    const elementIds = (
+      await ProcessElement.findAll({
+        where: { processDefId },
+        attributes: attrs<ProcessElement>()('id'),
+        transaction: t,
+      })
+    ).map((el) => el.id);
+    await ElementFormLink.destroy({
+      where: { elementId: { [Op.in]: elementIds } },
+      transaction: t,
+    });
     await ProcessElement.destroy({ where: { processDefId }, transaction: t });
     await definition.destroy({ transaction: t });
 

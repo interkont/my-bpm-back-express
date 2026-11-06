@@ -25,7 +25,8 @@ const buildPayload = (over: Record<string, unknown> = {}): Record<string, unknow
       name: 'Revisar',
       type: 'USER_TASK',
       assignedRoleId: 1,
-      formFields: [{ name: 'notes', label: 'Notas' }],
+      // Vínculos con la forma que envía el modelador (api-formdata); el campo 4 es `notes`.
+      formFields: [{ fieldDefId: 4, displayOrder: 1, isRequired: true, isReadonly: false }],
       actions: [{ id: 'approve', label: 'Aprobar' }],
       webhook_target: 'https://example.test/hook',
       sla_definition: { hours: 4 },
@@ -283,7 +284,7 @@ describe('processes contract', () => {
   describe('PUT con nueva versión', () => {
     beforeAll(resetDatabase);
 
-    it('[frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario', async () => {
+    it('[frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian)', async () => {
       const res = await api.put('/api/processes/2').send(
         buildPayload({
           name: 'EXCLUSIVE v2',

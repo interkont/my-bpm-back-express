@@ -5,14 +5,18 @@ import {
   ProcessDefinition,
   ProcessElement,
   ProcessInstance,
+  Role,
   TaskInstance,
   User,
 } from '../../models';
 import { notFound } from '../../domain/errors';
 import { attrs } from '../../utils/pick';
 import {
+  assignableRoleIds,
+  toCaseAssignmentData,
   toInboxItem,
   toTaskForm,
+  type AssignableRolePlain,
   type InboxItemDto,
   type InboxTaskPlain,
   type TaskFormDto,
@@ -99,5 +103,32 @@ export const getTaskForm = async (taskId: string): Promise<TaskFormDto> => {
   }
 
   // El `as` es seguro: los includes anidados de arriba coinciden con TaskFormPlain.
-  return toTaskForm(taskInstance.get({ plain: true }) as TaskFormPlain);
+  const plain = taskInstance.get({ plain: true }) as TaskFormPlain;
+  const formDefinition = toTaskForm(plain);
+
+  // Asignación de casos: la tarea ofrece los usuarios de cada rol asignable.
+  const roleIds = assignableRoleIds(plain);
+  if (roleIds.length > 0) {
+    const roles = await Role.findAll({
+      where: { id: { [Op.in]: roleIds } },
+      attributes: attrs<Role>()('id', 'name'),
+      include: {
+        model: User,
+        as: 'users',
+        attributes: attrs<User>()('id', 'fullName', 'email'),
+        through: { attributes: [] },
+      },
+      // Sin orden en el JS original; se fija para que la respuesta sea estable.
+      order: [
+        ['id', 'ASC'],
+        [{ model: User, as: 'users' }, 'id', 'ASC'],
+      ],
+    });
+    // El `as` es seguro: la proyección de arriba coincide con AssignableRolePlain.
+    formDefinition.caseAssignmentData = toCaseAssignmentData(
+      roles.map((role) => role.get({ plain: true }) as AssignableRolePlain),
+    );
+  }
+
+  return formDefinition;
 };

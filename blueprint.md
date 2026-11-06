@@ -118,7 +118,7 @@ arriba abajo: rutas → controller → servicio → modelos; `src/domain` no dep
 ```
 src/server.ts                   ← arranque: valida config, sequelize.authenticate(), app.listen (único lugar que escucha)
 src/app.ts                      ← construye y exporta la app Express (helmet, cors, rate limit, passport, /api, error middleware); sin listen, importable por pruebas
-src/api/routes.ts               ← monta /roles /users /auth /tasks /processes /process-instances /engine
+src/api/routes.ts               ← monta /roles /users /auth /tasks /processes /process-instances /engine /fields /formdata-elements
 src/api/<modulo>/
     <x>.routes.ts               ← rutas + middlewares protect / isAdmin / idParam / validateBody
     <x>.schemas.ts              ← esquemas zod de entrada (solo rechazan lo que antes ya fallaba)
@@ -678,7 +678,7 @@ se muestra el mensaje y la sesión continúa. Falta `oldPassword` sigue siendo 4
 | Mecanismo | Implementación | Uso |
 |---|---|---|
 | `protect` | `passport.authenticate('jwt', {session:false})` (`auth.middleware.ts`) | Todas las rutas salvo login. El 401 de passport sigue siendo texto `Unauthorized`. |
-| `isAdmin` | `req.user.systemRole === 'ADMIN'` o 403 `{ message: 'Forbidden: Requires admin privileges.', code: 'FORBIDDEN' }` (`admin.middleware.ts`) | `/users/*`, `/roles/*`, `GET /processes/all`, `GET /engine/decision-logs`. |
+| `isAdmin` | `req.user.systemRole === 'ADMIN'` o 403 `{ message: 'Forbidden: Requires admin privileges.', code: 'FORBIDDEN' }` (`admin.middleware.ts`) | `/users/*`, `/roles/*`, `/fields/*`, `/formdata-elements/*`, `GET /processes/all`, `GET /engine/decision-logs`. |
 | Propiedad de la tarea | Filtro por usuario o roles en `completeTask` | Solo completar tarea. |
 | Módulos | Devueltos en login | **Solo UI**: el backend no los aplica. |
 

@@ -1,5 +1,6 @@
 import type { ProcessInstanceStatus, TaskStatus } from '../../domain/constants';
-import type { BusinessData, JsonValue } from '../../domain/types';
+import type { BusinessData, JsonObject, JsonValue } from '../../domain/types';
+import { enrichFieldValue } from '../../utils/formFields';
 import type { FieldDefinition } from '../../models/field-definition.model';
 import type { ProcessInstance } from '../../models/process-instance.model';
 import type { TaskInstance } from '../../models/task-instance.model';
@@ -58,11 +59,13 @@ export interface TaskInstanceDto {
   completedByUser: { fullName: string } | null;
 }
 
+// Sin definición en la biblioteca: datos en crudo, sin `validations`.
 export interface BusinessDataFieldDto {
   name: string;
   label: string;
   fieldType: string;
-  value: JsonValue;
+  value: JsonValue | null;
+  validations?: JsonObject;
 }
 
 export interface InstanceDetailDto extends InstanceListItemDto {
@@ -140,29 +143,33 @@ const toTaskInstance = (task: TaskInstance): TaskInstanceDto => {
 };
 
 /**
- * Detalle de la instancia: enriquece `businessData` con la etiqueta y el tipo de
- * cada campo (`fieldDefs`). Sin datos de negocio, `businessDataFields` es `[]`.
+ * Detalle de la instancia: enriquece `businessData` con la etiqueta, el tipo, el valor enriquecido
+ * y las validaciones de cada campo (`fieldDefs`). Sin datos de negocio, `businessDataFields` es `[]`.
  */
 export const toInstanceDetail = (
   instance: ProcessInstance,
-  fieldDefs: readonly Pick<FieldDefinition, 'name' | 'label' | 'fieldType'>[],
+  fieldDefs: readonly Pick<FieldDefinition, 'name' | 'label' | 'fieldType' | 'validations'>[],
 ): InstanceDetailDto => {
   const row = toInstanceRow(instance);
   const fieldDefsByName = new Map(fieldDefs.map((field) => [field.name, field]));
 
-  const businessDataFields = Object.entries(row.businessData ?? {}).map(([key, value]) => {
-    const fieldDef = fieldDefsByName.get(key);
-    return {
-      name: key,
-      // `||` (no `??`) conserva el comportamiento original ante cadenas vacías;
-      // la clave y 'UNKNOWN' son el respaldo si no hay definición.
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      label: fieldDef?.label || key,
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      fieldType: fieldDef?.fieldType || 'UNKNOWN',
-      value,
-    };
-  });
+  const businessDataFields = Object.entries(row.businessData ?? {}).map(
+    ([key, rawValue]): BusinessDataFieldDto => {
+      const fieldDef = fieldDefsByName.get(key);
+      if (!fieldDef) {
+        return { name: key, label: key, fieldType: 'UNKNOWN', value: rawValue };
+      }
+      const { value, validations } = enrichFieldValue(fieldDef, rawValue);
+      return {
+        name: key,
+        label: fieldDef.label,
+        fieldType: fieldDef.fieldType,
+        value,
+        // Las validaciones permiten al frontend interpretar el dato (p. ej. las columnas de un GRID).
+        validations,
+      };
+    },
+  );
 
   return {
     ...toInstanceListItem(instance),

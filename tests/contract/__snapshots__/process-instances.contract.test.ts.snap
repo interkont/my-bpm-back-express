@@ -422,12 +422,14 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
         "fieldType": "TEXT",
         "label": "Notas",
         "name": "notes",
+        "validations": {},
         "value": "",
       },
       {
         "fieldType": "BOOLEAN",
         "label": "Aprobado",
         "name": "approved",
+        "validations": {},
         "value": false,
       },
       {
@@ -440,6 +442,9 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
         "fieldType": "NUMBER",
         "label": "Monto de compra",
         "name": "purchaseAmount",
+        "validations": {
+          "min": 0,
+        },
         "value": 0,
       },
     ],
@@ -507,6 +512,9 @@ exports[`process-instances contract lecturas [frozen] GET /process-instances/:id
         "fieldType": "NUMBER",
         "label": "Monto de compra",
         "name": "purchaseAmount",
+        "validations": {
+          "min": 0,
+        },
         "value": 5,
       },
     ],

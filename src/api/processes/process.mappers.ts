@@ -1,6 +1,7 @@
 import type { ProcessDefinition, ProcessElement, ProcessSequence } from '../../models';
 import type { ElementType, ProcessDefinitionStatus, SaveAction } from '../../domain/constants';
-import type { JsonValue } from '../../domain/types';
+import type { JsonObject, JsonValue } from '../../domain/types';
+import { toFieldDefinitionDto, type FieldDefinitionDto } from '../fields/field.mappers';
 
 // Fila de definición tal como la devuelven POST/PUT/PATCH (incluye bpmnXml).
 export interface ProcessDefinitionRowDto {
@@ -27,6 +28,20 @@ export interface ProcessElementDto {
   assignedRoleId: number | null;
   webhookTarget: string | null;
   slaDefinition: JsonValue | null;
+  actions: JsonValue | null;
+  caseAssignmentConfig: JsonObject | null;
+  // Vínculos de formulario con la forma que el modelador reenvía al guardar.
+  formFields: ElementFormFieldDto[];
+}
+
+export interface ElementFormFieldDto {
+  id: number;
+  fieldDefId: number;
+  displayOrder: number;
+  isRequired: boolean;
+  isReadonly: boolean;
+  contextualValidations: JsonObject | null;
+  fieldDefinition: FieldDefinitionDto | null;
 }
 
 export interface ProcessSequenceDto {
@@ -84,6 +99,17 @@ const toElement = (entity: ProcessElement): ProcessElementDto => {
     assignedRoleId: row.assignedRoleId,
     webhookTarget: row.webhookTarget,
     slaDefinition: row.slaDefinition,
+    actions: row.actions,
+    caseAssignmentConfig: row.caseAssignmentConfig,
+    formFields: (entity.elementFormLinks ?? []).map((link) => ({
+      id: link.id,
+      fieldDefId: link.fieldDefId,
+      displayOrder: link.displayOrder,
+      isRequired: link.isRequired,
+      isReadonly: link.isReadonly,
+      contextualValidations: link.contextualValidations,
+      fieldDefinition: link.fieldDefinition ? toFieldDefinitionDto(link.fieldDefinition) : null,
+    })),
   };
 };
 

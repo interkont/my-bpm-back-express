@@ -59,24 +59,6 @@ exports[`processes contract DELETE [frozen] DELETE /processes/:id de una definic
     "is_readonly": false,
     "is_required": false,
   },
-  {
-    "contextual_validations": null,
-    "display_order": 1,
-    "element_id": 2,
-    "field_def_id": 3,
-    "id": 3,
-    "is_readonly": false,
-    "is_required": false,
-  },
-  {
-    "contextual_validations": null,
-    "display_order": 2,
-    "element_id": 2,
-    "field_def_id": 4,
-    "id": 4,
-    "is_readonly": true,
-    "is_required": false,
-  },
 ]
 `;
 
@@ -513,7 +495,12 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id d
     "webhook_target": null,
   },
   {
-    "actions": null,
+    "actions": [
+      {
+        "id": "approve",
+        "label": "Aprobar",
+      },
+    ],
     "assigned_role_id": 1,
     "bpmn_element_id": "Task_N",
     "description": null,
@@ -539,7 +526,7 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id d
 ]
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian) 1`] = `
 {
   "body": {
     "bpmnProcessId": "Process_EXCLUSIVE",
@@ -558,7 +545,7 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id s
 }
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: defs 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian): defs 1`] = `
 [
   {
     "bpmn_process_id": "Process_EXCLUSIVE",
@@ -585,7 +572,7 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id s
 ]
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: elements 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian): elements 1`] = `
 [
   {
     "actions": null,
@@ -626,32 +613,9 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id s
 ]
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: links 1`] = `
-[
-  {
-    "contextual_validations": null,
-    "display_order": 1,
-    "element_id": 36,
-    "field_def_id": 1,
-    "id": 5,
-    "is_readonly": false,
-    "is_required": true,
-  },
-  {
-    "contextual_validations": {
-      "maxLength": 200,
-    },
-    "display_order": 2,
-    "element_id": 36,
-    "field_def_id": 2,
-    "id": 6,
-    "is_readonly": false,
-    "is_required": false,
-  },
-]
-`;
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian): links 1`] = `[]`;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT y copia vínculos de formulario: sequences 1`] = `
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre ACTIVE crea versión source+1 DRAFT (api-formdata: los vínculos salen solo del payload, no se copian): sequences 1`] = `
 [
   {
     "condition_expression": null,
@@ -716,28 +680,7 @@ exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id s
 ]
 `;
 
-exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre DRAFT con instancias crea nueva versión: links 1`] = `
-[
-  {
-    "contextual_validations": null,
-    "display_order": 1,
-    "element_id": 40,
-    "field_def_id": 3,
-    "id": 7,
-    "is_readonly": false,
-    "is_required": false,
-  },
-  {
-    "contextual_validations": null,
-    "display_order": 2,
-    "element_id": 40,
-    "field_def_id": 4,
-    "id": 8,
-    "is_readonly": true,
-    "is_required": false,
-  },
-]
-`;
+exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre DRAFT con instancias crea nueva versión: links 1`] = `[]`;
 
 exports[`processes contract PUT con nueva versión [frozen] PUT /processes/:id sobre VERSIONED v1 INACTIVE sin instancias con v3 existente actualiza en sitio (hoy) 1`] = `
 {
@@ -873,7 +816,11 @@ exports[`processes contract PUT en sitio sobre DRAFT [frozen] PUT /processes/:id
     "webhook_target": null,
   },
   {
-    "actions": null,
+    "actions": [
+      {
+        "id": "x",
+      },
+    ],
     "assigned_role_id": 2,
     "bpmn_element_id": "Task_V",
     "description": null,
@@ -1030,7 +977,12 @@ exports[`processes contract creación POST [frozen] POST /processes crea (201) y
     "webhook_target": null,
   },
   {
-    "actions": null,
+    "actions": [
+      {
+        "id": "approve",
+        "label": "Aprobar",
+      },
+    ],
     "assigned_role_id": 1,
     "bpmn_element_id": "Task_N",
     "description": null,
@@ -1217,9 +1169,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml NU
     "diagramJson": {},
     "elements": [
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "StartEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 16,
         "name": "Start",
         "processDefId": 4,
@@ -1228,9 +1183,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml NU
         "webhookTarget": null,
       },
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "EndEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 17,
         "name": "End",
         "processDefId": 4,
@@ -1269,9 +1227,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml in
     "diagramJson": {},
     "elements": [
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "StartEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 16,
         "name": "Start",
         "processDefId": 4,
@@ -1280,9 +1241,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml in
         "webhookTarget": null,
       },
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "EndEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 17,
         "name": "End",
         "processDefId": 4,
@@ -1321,9 +1285,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml va
     "diagramJson": {},
     "elements": [
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "StartEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 16,
         "name": "Start",
         "processDefId": 4,
@@ -1332,9 +1299,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id con bpmn_xml va
         "webhookTarget": null,
       },
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "EndEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 17,
         "name": "End",
         "processDefId": 4,
@@ -1376,9 +1346,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id detalle con ele
     },
     "elements": [
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "StartEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 16,
         "name": "Start",
         "processDefId": 4,
@@ -1387,9 +1360,12 @@ exports[`processes contract lecturas [frozen] GET /processes/:id detalle con ele
         "webhookTarget": null,
       },
       {
+        "actions": null,
         "assignedRoleId": null,
         "bpmnElementId": "EndEvent_E",
+        "caseAssignmentConfig": null,
         "description": null,
+        "formFields": [],
         "id": 17,
         "name": "End",
         "processDefId": 4,

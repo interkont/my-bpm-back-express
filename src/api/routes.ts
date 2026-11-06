@@ -6,6 +6,8 @@ import { taskRouter } from './tasks/tasks.routes';
 import { processRouter } from './processes/processes.routes';
 import { processInstanceRouter } from './process-instances/processInstances.routes';
 import { decisionRouter } from './engine/decision.routes';
+import { fieldRouter } from './fields/field.routes';
+import { elementFormRouter } from './formdata-elements/element-form.routes';
 
 export const apiRouter = Router();
 
@@ -16,3 +18,5 @@ apiRouter.use('/tasks', taskRouter);
 apiRouter.use('/processes', processRouter);
 apiRouter.use('/process-instances', processInstanceRouter);
 apiRouter.use('/engine', decisionRouter);
+apiRouter.use('/fields', fieldRouter);
+apiRouter.use('/formdata-elements', elementFormRouter);

@@ -29,16 +29,21 @@ const startOnce = async (): Promise<RunningServer> => {
   // CHARACTERIZATION_ENTRY permite a cada carril paralelo usar su propia build (p. ej. .build/<carril>/server.js).
   const entry =
     target === 'js' ? 'src/app.js' : (process.env.CHARACTERIZATION_ENTRY ?? 'dist/server.js');
+  // CHARACTERIZATION_JS_ROOT apunta a un worktree con el JS de referencia (p. ej. .build/jsbase).
+  const root =
+    target === 'js'
+      ? path.resolve(REPO_ROOT, process.env.CHARACTERIZATION_JS_ROOT ?? '.')
+      : REPO_ROOT;
   const port = await freePort();
 
   // Se sobrescribe todo lo relevante: dotenv no pisa variables ya definidas
   const child = spawn(process.execPath, [entry], {
-    cwd: REPO_ROOT,
+    cwd: root,
     env: {
       ...process.env,
       PORT: String(port),
       NODE_ENV: 'test',
-      NODE_CONFIG_DIR: path.join(REPO_ROOT, 'src', 'config'),
+      NODE_CONFIG_DIR: path.join(root, 'src', 'config'),
       DATABASE_URL: getTestDatabaseUrl(),
       JWT_SECRET: TEST_JWT_SECRET,
     },

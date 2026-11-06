@@ -22,6 +22,39 @@ export interface FormFieldDto {
   validations: JsonObject;
 }
 
+export interface EnrichedValue {
+  value: JsonValue | null;
+  validations: JsonObject;
+}
+
+const isJsonObject = (value: JsonValue | undefined): value is JsonObject =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/**
+ * Enriquece el valor guardado de un campo según su tipo. Un SELECT cuyo valor coincide con una
+ * opción devuelve la opción completa (`{ label, value }`) para que el frontend tenga la etiqueta;
+ * GRID y el resto devuelven el valor tal cual. `validations` siempre acompaña al valor.
+ */
+export const enrichFieldValue = (
+  fieldDefinition: Pick<FormFieldDefinitionLike, 'fieldType' | 'validations'>,
+  rawValue: JsonValue | null | undefined,
+): EnrichedValue => {
+  const validations = fieldDefinition.validations ?? {};
+  if (rawValue === null || rawValue === undefined) {
+    return { value: null, validations };
+  }
+
+  const options = validations.options;
+  if (fieldDefinition.fieldType === 'SELECT' && Array.isArray(options)) {
+    const selected = options.find((opt) => isJsonObject(opt) && opt.value === rawValue);
+    if (selected !== undefined) {
+      return { value: selected, validations };
+    }
+  }
+
+  return { value: rawValue, validations };
+};
+
 /**
  * Campo de formulario compartido por start-form y task-form (N-08, A-14). El orden de las claves
  * y la mezcla de `validations` son los de hoy; `value` lo decide quien llama (null en start-form,

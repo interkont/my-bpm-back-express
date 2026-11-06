@@ -88,8 +88,8 @@ Fuera de alcance de esta feature. Fuente: [analysis.md §5.3](./analysis.md). Pr
 | C-04 | Sin FKs de dominio; borrados sin dependientes; huérfanos; `decision_logs` NOT NULL vs SET NULL (EXC-03, EXC-04) | Alto | Mensajes 409 al borrar | `00x-referential-integrity` (migración de limpieza + FKs) |
 | C-05 | Permisos y `systemRole` del token (8 h); `users.status` sin verificar; sin límite de login | Alto | Ninguno | `00x-auth-hardening` |
 | C-06 | Semántica del motor: `AUTO_TASK`, modelo de tokens, join frágil, primer paso de decisión sin evaluar gateway | Alto | Posibles cambios en flujos | `00x-engine-token-model` |
-| C-07 | `formFields`, `actions`, `webhook_target`, `sla_definition` descartados; columnas `actions`/`case_assignment_config` fuera del modelo (EXC-10, N-04) | Medio | Habilita funciones ya construidas en UI | `00x-element-forms-and-actions` (`schema.contract.test.ts` fija hoy que solo esas columnas carecen de modelo) |
-| C-08 | `GET /api/fields` inexistente (LIBFORM) | Medio | Arregla el 404 actual | `00x-field-library-api` |
+| ~~C-07~~ | **Resuelto** al incorporar `api-formdata` (sección 8): `formFields` y `actions` se persisten, `actions`/`case_assignment_config` tienen modelo (EXC-10 cerrada) | — | — | — |
+| ~~C-08~~ | **Resuelto** al incorporar `api-formdata` (sección 8): `/api/fields` existe | — | — | — |
 | C-09 | `cors()` abierto; configuración productiva (EXC-08) | Medio | Ninguno | Junto con la salida de fase |
 | C-10 | `PUT /process-instances/:id` devuelve `[n]`; `DELETE /users/:id` inexistente 204; sin paginación | Bajo | Ninguno hoy | `00x-api-contract-cleanup` |
 | C-11 | Activar una versión no depreca la anterior (README dice que sí) | Bajo | Flujo de activación | Decisión de producto (blueprint §14) |
@@ -113,7 +113,7 @@ Fuera de alcance de esta feature. Fuente: [analysis.md §5.3](./analysis.md). Pr
 | EXC-07 restos de plantilla | Resuelto | A-01, A-16; T009, T095 |
 | EXC-08 `cors()` abierto | Pendiente | C-09 (`src/app.ts` sigue con `cors()`) |
 | EXC-09 arranque y producción | Resuelto (retirada en 2.0.1) | A-09: `app.ts`/`server.ts`, `production.json` = `{}`, scripts con `cross-env`; arranque verificado en Windows (`tsx` y `dist`). Pendiente solo la verificación manual en Linux (T091). Configuración productiva real: C-09. |
-| EXC-10 columnas fuera del modelo | Pendiente | C-07; `schema.contract.test.ts` |
+| EXC-10 columnas fuera del modelo | Resuelto | Sección 8; `schema.contract.test.ts` exige ahora que ninguna columna carezca de modelo |
 | EXC-11 `try/catch` en controllers | Resuelto | A-05 |
 | EXC-12 `JWT_SECRET` | Resuelto | A-08; `config.test.ts`; `process.env` solo en `src/config/{env,index,environment}.ts` |
 | EXC-13 documentos legados | Pendiente | `resources/`, `GEMINI.md`, `.idx/airules.md` siguen en el árbol; README marcado como legado y actualizado en T096 |
@@ -156,7 +156,7 @@ Fuera de alcance de esta feature. Fuente: [analysis.md §5.3](./analysis.md). Pr
 | 11.2 Errores y códigos | Parcial | Resueltos B-01, B-02, B-05. Pendiente C-10 (`DELETE /users/:id` 204, `[n]`). |
 | 11.3 Integridad de datos | Parcial | Resuelto B-08 y lista blanca de `id` en elementos/secuencias (`processes.corrections`). Pendientes C-04, C-07; `bpmnXml` con JSON se conserva (AP-16). |
 | 11.4 Motor | Parcial | Resueltos: ciclos y `nextElement` nulo (B-07), `decision-logs` (B-06), `count` muerto (A-10), falsy (B-11). Pendientes (C-06): `AUTO_TASK`, modelo de tokens, join frágil, primer paso sin evaluar gateway. |
-| 11.5 Funcionalidad faltante | Pendiente | C-07, C-08, C-11 |
+| 11.5 Funcionalidad faltante | Parcial | C-07 y C-08 resueltos (sección 8). Pendiente C-11. |
 | 11.6 Proyecto y tooling | Parcial | Resueltos: `start:prod`/`start:dev` (A-09, Linux pendiente), pruebas (A-17), loggers (A-07), `JWT_SECRET` y config (A-08), `index.ts`, `swagger` y metadatos (A-16). README actualizado (T096). Pendientes: documentos legados (EXC-13), migraciones (C-12). |
 
 ---
@@ -193,3 +193,39 @@ Línea base: 14 vulnerabilidades (2 críticas, 8 altas). Tras T095 (`dd3df99`, a
 ## 7. Registro de verificación manual (T091 Linux, T098)
 
 Pendiente. Completar tras ejecutar el arranque en Linux (quickstart §5) y el quickstart completo con el frontend real sin cambios (T098).
+
+---
+
+## 8. Incorporación de `api-formdata` (2026-11-06)
+
+El frontend (`sveltekit-bpm`) ya consumía la funcionalidad de la rama `api-formdata`, que no estaba en `main`. Se fusionó en `main` (JS, `c0105fa`) y se portó a TypeScript al fusionar `main` en `main-ts`.
+
+**Método.** La referencia es el JS de `main` fusionado (worktree `.build/jsbase`; `CHARACTERIZATION_JS_ROOT` en `server-harness.ts`).
+- `tests/contract/formdata.contract.test.ts` (fixture `tests/fixtures/formdata.sql`, ids ≥ 200) se grabó contra ese JS: 32 pruebas `[frozen]` que TS reproduce y 16 correcciones solo TS.
+- En `processes.contract` y `process-instances.contract`, las pruebas en que JS y TS difieren son exactamente las mismas 17 que ya diferían antes de la fusión (correcciones aprobadas de 001). La fusión no introduce diferencias nuevas.
+
+**Funcionalidad portada.**
+- `/api/fields`: CRUD y `GET /types`, solo ADMIN.
+- `/api/formdata-elements/:elementId/form-fields`: alta, lista, actualización en bloque, y actualización y baja de un vínculo; solo ADMIN.
+- `GET /api/processes/:id`: cada elemento incluye `formFields`, `actions` y `caseAssignmentConfig`.
+- Guardado de procesos: sincroniza los `formFields` del payload. Una versión nueva toma los vínculos solo del payload; ya no los copia de la versión origen.
+- Borrado de procesos: elimina antes los vínculos de los elementos.
+- Valor enriquecido de SELECT (`{label, value}`) en el formulario de tarea y en el detalle de instancia, que además expone `validations`.
+- Asignación de casos:
+  - `caseAssignmentData` en el formulario de tarea.
+  - `caseAssignments` al completar una tarea (upsert).
+  - El motor asigna al usuario elegido las tareas de ese rol en la instancia.
+
+**Correcciones aplicadas (mismas reglas que 001).** Todos estos casos daban 500 en JS:
+- Error 404 con `code`: field o vínculo inexistente en PUT o DELETE.
+- Error 400: falta `name`, `label` o `fieldType` al crear un field.
+- Error 400: un vínculo sin `fieldDefId` o `displayOrder`, también dentro de `elements[].formFields` al guardar un proceso.
+- Error 400: el cuerpo de la actualización en bloque no es un arreglo.
+- Error 400: una entrada de `caseAssignments` sin `roleId` o `userId`.
+- Error 409: `name` de field duplicado.
+
+Además, los ids no numéricos devuelven 400, se aplican listas blancas de escritura (FR-029) y los listados sin orden garantizado ahora tienen orden fijo.
+
+**Se conserva.**
+- Un vínculo a un `fieldDefId` inexistente se acepta (201), porque la base no tiene FKs (C-04). El vínculo roto da 422 al leer el formulario (FR-027).
+- El `elementId` de la ruta no se verifica al actualizar o borrar un vínculo por su id.

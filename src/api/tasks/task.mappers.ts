@@ -5,11 +5,12 @@ import type {
   ProcessDefinition,
   ProcessElement,
   ProcessInstance,
+  Role,
   TaskInstance,
   User,
 } from '../../models';
 import { modelError } from '../../domain/errors';
-import { toFormField, type FormFieldDto } from '../../utils/formFields';
+import { enrichFieldValue, toFormField, type FormFieldDto } from '../../utils/formFields';
 
 // Formas planas (`get({ plain: true })`) con solo los atributos que se proyectan en el servicio.
 export type InboxTaskPlain = Pick<
@@ -31,9 +32,24 @@ export type TaskFormLinkPlain = Pick<
 };
 
 export type TaskFormPlain = {
-  processElement?: Pick<ProcessElement, 'name'> & { elementFormLinks?: TaskFormLinkPlain[] };
+  processElement?: Pick<ProcessElement, 'name' | 'actions' | 'caseAssignmentConfig'> & {
+    elementFormLinks?: TaskFormLinkPlain[];
+  };
   processInstance?: { businessData?: BusinessData | null };
 };
+
+// Roles asignables con sus usuarios (proyección de `Role.findAll` con `users`).
+export type AssignableRolePlain = Pick<Role, 'id' | 'name'> & {
+  users?: Pick<User, 'id' | 'fullName' | 'email'>[];
+};
+
+export interface CaseAssignmentDataDto {
+  assignableRoles: {
+    roleId: number;
+    roleName: string;
+    users: { userId: number; userName: string; userEmail: string }[];
+  }[];
+}
 
 export interface InboxItemDto {
   taskId: number;
@@ -50,7 +66,8 @@ export interface InboxItemDto {
 export interface TaskFormDto {
   taskName: string | null;
   fields: FormFieldDto[];
-  actions: string[];
+  actions: JsonValue;
+  caseAssignmentData?: CaseAssignmentDataDto;
 }
 
 export const toInboxItem = (task: InboxTaskPlain): InboxItemDto => ({
@@ -80,19 +97,40 @@ export const toTaskForm = (task: TaskFormPlain): TaskFormDto => {
       throw modelError('Form field definition not found');
     }
     // FR-031: 0, false y "" se muestran tal cual; solo un dato ausente da null.
-    const value: JsonValue | null = businessData[fieldDefinition.name] ?? null;
+    const { value } = enrichFieldValue(fieldDefinition, businessData[fieldDefinition.name] ?? null);
     return toFormField(fieldDefinition, link, value);
   });
-
-  // `actions` no es un atributo del modelo ProcessElement (nunca se carga), por lo que
-  // hoy siempre resulta `['complete']`. Se lee por Reflect.get para conservar el `||` del JS.
-  // El `as` es seguro: el valor es `undefined` o, a lo sumo, un arreglo de strings.
-  const actions = Reflect.get(processElement, 'actions') as string[] | undefined;
 
   return {
     taskName: processElement.name ?? null,
     fields,
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- se conserva el `||` del JS
-    actions: actions || ['complete'],
+    actions: processElement.actions || ['complete'],
   };
 };
+
+/**
+ * Roles que la tarea puede asignar al caso, solo si su elemento lo pide
+ * (`caseAssignmentConfig.isCaseAssignment === true` con al menos un rol).
+ */
+export const assignableRoleIds = (task: TaskFormPlain): number[] => {
+  const config = task.processElement?.caseAssignmentConfig;
+  const roles = config?.assignableRoles;
+  if (config?.isCaseAssignment !== true || !Array.isArray(roles)) return [];
+  // Postgres acepta ids numéricos como texto ("5"); el resto no puede coincidir con ningún rol.
+  return roles
+    .filter((id) => typeof id === 'number' || (typeof id === 'string' && /^\d+$/.test(id)))
+    .map(Number);
+};
+
+export const toCaseAssignmentData = (roles: AssignableRolePlain[]): CaseAssignmentDataDto => ({
+  assignableRoles: roles.map((role) => ({
+    roleId: role.id,
+    roleName: role.name,
+    users: (role.users ?? []).map((user) => ({
+      userId: user.id,
+      userName: user.fullName,
+      userEmail: user.email,
+    })),
+  })),
+});

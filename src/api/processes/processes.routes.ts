@@ -3,7 +3,7 @@ import * as processController from './process.controller';
 import { protect } from '../middlewares/auth.middleware';
 import { isAdmin } from '../middlewares/admin.middleware';
 import { idParam, parseIntIdParam, validateBody } from '../middlewares/validate.middleware';
-import { patchStatusSchema } from './process.schemas';
+import { patchStatusSchema, saveFormFieldsSchema } from './process.schemas';
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ router.use(protect);
 
 router
   .route('/')
-  .post(processController.saveProcessDefinition)
+  .post(validateBody(saveFormFieldsSchema), processController.saveProcessDefinition)
   .get(processController.getAllProcessDefinitions);
 
 router.get('/all', isAdmin, processController.getAllProcessDefinitionsAdmin);
@@ -26,7 +26,7 @@ router.get('/:id/save-ask', parseIntIdParam, processController.getSaveAnalysis);
 router
   .route('/:id')
   .get(parseIntIdParam, processController.getProcessDefinitionById)
-  .put(idParam, processController.saveProcessDefinition)
+  .put(idParam, validateBody(saveFormFieldsSchema), processController.saveProcessDefinition)
   .patch(
     parseIntIdParam,
     validateBody(patchStatusSchema),
